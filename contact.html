@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacto | neoShop</title>
+
+    <!-- Fuentes e iconos -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" href="/assets/icons/isotipoSinFondoNeoShop512.png" type="image/png">
+
+    <link rel="stylesheet" href="contact.css">
+</head>
+
+<body>
+
+    <div class="contact-wrapper">
+
+        <!-- INFORMACION -->
+        <div class="info-card">
+            <h2>Nos encontramos a tus órdenes</h2>
+            <p class="subtitle">En los siguientes medios:</p>
+
+            <div class="info-item">
+                <div class="info-icon"><i class="fas fa-phone"></i></div>
+                <div class="info-text">
+                    <h4>Teléfono</h4>
+                    <a href="tel:+525576908248">+52 55 7690 8248</a>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon"><i class="fas fa-envelope"></i></div>
+                <div class="info-text">
+                    <h4>Correo Electrónico</h4>
+                    <a href="mailto:contacto@neoshop.com">contacto@neoshop.com</a>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon"><i class="fas fa-clock"></i></div>
+                <div class="info-text">
+                    <h4>Horario de Atención</h4>
+                    <p>Lunes a Viernes: 9:00 AM – 6:00 PM</p>
+                    <p>Sábados: 10:00 AM – 2:00 PM</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+                <div class="info-text">
+                    <h4>Ubicación</h4>
+                    <p>Av. Tecnología 310, Col. Digital<br>Ciudad de México, Méx.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FORMULARIO -->
+        <div class="form-card">
+            <div class="msg-icon"><i class="fas fa-comment-dots"></i></div>
+            <h2>Envíanos un mensaje</h2>
+            <div class="divider"></div>
+
+            <form id="contactForm">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" placeholder="Nombre completo" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" placeholder="Correo electrónico" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" placeholder="Teléfono (opcional)">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-tag"></i>
+                    <select required>
+                        <option value="" disabled selected>Tipo de comentario</option>
+                        <option>Soporte técnico</option>
+                        <option>Ventas</option>
+                        <option>Facturación</option>
+                        <option>Sugerencia</option>
+                        <option>Otro</option>
+                    </select>
+                </div>
+                <div class="input-group textarea-group">
+                    <i class="fas fa-comment"></i>
+                    <textarea placeholder="Escribir un mensaje" required></textarea>
+                </div>
+
+                <button type="submit" class="btn-enviar">
+                    <i class="fas fa-paper-plane"></i> ENVIAR
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- JS -->
+    <script src="contact.js"></script>
+
+</body>
+
+</html>

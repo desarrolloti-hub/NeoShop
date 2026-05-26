@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear cuenta | neoShop</title>
+
+    <!-- Fuentes -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
+        rel="stylesheet">
+
+    <!-- Iconos -->
+    <link rel="icon" href="/assets/icons/isotipoSinFondoNeoShop512.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="createAccount.css">
+</head>
+
+<body>
+
+    <div class="register-card">
+
+        <!-- Foto de perfil -->
+        <div class="avatar-wrapper" onclick="document.getElementById('profileImage').click()">
+            <div class="avatar-circle" id="avatarCircle">
+                <i class="fas fa-user" id="avatarIcon"></i>
+                <img id="avatarPreview" alt="Foto de perfil">
+            </div>
+            <div class="avatar-overlay">
+                <i class="fas fa-camera"></i>
+            </div>
+        </div>
+
+        <input type="file" id="profileImage" accept="image/*">
+        <button type="button" id="removeImageBtn">
+            <i class="fas fa-trash"></i> Eliminar foto
+        </button>
+
+        <h2>Crear cuenta</h2>
+
+        <form id="registerForm">
+            <input type="text" placeholder="Empresa / Negocio" required>
+            <input type="text" placeholder="Nombre completo" required>
+            <input type="email" placeholder="Correo electrónico" required>
+            <input type="password" placeholder="Contraseña" required>
+
+            <button type="submit" class="btn">
+                Crear cuenta <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <div class="register-links">
+            <p>¿Ya tienes cuenta? <span>Inicia sesión</span></p>
+        </div>
+
+    </div>
+    <!-- JS -->
+    <script src="createAccount.js"></script>
+
+</body>
+
+</html>

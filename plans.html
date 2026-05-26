@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Planes y precios | neoShop</title>
+    <link rel="stylesheet" href="plans.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" href="/assets/icons/isotipoSinFondoNeoShop512.png" type="image/png">
+</head>
+
+<body>
+
+
+    <main>
+        <!-- Hero de planes -->
+        <section class="plans-hero">
+            <h1>Elige el plan perfecto para tu negocio</h1>
+            <p>Sin contratos largos, sin sorpresas. Cancela cuando quieras.</p>
+        </section>
+
+        <!-- Toggle de facturación (mensual/anual) -->
+        <div class="billing-toggle">
+            <span class="billing-option active" data-period="monthly">Mensual</span>
+            <div class="toggle-switch">
+                <div class="toggle-slider"></div>
+            </div>
+            <span class="billing-option" data-period="yearly">Anual <span class="save-badge">Ahorra 20%</span></span>
+        </div>
+
+        <!-- Tarjetas de planes -->
+        <section class="pricing-grid">
+            <!-- Plan Básico -->
+            <div class="pricing-card" data-plan="basic">
+                <div class="plan-badge">Para empezar</div>
+                <h2>Básico</h2>
+                <div class="price">
+                    <span class="currency">$</span>
+                    <span class="amount" data-monthly="29" data-yearly="23">29</span>
+                    <span class="period">/mes</span>
+                </div>
+                <p class="description">Ideal para negocios que están comenzando</p>
+                <ul class="features-list">
+                    <li><i class="fas fa-check-circle"></i> Hasta 500 productos</li>
+                    <li><i class="fas fa-check-circle"></i> Ventas ilimitadas</li>
+                    <li><i class="fas fa-check-circle"></i> Reportes básicos</li>
+                    <li><i class="fas fa-check-circle"></i> Soporte por email</li>
+                    <li><i class="fas fa-check-circle"></i> 1 usuario</li>
+                </ul>
+                <button class="btn-plan" data-plan="basic">Comenzar ahora</button>
+            </div>
+
+            <!-- Plan Profesional (recomendado) -->
+            <div class="pricing-card featured" data-plan="pro">
+                <div class="plan-badge recommended">Más popular</div>
+                <h2>Profesional</h2>
+                <div class="price">
+                    <span class="currency">$</span>
+                    <span class="amount" data-monthly="59" data-yearly="47">59</span>
+                    <span class="period">/mes</span>
+                </div>
+                <p class="description">Para negocios en crecimiento</p>
+                <ul class="features-list">
+                    <li><i class="fas fa-check-circle"></i> Productos ilimitados</li>
+                    <li><i class="fas fa-check-circle"></i> Ventas ilimitadas</li>
+                    <li><i class="fas fa-check-circle"></i> Reportes avanzados</li>
+                    <li><i class="fas fa-check-circle"></i> Soporte prioritario 24/7</li>
+                    <li><i class="fas fa-check-circle"></i> Hasta 5 usuarios</li>
+                    <li><i class="fas fa-check-circle"></i> Gestión de inventario avanzada</li>
+                    <li><i class="fas fa-check-circle"></i> Múltiples sucursales</li>
+                </ul>
+                <button class="btn-plan btn-primary" data-plan="pro">Comenzar ahora</button>
+            </div>
+
+            <!-- Plan Empresarial -->
+            <div class="pricing-card" data-plan="enterprise">
+                <div class="plan-badge">Escalabilidad</div>
+                <h2>Empresarial</h2>
+                <div class="price">
+                    <span class="currency">$</span>
+                    <span class="amount" data-monthly="99" data-yearly="79">99</span>
+                    <span class="period">/mes</span>
+                </div>
+                <p class="description">Para grandes operaciones</p>
+                <ul class="features-list">
+                    <li><i class="fas fa-check-circle"></i> Todo lo del plan Profesional</li>
+                    <li><i class="fas fa-check-circle"></i> Usuarios ilimitados</li>
+                    <li><i class="fas fa-check-circle"></i> API personalizada</li>
+                    <li><i class="fas fa-check-circle"></i> Asesor dedicado</li>
+                    <li><i class="fas fa-check-circle"></i> Capacitación incluida</li>
+                    <li><i class="fas fa-check-circle"></i> Integraciones a medida</li>
+                </ul>
+                <button class="btn-plan" data-plan="enterprise">Contactar ventas</button>
+            </div>
+        </section>
+
+        <!-- Preguntas frecuentes (FAQ) -->
+        <section class="faq-section">
+            <h2>Preguntas frecuentes</h2>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>¿Puedo cambiar de plan en cualquier momento?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Sí, puedes actualizar o degradar tu plan cuando lo necesites. Los cambios se aplican en tu
+                            próximo ciclo de facturación.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>¿Hay contrato de permanencia?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>No, todos nuestros planes son sin permanencia. Puedes cancelar cuando quieras sin
+                            penalización.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>¿Ofrecen prueba gratuita?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Sí, todos los planes incluyen 14 días de prueba gratuita, sin necesidad de ingresar tarjeta
+                            de crédito.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>¿Qué métodos de pago aceptan?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Aceptamos tarjetas de crédito/débito, PayPal, transferencia bancaria y criptomonedas
+                            seleccionadas.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA final -->
+        <section class="cta-plans">
+            <div class="cta-content">
+                <h2>¿Tienes un negocio con necesidades especiales?</h2>
+                <p>Contáctanos y armamos un plan a tu medida</p>
+                <button class="btn-cta" id="customPlanBtn">Solicitar plan personalizado <i
+                        class="fas fa-arrow-right"></i></button>
+            </div>
+        </section>
+    </main>
+
+
+
+    <script src="plans.js"></script>
+</body>
+
+</html>

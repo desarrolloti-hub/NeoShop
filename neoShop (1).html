@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>neoShop | Punto de Venta Online</title>
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7fc;
+            color: #1e2a3e;
+            line-height: 1.5;
+            scroll-behavior: smooth;
+        }
+
+        /* ----- MODAL LOGIN (oculto por defecto) ----- */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .login-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .login-card {
+            background: white;
+            max-width: 400px;
+            width: 90%;
+            border-radius: 32px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .login-overlay.active .login-card {
+            transform: scale(1);
+        }
+
+        .login-card h2 {
+            color: #456da2;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-card input {
+            width: 100%;
+            margin-bottom: 1rem;
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 28px;
+        }
+
+        .login-card .btn {
+            width: 100%;
+            background-color: #456da2;
+        }
+
+        .close-login {
+            margin-top: 1rem;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+        }
+
+        /* navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: transparent;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            padding: 0.8rem 2rem;
+        }
+
+        .navbar.scrolled {
+            background-color: #bac8db;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        /* Logo: imagen más grande, rectangular, sin fondo */
+        .nav-logo img {
+            height: 70px;
+            width: auto;
+            max-width: 180px;
+            object-fit: contain;
+            background: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .nav-logo span {
+            display: none;
+            /* omitimos texto, solo imagen grande */
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 0.5rem 0;
+            display: inline-block;
+            color: #1f2e45;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+        }
+
+        .navbar:not(.scrolled) .nav-link {
+            color: #111827;
+            text-shadow: 0 0 2px rgba(255, 255, 240, 0.5);
+        }
+
+        .nav-link i {
+            margin-left: 6px;
+            font-size: 0.75rem;
+        }
+
+        .submenu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: white;
+            min-width: 200px;
+            border-radius: 16px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+            padding: 0.75rem 0;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(12px);
+            transition: all 0.25s ease;
+            list-style: none;
+        }
+
+        .nav-item:hover .submenu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .submenu li a {
+            display: block;
+            padding: 0.5rem 1.5rem;
+            text-decoration: none;
+            color: #2c3e50;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .submenu li a:hover {
+            background-color: #eef2f7;
+        }
+
+        .menu-toggle {
+            display: none;
+            font-size: 1.8rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #1f2e45;
+        }
+
+        main {
+            margin-top: 95px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #d4e0f0 0%, #f0f4fa 100%);
+            padding: 2rem 2rem;
+            border-radius: 0 0 2rem 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #456da2;
+        }
+
+        /* Títulos en azul */
+        h2,
+        h3,
+        .section-title {
+            color: #456da2;
+            font-weight: 700;
+        }
+
+        .fade-section {
+            opacity: 0;
+            transform: translateY(25px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+
+        .fade-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1.5rem 2rem;
+        }
+
+        /* Tarjetas de contenido y productos */
+        .cards-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.5rem;
+            width: 280px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-align: center;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .card i {
+            font-size: 2.5rem;
+            color: #456da2;
+            margin-bottom: 1rem;
+        }
+
+        .card h3 {
+            margin-bottom: 0.5rem;
+            color: #456da2;
+        }
+
+        /* Tarjetas de productos */
+        .product-card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.2rem;
+            width: 240px;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 25px rgba(69, 109, 162, 0.15);
+        }
+
+        .product-img {
+            width: 100%;
+            height: 140px;
+            background: #e9edf2;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 3rem;
+            color: #456da2;
+        }
+
+        .product-card h4 {
+            font-size: 1.2rem;
+            margin: 0.5rem 0;
+        }
+
+        .price {
+            font-weight: 700;
+            color: #456da2;
+            font-size: 1.3rem;
+            margin: 0.5rem 0;
+        }
+
+        .btn-sm {
+            background-color: #456da2;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        .btn-sm:hover {
+            background-color: #2f4d74;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #456da2;
+            color: #456da2;
+        }
+
+        .btn-outline:hover {
+            background: #456da2;
+            color: white;
+        }
+
+        /* Formularios: labels color #456da2 */
+        .form-group label {
+            color: #456da2;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.8rem;
+            margin: 2rem 0;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #456da2;
+            box-shadow: 0 0 0 3px rgba(69, 109, 162, 0.2);
+        }
+
+        .btn {
+            background-color: #456da2;
+            color: white;
+            border: none;
+            padding: 12px 26px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-danger {
+            background-color: #dc2626;
+        }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+
+        /* Tabla CRUD y vista responsive */
+        .crud-section {
+            background: white;
+            border-radius: 28px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .crud-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .crud-table th,
+        .crud-table td {
+            padding: 12px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .crud-table th {
+            background-color: #456da2;
+            color: white;
+        }
+
+        .action-buttons button {
+            margin: 0 4px;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+        }
+
+        /* Vista responsive: para móviles ocultar tabla y mostrar tarjetas CRUD */
+        .crud-cards-view {
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .crud-item-card {
+            background: #f9fbfd;
+            border-radius: 24px;
+            padding: 1rem;
+            border-left: 5px solid #456da2;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        }
+
+        .crud-item-card p {
+            margin: 0.4rem 0;
+        }
+
+        .crud-item-card strong {
+            color: #456da2;
+        }
+
+        @media (max-width: 780px) {
+            .table-responsive {
+                display: none;
+            }
+
+            .crud-cards-view {
+                display: flex;
+            }
+
+            .nav-menu {
+                position: fixed;
+                top: 85px;
+                left: -100%;
+                width: 80%;
+                background-color: #bac8db;
+                flex-direction: column;
+                gap: 1rem;
+                padding: 2rem;
+                border-radius: 0 20px 20px 0;
+                transition: left 0.3s;
+            }
+
+            .nav-menu.active {
+                left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .submenu {
+                position: static;
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+                box-shadow: none;
+                background: transparent;
+                padding-left: 1.2rem;
+                display: none;
+            }
+
+            .nav-item.active-sub .submenu {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+        }
+
+        footer {
+            background-color: #456da2;
+            color: #f0f4fa;
+            padding: 2rem 1.5rem 1rem;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: space-between;
+        }
+
+        .footer-col h4 {
+            margin-bottom: 1rem;
+            border-left: 3px solid #ffdd99;
+            padding-left: 0.6rem;
+        }
+
+        .footer-col a {
+            color: #e2e8f0;
+            text-decoration: none;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LOGIN MODAL -->
+    <div id="loginModal" class="login-overlay">
+        <div class="login-card">
+            <i class="fas fa-store" style="font-size: 3rem; color:#456da2;"></i>
+            <h2>Acceso neoShop</h2>
+            <form id="loginForm">
+                <input type="text" id="loginUser" placeholder="Usuario" required>
+                <input type="password" id="loginPass" placeholder="Contraseña" required>
+                <button type="submit" class="btn">Ingresar <i class="fas fa-arrow-right"></i></button>
+            </form>
+            <button class="close-login" id="closeLoginBtn"><i class="fas fa-times"></i> Cerrar</button>
+            <p style="font-size: 0.75rem; margin-top: 1rem;">demo: admin / admin123</p>
+        </div>
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <!-- Imagen rectangular, sin fondo, más ancha que alta -->
+                <img src="logotipoNeoShopSinFondo512.png" alt="neoShop">
+            </div>
+            <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item"><a class="nav-link">Inventario <i class="fas fa-chevron-down"></i></a>
+                    <ul class="submenu">
+                        <li><a href="#">Productos</a></li>
+                        <li><a href="#">Categorías</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item"><a class="nav-link">Ventas <i class="fas fa-chevron-down"></i></a>
+                    <ul class="submenu">
+                        <li><a href="#">Nueva venta</a></li>
+                        <li><a href="#">Historial</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item"><a class="nav-link">Clientes <i class="fas fa-chevron-down"></i></a>
+                    <ul class="submenu">
+                        <li><a href="#">Registrar</a></li>
+                        <li><a href="#">Lista</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item"><a class="nav-link" id="showLoginBtnNav"><i class="fas fa-user-lock"></i> Login</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <div class="hero">
+            <h1>⚡ neoShop POS</h1>
+            <p>Punto de venta inteligente: productos, clientes y ventas en un solo lugar</p>
+            <button class="btn" id="heroLoginBtn"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</button>
+        </div>
+
+        <div class="container">
+            <!-- Tarjetas de contenido existentes + nuevas -->
+            <div class="fade-section">
+                <h2><i class="fas fa-cubes"></i> Características neoShop</h2>
+                <div class="cards-grid">
+                    <div class="card"><i class="fas fa-chart-line"></i>
+                        <h3>Estadísticas reales</h3>
+                        <p>Dashboards dinámicos con métricas clave.</p><button class="btn-sm">Ver más</button>
+                    </div>
+                    <div class="card"><i class="fas fa-boxes"></i>
+                        <h3>Multi-inventario</h3>
+                        <p>Control por sucursales y almacenes.</p><button class="btn-sm">Gestionar</button>
+                    </div>
+                    <div class="card"><i class="fas fa-users"></i>
+                        <h3>CRM avanzado</h3>
+                        <p>Programa de lealtad y promociones.</p><button class="btn-sm">Explorar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjetas de productos simuladas -->
+            <div class="fade-section">
+                <h2><i class="fas fa-tags"></i> Productos destacados</h2>
+                <div class="cards-grid" style="gap: 1.5rem;">
+                    <div class="product-card">
+                        <div class="product-img"><i class="fas fa-laptop-code fa-3x"></i></div>
+                        <h4>Laptop neoBook</h4>
+                        <p class="price">$899</p><button class="btn-sm">Comprar</button><button
+                            class="btn-sm btn-outline">Detalles</button>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-img"><i class="fas fa-mobile-alt fa-3x"></i></div>
+                        <h4>neoPhone 15</h4>
+                        <p class="price">$599</p><button class="btn-sm">Comprar</button><button
+                            class="btn-sm btn-outline">Detalles</button>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-img"><i class="fas fa-headphones fa-3x"></i></div>
+                        <h4>Auriculares Pro</h4>
+                        <p class="price">$89</p><button class="btn-sm">Comprar</button><button
+                            class="btn-sm btn-outline">Detalles</button>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-img"><i class="fas fa-clock fa-3x"></i></div>
+                        <h4>Smartwatch neoFit</h4>
+                        <p class="price">$149</p><button class="btn-sm">Comprar</button><button
+                            class="btn-sm btn-outline">Detalles</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario con labels azules -->
+            <div class="fade-section">
+                <h2><i class="fas fa-user-plus"></i> Nuevo cliente</h2>
+                <div class="form-card">
+                    <form id="clientFormDemo">
+                        <div class="form-group"><label>Nombre completo *</label><input type="text" id="clientName"
+                                placeholder="Ej: Laura Gómez"></div>
+                        <div class="form-group"><label>Correo electrónico</label><input type="email" id="clientEmail"
+                                placeholder="cliente@neoshop.com"></div>
+                        <div class="form-group"><label>Teléfono</label><input type="tel" id="clientPhone"
+                                placeholder="+34 600 123 456"></div>
+                        <button type="submit" class="btn">Registrar cliente <i class="fas fa-save"></i></button>
+                        <span id="formMsg" style="margin-left: 1rem;"></span>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SECCIÓN CRUD (Tabla de productos + vista responsive tipo tarjetas) -->
+            <div class="fade-section">
+                <h2><i class="fas fa-database"></i> Gestión de productos (CRUD)</h2>
+                <div class="crud-section">
+                    <div
+                        style="display: flex; gap:1rem; flex-wrap:wrap; justify-content: space-between; margin-bottom:1.5rem;">
+                        <input type="text" id="newProductName" placeholder="Nombre producto"
+                            style="width: auto; flex:2;">
+                        <input type="number" id="newProductPrice" placeholder="Precio" style="width: 100px;">
+                        <button id="addProductBtn" class="btn-sm">+ Agregar</button>
+                    </div>
+                    <!-- Vista tabla escritorio -->
+                    <div class="table-responsive">
+                        <table class="crud-table" id="productTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Producto</th>
+                                    <th>Precio</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productTableBody"></tbody>
+                        </table>
+                    </div>
+                    <!-- Vista tarjetas para móvil -->
+                    <div id="crudCardsContainer" class="crud-cards-view"></div>
+                </div>
+            </div>
+
+            <!-- Botones adicionales de muestra -->
+            <div class="fade-section" style="text-align: center; margin: 2rem 0;">
+                <button class="btn"><i class="fas fa-cart-plus"></i> Nueva venta</button>
+                <button class="btn btn-outline"
+                    style="background:transparent; border:2px solid #456da2; color:#456da2; margin-left:1rem;"><i
+                        class="fas fa-file-invoice"></i> Reportes</button>
+            </div>
+        </div>
+
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-col">
+                    <h4>neoShop</h4>
+                    <ul>
+                        <li><a href="#">Sobre nosotros</a></li>
+                        <li><a href="#">Trabaja con nosotros</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Soporte</h4>
+                    <ul>
+                        <li><a href="#">Centro ayuda</a></li>
+                        <li><a href="#">Contacto</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Privacidad</a></li>
+                        <li><a href="#">Términos</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 neoShop - Todos los derechos reservados | Sistema POS moderno</p>
+            </div>
+        </footer>
+
+        <script>
+            // ---------- LOGICA LOGIN ----------
+            const loginModal = document.getElementById('loginModal');
+            const showLoginBtns = document.querySelectorAll('#showLoginBtnNav, #heroLoginBtn');
+            const closeLoginBtn = document.getElementById('closeLoginBtn');
+            const loginFormElem = document.getElementById('loginForm');
+
+            function openLoginModal() { loginModal.classList.add('active'); }
+            function closeLoginModal() { loginModal.classList.remove('active'); }
+            showLoginBtns.forEach(btn => btn.addEventListener('click', openLoginModal));
+            closeLoginBtn.addEventListener('click', closeLoginModal);
+            loginFormElem.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const user = document.getElementById('loginUser').value;
+                const pass = document.getElementById('loginPass').value;
+                if (user === 'admin' && pass === 'admin123') {
+                    alert('✅ Bienvenido a neoShop, sesión iniciada correctamente.');
+                    closeLoginModal();
+                } else {
+                    alert('❌ Credenciales incorrectas. Prueba admin / admin123');
+                }
+            });
+
+            // ---------- SCROLL NAVBAR + ANIMACIONES ----------
+            const navbarEl = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 30) navbarEl.classList.add('scrolled');
+                else navbarEl.classList.remove('scrolled');
+            });
+            const fadeElements = document.querySelectorAll('.fade-section');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+            }, { threshold: 0.2 });
+            fadeElements.forEach(el => observer.observe(el));
+
+            // ---------- MENU HAMBURGUESA Y SUBMENU RESPONSIVE ----------
+            const menuToggle = document.getElementById('menuToggle');
+            const navMenu = document.getElementById('navMenu');
+            menuToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+                const icon = menuToggle.querySelector('i');
+                if (navMenu.classList.contains('active')) icon.classList.replace('fa-bars', 'fa-times');
+                else icon.classList.replace('fa-times', 'fa-bars');
+            });
+            const navItems = document.querySelectorAll('.nav-item');
+            function handleMobileSubmenus() {
+                const isMobile = window.innerWidth <= 780;
+                navItems.forEach(item => {
+                    const link = item.querySelector('.nav-link');
+                    const sub = item.querySelector('.submenu');
+                    if (!sub) return;
+                    if (isMobile) {
+                        link.removeEventListener('click', mobileHandler);
+                        link.addEventListener('click', mobileHandler);
+                    } else {
+                        link.removeEventListener('click', mobileHandler);
+                        item.classList.remove('active-sub');
+                        if (sub.style.display) sub.style.display = '';
+                    }
+                });
+            }
+            function mobileHandler(e) {
+                if (window.innerWidth <= 780) {
+                    e.preventDefault();
+                    const parent = this.closest('.nav-item');
+                    if (!parent) return;
+                    navItems.forEach(it => { if (it !== parent && it.classList.contains('active-sub')) it.classList.remove('active-sub'); });
+                    parent.classList.toggle('active-sub');
+                    const submenu = parent.querySelector('.submenu');
+                    if (submenu) submenu.style.display = parent.classList.contains('active-sub') ? 'block' : '';
+                }
+            }
+            window.addEventListener('resize', () => { handleMobileSubmenus(); if (window.innerWidth > 780 && navMenu.classList.contains('active')) navMenu.classList.remove('active'); });
+            handleMobileSubmenus();
+
+            // ---------- CRUD: tabla de productos + renderizado dual (tabla y tarjetas) ----------
+            let products = [
+                { id: 1, name: "Laptop neoBook", price: 899 },
+                { id: 2, name: "neoPhone 15", price: 599 },
+                { id: 3, name: "Tablet neoPad", price: 349 }
+            ];
+            let nextId = 4;
+
+            const productTableBody = document.getElementById('productTableBody');
+            const crudCardsContainer = document.getElementById('crudCardsContainer');
+
+            function renderCRUD() {
+                // Renderizar tabla
+                productTableBody.innerHTML = '';
+                products.forEach(prod => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                <td>${prod.id}</td>
+                <td>${prod.name}</td>
+                <td>$${prod.price}</td>
+                <td class="action-buttons">
+                    <button class="btn-sm edit-product" data-id="${prod.id}"><i class="fas fa-edit"></i> Editar</button>
+                    <button class="btn-sm btn-danger delete-product" data-id="${prod.id}"><i class="fas fa-trash"></i> Eliminar</button>
+                </td>
+            `;
+                    productTableBody.appendChild(row);
+                });
+                // Renderizar tarjetas responsivas
+                crudCardsContainer.innerHTML = '';
+                products.forEach(prod => {
+                    const card = document.createElement('div');
+                    card.className = 'crud-item-card';
+                    card.innerHTML = `
+                <p><strong>ID:</strong> ${prod.id}</p>
+                <p><strong>Producto:</strong> ${prod.name}</p>
+                <p><strong>Precio:</strong> $${prod.price}</p>
+                <div style="display:flex; gap:8px; margin-top:10px;">
+                    <button class="btn-sm edit-product-mobile" data-id="${prod.id}"><i class="fas fa-edit"></i> Editar</button>
+                    <button class="btn-sm btn-danger delete-product-mobile" data-id="${prod.id}"><i class="fas fa-trash"></i> Eliminar</button>
+                </div>
+            `;
+                    crudCardsContainer.appendChild(card);
+                });
+                // Eventos editar/eliminar (ambas vistas)
+                document.querySelectorAll('.edit-product, .edit-product-mobile').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = parseInt(btn.dataset.id);
+                        const product = products.find(p => p.id === id);
+                        if (product) {
+                            const newName = prompt("Editar nombre:", product.name);
+                            if (newName && newName.trim()) product.name = newName.trim();
+                            const newPrice = prompt("Editar precio:", product.price);
+                            if (newPrice && !isNaN(parseFloat(newPrice))) product.price = parseFloat(newPrice);
+                            renderCRUD();
+                        }
+                    });
+                });
+                document.querySelectorAll('.delete-product, .delete-product-mobile').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = parseInt(btn.dataset.id);
+                        products = products.filter(p => p.id !== id);
+                        renderCRUD();
+                    });
+                });
+            }
+
+            document.getElementById('addProductBtn').addEventListener('click', () => {
+                const nameInput = document.getElementById('newProductName');
+                const priceInput = document.getElementById('newProductPrice');
+                const name = nameInput.value.trim();
+                const price = parseFloat(priceInput.value);
+                if (name === "" || isNaN(price)) {
+                    alert("Ingrese nombre y precio válido");
+                    return;
+                }
+                products.push({ id: nextId++, name: name, price: price });
+                nameInput.value = '';
+                priceInput.value = '';
+                renderCRUD();
+            });
+
+            renderCRUD();
+
+            // Formulario demo cliente
+            const clientForm = document.getElementById('clientFormDemo');
+            const msgSpan = document.getElementById('formMsg');
+            clientForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('clientName').value.trim();
+                if (!name) { msgSpan.innerHTML = "❌ Nombre requerido"; msgSpan.style.color = "red"; setTimeout(() => msgSpan.innerHTML = "", 2000); return; }
+                msgSpan.innerHTML = "✅ Cliente registrado (demo)";
+                msgSpan.style.color = "#2e7d32";
+                clientForm.reset();
+                setTimeout(() => msgSpan.innerHTML = "", 2500);
+            });
+        </script>
+</body>
+
+</html>
