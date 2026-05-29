@@ -1,0 +1,109 @@
+/* ============================================ */
+/* VARIABLES Y RESET */
+/* ============================================ */
+
+:root {
+    /* Colores primarios */
+    --color-primary: #456da2;
+    --color-primary-dark: #2f4d74;
+    --color-primary-light: #7d98bb;
+
+    /* Colores secundarios */
+    --color-secondary: #1e3a5f;
+    --color-secondary-dark: #0f2a3f;
+
+    /* Colores de fondo */
+    --bg-white: #ffffff;
+    --bg-light: #f9fbfe;
+    --bg-gray: #f0f4fa;
+    --bg-blue-light: #eef2fa;
+    --bg-blue-medium: #bac8db;
+
+    /* Colores de texto */
+    --text-dark: #1f2a44;
+    --text-gray: #334155;
+    --text-light: #e2e8f0;
+    --text-muted: #64748b;
+
+    /* Colores de borde */
+    --border-light: #cbd5e1;
+
+    /* Sombras */
+    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 15px 25px rgba(0, 0, 0, 0.05);
+    --shadow-primary: 0 4px 8px rgba(69, 109, 162, 0.2);
+
+    /* Tipografía */
+    --font-family: 'Inter', sans-serif;
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.85rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.1rem;
+    --font-size-xl: 1.6rem;
+    --font-size-2xl: 2rem;
+    --font-size-3xl: 2.5rem;
+    --font-size-4xl: 3.2rem;
+    --font-size-5xl: 3.5rem;
+
+    /* Espaciado */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.8rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    --spacing-3xl: 4rem;
+
+    /* Bordes */
+    --border-radius-sm: 8px;
+    --border-radius-md: 10px;
+    --border-radius-lg: 12px;
+    --border-radius-xl: 16px;
+
+    /* Transiciones */
+    --transition-fast: 0.2s;
+    --transition-normal: 0.3s;
+}
+
+/* RESET Y BASE */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-white);
+    color: var(--text-dark);
+    line-height: 1.5;
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    width: 100%;
+}
+
+
+img,
+video,
+iframe {
+    max-width: 100%;
+    height: auto;
+}
+
+/* TIPOGRAFÍA */
+h1,
+h2,
+h3 {
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+h2 {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-md);
+    color: var(--color-secondary);
+}
+
+p {
+    color: var(--text-gray);
+}

@@ -1,0 +1,37 @@
+/* ============================================
+   SECTION STYLES
+   ============================================ */
+.section-padding {
+    padding: 3rem 2rem;
+}
+
+.section-padding-lg {
+    padding: 4rem 2rem;
+}
+
+.section-bg-light {
+    background-color: var(--bg-secondary);
+}
+
+.section-bg-stats {
+    background-color: var(--bg-stats);
+}
+
+/* Hero layout */
+.hero {
+    max-width: 1280px;
+    margin: 7rem auto 2rem;
+    padding: 2rem 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 3rem;
+}
+
+.hero-content {
+    flex: 1;
+}
+
+.hero-image {
+    flex: 1;
+}

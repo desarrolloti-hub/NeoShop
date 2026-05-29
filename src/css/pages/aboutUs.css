@@ -1,0 +1,170 @@
+/* Hero interno */
+.about-hero {
+    text-align: center;
+    padding: 7rem 2rem 3rem;
+    background: linear-gradient(135deg, #eef2fa 0%, #ffffff 100%);
+}
+
+.about-hero h1 {
+    font-size: 2.8rem;
+    color: #1e3a5f;
+    margin-bottom: 1rem;
+}
+
+.about-hero p {
+    font-size: 1.2rem;
+    color: #475569;
+}
+
+/* Nuestra esencia */
+.essence {
+    max-width: 1280px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.essence-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.essence-header h2 {
+    font-size: 2rem;
+    color: #1e3a5f;
+    margin-bottom: 1rem;
+}
+
+.essence-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.card {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.card-title h2 {
+    color: #456da2;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.card-body p {
+    color: #475569;
+    line-height: 1.6;
+}
+
+.list {
+    padding: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #334155;
+}
+
+.list i {
+    color: #22c55e;
+}
+
+/* Filosofía accesible */
+.philosophy {
+    background: #f8fafc;
+    padding: 4rem 2rem;
+    margin: 3rem 0;
+}
+
+.philosophy-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+}
+
+.philosophy-text h2 {
+    font-size: 2rem;
+    color: #1e3a5f;
+    margin-bottom: 1rem;
+}
+
+.philosophy-text p {
+    color: #475569;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.philosophy-icon {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    color: #456da2;
+    font-weight: 500;
+}
+
+.philosophy-icon i {
+    margin-right: 0.5rem;
+}
+
+.philosophy-image img {
+    width: 100%;
+    border-radius: 10px;
+}
+
+/* Lo que ofrecemos */
+.offer-summary {
+    max-width: 1280px;
+    margin: 4rem auto;
+    padding: 0 2rem;
+    text-align: center;
+}
+
+.offer-summary h2 {
+    font-size: 2rem;
+    color: #1e3a5f;
+    margin-bottom: 2rem;
+}
+
+.offer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.offer-item {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    font-weight: 500;
+    color: #1e3a5f;
+}
+
+/* CTA about */
+.about-cta {
+    background: linear-gradient(135deg, #1e3a5f, #456da2);
+    margin: 3rem 2rem;
+    border-radius: 10px;
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.about-cta-content h2 {
+    color: white;
+    margin-bottom: 0.5rem;
+}
+
+.about-cta-content p {
+    color: #cbd5e1;
+    margin-bottom: 1.5rem;
+}

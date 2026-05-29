@@ -1,0 +1,112 @@
+.register-card {
+    background: white;
+    max-width: 400px;
+    width: 90%;
+    border-radius: 10px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+}
+
+/* Avatar */
+.avatar-wrapper {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin: 0 auto 0.8rem;
+    cursor: pointer;
+}
+
+.avatar-circle {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background-color: #dde8f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 3px solid #456da2;
+    transition: 0.2s;
+}
+
+.avatar-circle i {
+    font-size: 3.2rem;
+    color: #456da2;
+}
+
+.avatar-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+    border-radius: 50%;
+}
+
+.avatar-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(69, 109, 162, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: 0.2s;
+}
+
+.avatar-wrapper:hover .avatar-overlay {
+    opacity: 1;
+}
+
+.avatar-overlay i {
+    color: white;
+    font-size: 1.6rem;
+}
+
+#profileImage {
+    display: none;
+}
+
+/* Botón eliminar */
+#removeImageBtn {
+    display: none;
+    margin: 0.5rem auto 0;
+    padding: 6px 16px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+#removeImageBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(220, 38, 38, 0.4);
+}
+
+.register-card h2 {
+    color: #456da2;
+    margin: 0.8rem 0 1.5rem;
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.register-links {
+    margin-top: 1.2rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.register-links span {
+    color: #456da2;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.register-links span:hover {
+    text-decoration: underline;
+}

@@ -1,0 +1,84 @@
+.contact-wrapper {
+    display: flex;
+    gap: 2rem;
+    max-width: 900px;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* TARJETA IZQUIERDA */
+.info-card {
+    background: white;
+    border-radius: 32px;
+    padding: 2rem;
+    flex: 1;
+    min-width: 260px;
+    max-width: 360px;
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.12);
+}
+
+.info-card h2 {
+    color: #456da2;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.subtitle {
+    color: white;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.info-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #456da2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-icon i {
+    color: white;
+}
+
+/* FORMULARIO */
+.form-card {
+    background: #456da2;
+    border-radius: 32px;
+    padding: 2rem;
+    flex: 1;
+    max-width: 400px;
+    text-align: center;
+    color: white;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 28px;
+    padding: 0 14px;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.input-group input,
+.input-group textarea,
+.input-group select {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    width: 100%;
+    padding: 12px 0;
+}

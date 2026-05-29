@@ -1,0 +1,71 @@
+/* ============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================ */
+@media (max-width: 850px) {
+    .menu-toggle {
+        display: block;
+    }
+
+    .nav-menu {
+        position: fixed;
+        top: 65px;
+        right: -100%;
+        background: white;
+        width: 80%;
+        height: calc(100vh - 65px);
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 2rem;
+        box-shadow: -2px 0 12px rgba(0, 0, 0, 0.1);
+        transition: right 0.3s;
+        z-index: 999;
+        gap: 1.5rem;
+    }
+
+    .nav-menu.active {
+        right: 0;
+        left: auto;
+    }
+
+    .hero {
+        flex-direction: column;
+        text-align: center;
+        margin-top: 5rem;
+    }
+
+    .hero-buttons {
+        justify-content: center;
+    }
+
+    .pricing-grid {
+        grid-template-columns: 1fr;
+        max-width: 450px;
+    }
+
+    .footer-container {
+        flex-direction: column;
+        gap: 1.5rem;
+        text-align: center;
+    }
+
+    .footer-col h4 {
+        border-left: none;
+        border-bottom: 3px solid #7d98bb;
+        display: inline-block;
+    }
+}
+
+@media (max-width: 550px) {
+    h1 {
+        font-size: 2rem !important;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .pricing-card {
+        padding: 1.5rem;
+    }
+}

@@ -1,0 +1,38 @@
+<body>
+
+    <div class="register-card">
+
+        <!-- Foto de perfil -->
+        <div class="avatar-wrapper" onclick="document.getElementById('profileImage').click()">
+            <div class="avatar-circle" id="avatarCircle">
+                <i class="fas fa-user" id="avatarIcon"></i>
+                <img id="avatarPreview" alt="Foto de perfil">
+            </div>
+            <div class="avatar-overlay">
+                <i class="fas fa-camera"></i>
+            </div>
+        </div>
+
+        <input type="file" id="profileImage" accept="image/*">
+        <button type="button" id="removeImageBtn">
+            <i class="fas fa-trash"></i> Eliminar foto
+        </button>
+
+        <h2>Crear cuenta</h2>
+
+        <form id="registerForm">
+            <input type="text" placeholder="Empresa / Negocio" required>
+            <input type="text" placeholder="Nombre completo" required>
+            <input type="email" placeholder="Correo electrónico" required>
+            <input type="password" placeholder="Contraseña" required>
+
+            <button type="submit" class="btn">
+                Crear cuenta <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <div class="register-links">
+            <p>¿Ya tienes cuenta? <span>Inicia sesión</span></p>
+        </div>
+
+    </div>

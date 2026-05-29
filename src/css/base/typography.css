@@ -1,0 +1,27 @@
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+h1,
+h2,
+h3 {
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+h1 {
+    font-size: 3.2rem;
+}
+
+h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--color-primary-dark);
+}
+
+p {
+    color: var(--text-body);
+}
+
+.highlight {
+    color: var(--color-primary);
+}
