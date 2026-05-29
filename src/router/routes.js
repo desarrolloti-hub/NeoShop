@@ -26,7 +26,7 @@ export const routes = {
         view: "/modules/visitor/contact/contact.html",
         controller: null
     },
-    "/inciarSesion": {
+    "/iniciarSesion": {
         view: "/modules/visitor/login/login.html",
         controller: null
     },
