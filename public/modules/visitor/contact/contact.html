@@ -9,7 +9,7 @@
             <div class="info-icon"><i class="fas fa-phone"></i></div>
             <div class="info-text">
                 <h4>Teléfono</h4>
-                <a href="tel:+525576908248">+52 55 7690 8248</a>
+                <a href="tel:5576908248">55 7690 8248</a>
             </div>
         </div>
 
@@ -17,7 +17,7 @@
             <div class="info-icon"><i class="fas fa-envelope"></i></div>
             <div class="info-text">
                 <h4>Correo Electrónico</h4>
-                <a href="mailto:contacto@neoshop.com">contacto@neoshop.com</a>
+                <a href="mailto:contacto@neoshop.com">contacto@rsienterprise.com</a>
             </div>
         </div>
 
@@ -26,7 +26,7 @@
             <div class="info-text">
                 <h4>Horario de Atención</h4>
                 <p>Lunes a Viernes: 9:00 AM – 6:00 PM</p>
-                <p>Sábados: 10:00 AM – 2:00 PM</p>
+                <p>Sábados: 09:00 AM – 2:00 PM</p>
             </div>
         </div>
 
@@ -34,34 +34,39 @@
             <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
             <div class="info-text">
                 <h4>Ubicación</h4>
-                <p>Av. Tecnología 310, Col. Digital<br>Ciudad de México, Méx.</p>
+                <p><a href="https://www.google.com/maps/place/RSI+Enterprise+M%C3%A9xico./@19.4316068,-99.0360599,17z/data=!4m6!3m5!1s0x85d1fdd7ad7619c9:0xe45ea2f6c85d2835!8m2!3d19.4316264!4d-99.0339556!16s%2Fg%2F11kgt594nv?entry=ttu&g_ep=EgoyMDI2MDUyNy4wIKXMDSoASAFQAw%3D%3D"
+                        target="_blank">Calle
+                        31 #110, Col. El Sol, Nezahualcóyotl, Méx</a></p>
             </div>
         </div>
     </div>
 
-    <!-- FORMULARIO -->
+    <!-- FORMULARIO con estilos consistentes -->
     <div class="form-card">
         <div class="msg-icon"><i class="fas fa-comment-dots"></i></div>
         <h2>Envíanos un mensaje</h2>
         <div class="divider"></div>
 
         <form id="contactForm">
-            <div class="input-group">
-                <i class="fas fa-user"></i>
-                <input type="text" placeholder="Nombre completo" required>
+            <div class="form-group">
+                <label>Nombre completo</label>
+                <input type="text" placeholder="Tu nombre" required>
             </div>
-            <div class="input-group">
-                <i class="fas fa-envelope"></i>
-                <input type="email" placeholder="Correo electrónico" required>
+
+            <div class="form-group">
+                <label>Correo electrónico</label>
+                <input type="email" placeholder="tu@email.com" required>
             </div>
-            <div class="input-group">
-                <i class="fas fa-phone"></i>
-                <input type="tel" placeholder="Teléfono (opcional)">
+
+            <div class="form-group">
+                <label>Teléfono</label>
+                <input type="tel" placeholder="Opcional">
             </div>
-            <div class="input-group">
-                <i class="fas fa-tag"></i>
+
+            <div class="form-group">
+                <label>Tipo de comentario</label>
                 <select required>
-                    <option value="" disabled selected>Tipo de comentario</option>
+                    <option value="" disabled selected>Selecciona una opción</option>
                     <option>Soporte técnico</option>
                     <option>Ventas</option>
                     <option>Facturación</option>
@@ -69,13 +74,14 @@
                     <option>Otro</option>
                 </select>
             </div>
-            <div class="input-group textarea-group">
-                <i class="fas fa-comment"></i>
-                <textarea placeholder="Escribir un mensaje" required></textarea>
+
+            <div class="form-group">
+                <label>Mensaje</label>
+                <textarea placeholder="Escribe tu mensaje aquí..." required></textarea>
             </div>
 
-            <button type="submit" class="btn-enviar">
-                <i class="fas fa-paper-plane"></i> ENVIAR
+            <button type="submit" class="btn btn-primary btn-contact">
+                <i class="fas fa-paper-plane"></i> Enviar mensaje
             </button>
         </form>
     </div>

@@ -4,8 +4,8 @@
         <p>neoShop es el punto de venta pensado para cualquier persona, sin importar su edad o experiencia
             tecnológica. Vende, controla tu inventario y haz crecer tu negocio con facilidad.</p>
         <div class="hero-buttons">
-            <button class="btn btn-primary" id="heroCta">Probar gratis <i class="fas fa-arrow-right"></i></button>
-            <button class="btn btn-secondary" id="heroDemo">Ver demo <i class="fas fa-play"></i></button>
+            <button class="btn btn-primary" id="heroCta">Conócenos <i class="fas fa-arrow-right"></i></button>
+            <button class="btn btn-secondary" id="heroDemo">Comprar <i class="fas fa-play"></i></button>
         </div>
         <div class="trust-badge">
             <i class="fas fa-shield-alt"></i>
@@ -14,13 +14,63 @@
     </div>
     <div class="hero-image">
         <div class="dashboard-mockup">
-            <div class="mockup-bar"><span>neoShop Dashboard</span><i class="fas fa-chart-line"></i></div>
-            <div class="mockup-stats">
-                <div class="stat"><span>Ventas hoy</span><strong>$1,280</strong></div>
-                <div class="stat"><span>Productos</span><strong>147</strong></div>
-                <div class="stat"><span>Clientes</span><strong>89</strong></div>
+            <div class="mockup-header">
+                <div class="mockup-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span class="mockup-title">neoShop Dashboard</span>
+                <i class="fas fa-chart-line"></i>
             </div>
-            <div class="mockup-chart"></div>
+            <div class="mockup-stats">
+                <div class="stat-card-mockup">
+                    <span class="stat-label">Ventas hoy</span>
+                    <strong class="stat-value">$1,280</strong>
+                    <span class="stat-trend up"><i class="fas fa-arrow-up"></i> +12%</span>
+                </div>
+                <div class="stat-card-mockup">
+                    <span class="stat-label">Productos</span>
+                    <strong class="stat-value">147</strong>
+                    <span class="stat-trend"><i class="fas fa-box"></i> activos</span>
+                </div>
+                <div class="stat-card-mockup">
+                    <span class="stat-label">Clientes</span>
+                    <strong class="stat-value">89</strong>
+                    <span class="stat-trend"><i class="fas fa-user-plus"></i> +5 hoy</span>
+                </div>
+            </div>
+            <div class="mockup-chart-container">
+                <div class="chart-header">
+                    <span>Ventas de la semana</span>
+                    <span class="chart-legend">
+                        <span><i class="fas fa-circle"></i> Esta semana</span>
+                        <span><i class="fas fa-circle" style="opacity: 0.5;"></i> Anterior</span>
+                    </span>
+                </div>
+                <div class="mockup-chart">
+                    <div class="chart-bar" style="height: 40px;"></div>
+                    <div class="chart-bar" style="height: 65px;"></div>
+                    <div class="chart-bar" style="height: 55px;"></div>
+                    <div class="chart-bar" style="height: 80px;"></div>
+                    <div class="chart-bar" style="height: 70px;"></div>
+                    <div class="chart-bar" style="height: 90px;"></div>
+                    <div class="chart-bar" style="height: 60px;"></div>
+                </div>
+                <div class="chart-days">
+                    <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+                </div>
+            </div>
+            <div class="mockup-footer">
+                <div class="recent-sale">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Última venta: Juan Pérez - $450</span>
+                </div>
+                <div class="stock-alert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Stock bajo: 3 productos</span>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -111,7 +161,7 @@
     </div>
 </section>
 
-<!-- Demo / video ficticio -->
+<!-- Demo / video con YouTube y preview - RESPONSIVE -->
 <section class="demo-section" id="demo">
     <div class="demo-container">
         <div class="demo-text">
@@ -126,9 +176,23 @@
             <button class="btn btn-primary" id="demoCta">Comenzar ahora</button>
         </div>
         <div class="demo-video">
-            <div class="video-placeholder">
-                <i class="fas fa-play-circle"></i>
-                <p>Ver demostración interactiva</p>
+            <div class="video-container" id="youtubeVideo" data-video-id="DRsXZgcQlCo">
+                <!-- Preview del video -->
+                <div class="video-preview" id="videoPreview">
+                    <img id="videoThumbnail" class="lazy"
+                        data-src="https://img.youtube.com/vi/DRsXZgcQlCo/maxresdefault.jpg" alt="Video preview"
+                        loading="lazy">
+                    <div class="play-button-overlay">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                </div>
+                <!-- Wrapper del video -->
+                <div class="video-wrapper" id="videoWrapper" style="display: none;">
+                    <iframe id="youtubeFrame" src="" title="YouTube video player" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen>
+                    </iframe>
+                </div>
             </div>
         </div>
     </div>

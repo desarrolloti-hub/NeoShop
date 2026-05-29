@@ -1,37 +1,52 @@
 .login-card {
-    background: white;
+    background: var(--bg-white);
     max-width: 400px;
     width: 90%;
-    border-radius: 10px;
-    padding: 2.5rem 2rem;
+    border-radius: var(--border-radius-md);
+    padding: 2.5rem var(--spacing-xl);
     text-align: center;
     box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+    margin: 30px auto;
 }
 
-.login-card i.fa-store {
-    font-size: 3rem;
-    color: #456da2;
-    margin-bottom: 0.5rem;
+.login-card i.fa-user {
+    font-size: var(--font-size-3xl);
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-xs);
+    border: var(--color-primary) solid;
+    border-radius: 50%;
+    padding: 30px;
+
 }
 
 .login-card h2 {
-    color: #456da2;
-    margin-bottom: 1.5rem;
-    font-size: 1.4rem;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-lg);
+    font-size: var(--font-size-xl);
     font-weight: 700;
 }
 
 .login-links {
-    margin-top: 1.2rem;
-    font-size: 0.85rem;
+    margin-top: var(--spacing-lg);
+    font-size: var(--font-size-sm);
     color: #6b7280;
 }
 
 .login-links a {
-    color: #456da2;
+    color: var(--color-primary);
     text-decoration: none;
 }
 
 .login-links a:hover {
+    text-decoration: underline;
+}
+
+.login-links p span {
+    color: var(--color-primary);
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.login-links p span:hover {
     text-decoration: underline;
 }

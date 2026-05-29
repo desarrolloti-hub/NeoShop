@@ -3,16 +3,21 @@
    ======================================== */
 
 // Importar controllers de vistas
+import { loginController } from '../modules/visitor/login/loginController.js';
+import { init404Controller } from '../modules/shared/errors/404Controller.js';
+import { plansController } from '../modules/visitor/plans/plansController.js';
+import { homeController } from '../modules/visitor/home/homeController.js';
+import { aboutUsController } from '../modules/visitor/aboutUs/aboutUsController.js';
 
 
 export const routes = {
     "/": {
         view: "/modules/visitor/home/home.html",
-        controller: null
+        controller: homeController
     },
     "/planes": {
         view: "/modules/visitor/plans/plans.html",
-        controller: null
+        controller: plansController
     },
     "/ss": {
         view: "/src/views/services.html",
@@ -20,7 +25,7 @@ export const routes = {
     },
     "/nosotros": {
         view: "/modules/visitor/aboutUs/aboutUs.html",
-        controller: null
+        controller: aboutUsController
     },
     "/contacto": {
         view: "/modules/visitor/contact/contact.html",
@@ -28,10 +33,14 @@ export const routes = {
     },
     "/iniciarSesion": {
         view: "/modules/visitor/login/login.html",
-        controller: null
+        controller: loginController
     },
     "/crearCuenta": {
-        view: "/modules/visitor/createAccount.html",
+        view: "/modules/visitor/createAccount/createAccount.html",
         controller: null
+    },
+    '/404': {
+        view: '/modules/shared/errors/404.html',
+        controller: init404Controller
     }
-};
+}

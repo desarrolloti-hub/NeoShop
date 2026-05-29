@@ -69,7 +69,7 @@
     padding: var(--spacing-xs) 0;
     display: inline-block;
     transition: color var(--transition-fast);
-    margin-top: 10px;
+    margin-top: 5px;
 }
 
 .navbar:not(.scrolled) .nav-menu li a {
@@ -92,7 +92,6 @@
 .navbar:not(.scrolled) .btn-outline-nav {
     border-color: var(--color-primary);
     color: var(--color-primary);
-    background: rgba(255, 255, 255, 0.2);
 }
 
 .navbar.scrolled .btn-outline-nav {
@@ -102,9 +101,7 @@
 }
 
 .btn-outline-nav:hover {
-    background: var(--color-primary);
-
-    border-color: var(--color-primary);
+    border-bottom: 2px solid var(--color-primary);
 }
 
 .menu-toggle {

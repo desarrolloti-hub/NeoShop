@@ -1,84 +1,160 @@
 .contact-wrapper {
     display: flex;
-    gap: 2rem;
+    gap: var(--spacing-xl);
     max-width: 900px;
     width: 100%;
     flex-wrap: wrap;
     justify-content: center;
+    margin: -10px auto 30px;
 }
 
 /* TARJETA IZQUIERDA */
 .info-card {
-    background: white;
-    border-radius: 32px;
-    padding: 2rem;
+    background: var(--bg-white);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
     flex: 1;
     min-width: 260px;
     max-width: 360px;
     box-shadow: 0 25px 45px rgba(0, 0, 0, 0.12);
+    margin-top: 30px;
 }
 
 .info-card h2 {
-    color: #456da2;
-    font-size: 1.3rem;
+    color: var(--color-primary);
+    font-size: var(--font-size-xl);
     font-weight: 700;
 }
 
-.subtitle {
-    color: white;
-    font-size: 0.85rem;
-    margin-bottom: 1.5rem;
+.info-card .subtitle {
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-lg);
 }
 
 .info-item {
     display: flex;
-    gap: 1rem;
-    padding: 1rem 0;
-    border-bottom: 1px dashed #e2e8f0;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) 0;
+    border-bottom: 1px dashed var(--border-light);
 }
 
 .info-icon {
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    background: #456da2;
+    background: var(--color-primary);
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .info-icon i {
     color: white;
+    font-size: var(--font-size-lg);
 }
 
-/* FORMULARIO */
+.info-text h4 {
+    color: var(--color-secondary);
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-md);
+}
+
+.info-text p,
+.info-text a {
+    color: var(--text-gray);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+}
+
+.info-text a:hover {
+    color: var(--color-primary);
+}
+
+/* FORMULARIO - usando estilos consistentes */
 .form-card {
-    background: #456da2;
-    border-radius: 32px;
-    padding: 2rem;
+    background: var(--color-primary-light);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
     flex: 1;
     max-width: 400px;
     text-align: center;
+    box-shadow: var(--shadow-md);
+    margin-top: 30px;
+}
+
+.form-card .msg-icon i {
+    font-size: var(--font-size-3xl);
+    margin-bottom: var(--spacing-md);
     color: white;
 }
 
-.input-group {
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 28px;
-    padding: 0 14px;
-    margin-bottom: 1rem;
-    color: white;
+.form-card h2 {
+    color: var(--color-primary-extralight);
+    margin-bottom: var(--spacing-md);
 }
 
-.input-group input,
-.input-group textarea,
-.input-group select {
-    background: transparent;
-    border: none;
-    outline: none;
-    color: white;
+.form-card .divider {
+    width: 60px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.3);
+    margin: 0 auto var(--spacing-lg);
+    border-radius: 3px;
+}
+
+/* Estilos de formulario consistentes pero adaptados a fondo oscuro */
+.form-card .form-group {
+    margin-bottom: var(--spacing-md);
+    text-align: left;
+}
+
+.form-card .form-group label {
+    color: var(--color-primary-extralight);
+    display: block;
+    margin-bottom: var(--spacing-xs);
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+}
+
+.form-card input,
+.form-card textarea,
+.form-card select {
     width: 100%;
-    padding: 12px 0;
+    padding: 12px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--border-radius-sm);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-primary-extralight);
+    transition: var(--transition-fast);
+}
+
+.form-card input:focus,
+.form-card textarea:focus,
+.form-card select:focus {
+    border-color: white;
+    outline: none;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+.form-card input::placeholder,
+.form-card textarea::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.form-card select option {
+    background: var(--color-primary);
+    color: white;
+}
+
+.form-card textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Botón consistente con buttons.css pero adaptado */
+.form-card .btn-contact {
+    width: 100%;
+    margin-top: var(--spacing-sm);
 }

@@ -4,9 +4,13 @@
 
 :root {
     /* Colores primarios */
+    --color-primary-black: #031122;
+    --color-primary-darkest: #152e50;
+    --color-primary-darker: #26446b;
+    --color-primary-dark: #294b77;
     --color-primary: #456da2;
-    --color-primary-dark: #2f4d74;
     --color-primary-light: #7d98bb;
+    --color-primary-extraligth: #bac8db;
 
     /* Colores secundarios */
     --color-secondary: #1e3a5f;
