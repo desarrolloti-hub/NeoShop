@@ -8,6 +8,8 @@ import { init404Controller } from '../modules/shared/errors/404Controller.js';
 import { plansController } from '../modules/visitor/plans/plansController.js';
 import { homeController } from '../modules/visitor/home/homeController.js';
 import { aboutUsController } from '../modules/visitor/aboutUs/aboutUsController.js';
+import { createAccountController } from '../modules/visitor/createAccount/createAccounController.js';
+import { contactController } from '../modules/visitor/contact/contactController.js';
 
 
 export const routes = {
@@ -29,7 +31,7 @@ export const routes = {
     },
     "/contacto": {
         view: "/modules/visitor/contact/contact.html",
-        controller: null
+        controller: contactController
     },
     "/iniciarSesion": {
         view: "/modules/visitor/login/login.html",
@@ -37,7 +39,7 @@ export const routes = {
     },
     "/crearCuenta": {
         view: "/modules/visitor/createAccount/createAccount.html",
-        controller: null
+        controller: createAccountController
     },
     '/404': {
         view: '/modules/shared/errors/404.html',

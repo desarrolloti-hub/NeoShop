@@ -1,115 +1,203 @@
 /* ========================================
    ABOUT US CONTROLLER - neoShop
-   Controlador de la página "Nosotros" con lazy loading
+   TRUE LAZY LOADING - Las secciones se cargan dinámicamente
    ======================================== */
 
 export async function aboutUsController() {
-    console.log('📖 About Us controller inicializado con lazy loading');
+    console.log('📖 About Us controller inicializado con TRUE lazy loading');
 
-    // Inicializar solo lo esencial primero
-    initCtaButton();           // Botón del CTA
-    initScrollReveal();        // Animaciones al hacer scroll
-    initLazyLoading();         // Cargar imágenes diferidas
+    // Limpiar el main y solo mantener el hero
+    setupLazyStructure();
 
-    // Inicializar lo demás con delay (no crítico)
+    // Configurar carga progresiva de secciones
+    setupProgressiveLoading();
+
+    // Inicializar botón CTA
+    initCtaButton();
+}
+
+/**
+ * 1. Preparar estructura - Solo el Hero existe inicialmente
+ */
+function setupLazyStructure() {
+    const main = document.querySelector('.about-main');
+    if (!main) return;
+
+    // Guardar el HTML de las secciones para cargarlas después
+    const essenceHTML = document.querySelector('.essence')?.outerHTML || '';
+    const philosophyHTML = document.querySelector('.philosophy')?.outerHTML || '';
+    const offerHTML = document.querySelector('.offer-summary')?.outerHTML || '';
+    const ctaHTML = document.querySelector('.about-cta')?.outerHTML || '';
+
+    // Guardar en data attributes
+    main.setAttribute('data-essence', encodeURIComponent(essenceHTML));
+    main.setAttribute('data-philosophy', encodeURIComponent(philosophyHTML));
+    main.setAttribute('data-offer', encodeURIComponent(offerHTML));
+    main.setAttribute('data-cta', encodeURIComponent(ctaHTML));
+
+    // Eliminar todas las secciones excepto el hero
+    const sectionsToRemove = main.querySelectorAll('.essence, .philosophy, .offer-summary, .about-cta');
+    sectionsToRemove.forEach(section => section.remove());
+
+    // Crear un contenedor para las secciones lazy
+    const lazyContainer = document.createElement('div');
+    lazyContainer.className = 'lazy-sections-container';
+    lazyContainer.style.minHeight = '200px';
+    main.appendChild(lazyContainer);
+}
+
+/**
+ * 2. Configurar carga progresiva según scroll
+ */
+function setupProgressiveLoading() {
+    const sectionsToLoad = [
+        { name: 'essence', htmlKey: 'data-essence', selector: '.essence', threshold: 0.2 },
+        { name: 'philosophy', htmlKey: 'data-philosophy', selector: '.philosophy', threshold: 0.3 },
+        { name: 'offer', htmlKey: 'data-offer', selector: '.offer-summary', threshold: 0.4 },
+        { name: 'cta', htmlKey: 'data-cta', selector: '.about-cta', threshold: 0.5 }
+    ];
+
+    let loadedCount = 0;
+    const container = document.querySelector('.lazy-sections-container');
+    const main = document.querySelector('.about-main');
+
+    if (!container || !main) return;
+
+    // Crear un marcador de posición para trigger de scroll
+    const trigger = document.createElement('div');
+    trigger.className = 'lazy-trigger';
+    trigger.style.height = '10px';
+    trigger.style.width = '100%';
+    trigger.style.opacity = '0';
+    container.appendChild(trigger);
+
+    // Función para cargar siguiente sección
+    function loadNextSection() {
+        if (loadedCount >= sectionsToLoad.length) {
+            // Ya no hay más secciones, remover trigger
+            trigger.remove();
+            return;
+        }
+
+        const nextSection = sectionsToLoad[loadedCount];
+        const html = decodeURIComponent(main.getAttribute(nextSection.htmlKey) || '');
+
+        if (html) {
+            console.log(`🔄 Cargando sección: ${nextSection.name}`);
+
+            // Insertar la sección
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            const sectionElement = tempDiv.firstElementChild;
+
+            if (sectionElement) {
+                // Ocultar inicialmente para animación
+                sectionElement.style.opacity = '0';
+                sectionElement.style.transform = 'translateY(30px)';
+                sectionElement.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+
+                // Insertar antes del trigger
+                container.insertBefore(sectionElement, trigger);
+
+                // Forzar reflow y mostrar
+                setTimeout(() => {
+                    sectionElement.style.opacity = '1';
+                    sectionElement.style.transform = 'translateY(0)';
+
+                    // Inicializar componentes de la sección cargada
+                    initializeSectionComponents(nextSection.selector);
+
+                    // Cargar imágenes lazy dentro de la sección
+                    loadLazyImagesInSection(sectionElement);
+                }, 50);
+            }
+
+            loadedCount++;
+
+            // Actualizar posición del trigger
+            trigger.style.position = 'relative';
+            trigger.style.top = '0';
+        }
+    }
+
+    // Configurar Intersection Observer para cargar cuando el trigger sea visible
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && loadedCount < sectionsToLoad.length) {
+                loadNextSection();
+            }
+        });
+    }, {
+        rootMargin: '100px',
+        threshold: 0
+    });
+
+    observer.observe(trigger);
+
+    // También cargar la primera sección inmediatamente (pero con pequeño delay)
     setTimeout(() => {
-        initCardHoverEffects();  // Efectos hover en tarjetas
-        initPhilosophyAnimation(); // Animación de filosofía
-        initOfferItemsAnimation(); // Animación de items
+        if (loadedCount === 0) {
+            loadNextSection();
+        }
+    }, 500);
+}
+
+/**
+ * 3. Inicializar componentes según la sección cargada
+ */
+function initializeSectionComponents(selector) {
+    // Esperar a que el DOM se actualice
+    setTimeout(() => {
+        const section = document.querySelector(selector);
+        if (!section) return;
+
+        switch (selector) {
+            case '.essence':
+                initCardHoverEffects();
+                initScrollRevealInSection('.essence');
+                break;
+            case '.philosophy':
+                initPhilosophyAnimation();
+                initScrollRevealInSection('.philosophy');
+                break;
+            case '.offer-summary':
+                initOfferItemsAnimation();
+                initScrollRevealInSection('.offer-summary');
+                break;
+            case '.about-cta':
+                initMagneticButtons();
+                initScrollRevealInSection('.about-cta');
+                break;
+        }
     }, 100);
-
-    console.log('✅ About Us controller activado correctamente');
 }
 
 /**
- * 1. LAZY LOADING para imágenes
- * Usa Intersection Observer para cargar imágenes cuando entran en vista
+ * 4. Cargar imágenes lazy dentro de una sección
  */
-function initLazyLoading() {
-    // Seleccionar todas las imágenes con clase 'lazy' o imágenes dentro de .philosophy-image
-    const lazyImages = document.querySelectorAll('.philosophy-image img, .lazy');
-
-    if ('IntersectionObserver' in window) {
-        const imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    const src = img.getAttribute('data-src');
-
-                    if (src) {
-                        // Crear imagen temporal para precargar
-                        const tempImg = new Image();
-                        tempImg.onload = () => {
-                            img.src = src;
-                            img.classList.add('loaded');
-                        };
-                        tempImg.src = src;
-                        img.removeAttribute('data-src');
-                    }
-                    observer.unobserve(img);
-                }
-            });
-        }, {
-            rootMargin: '100px', // Comienza a cargar 100px antes de entrar en vista
-            threshold: 0.01
-        });
-
-        lazyImages.forEach(img => imageObserver.observe(img));
-    } else {
-        // Fallback para navegadores antiguos
-        lazyImages.forEach(img => {
+function loadLazyImagesInSection(section) {
+    const images = section.querySelectorAll('img');
+    images.forEach(img => {
+        if (img.getAttribute('data-src')) {
             const src = img.getAttribute('data-src');
-            if (src) {
-                img.src = src;
-            }
-        });
-    }
-}
-
-/**
- * 2. BOTÓN DEL CTA (Llamada a la acción)
- */
-function initCtaButton() {
-    const ctaBtn = document.getElementById('aboutCtaBtn');
-
-    if (!ctaBtn) return;
-
-    // Remover event listeners previos para evitar duplicados
-    const newBtn = ctaBtn.cloneNode(true);
-    if (ctaBtn.parentNode) {
-        ctaBtn.parentNode.replaceChild(newBtn, ctaBtn);
-    }
-
-    newBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        addLoadingEffect(newBtn);
-
-        setTimeout(() => {
-            removeLoadingEffect(newBtn);
-
-            // Navegar a la página de planes usando el router
-            if (typeof window.navigateTo === 'function') {
-                window.navigateTo('/planes');
-            } else {
-                window.location.href = '/planes';
-            }
-        }, 300);
+            img.src = src;
+            img.removeAttribute('data-src');
+        }
     });
 }
 
 /**
- * 3. SCROLL REVEAL
- * Elementos que aparecen al hacer scroll con delay escalonado
+ * 5. Scroll reveal para elementos de una sección
  */
-function initScrollReveal() {
-    const revealElements = document.querySelectorAll(
-        '.card, .offer-item, .philosophy-container, .about-hero'
-    );
+function initScrollRevealInSection(sectionSelector) {
+    const section = document.querySelector(sectionSelector);
+    if (!section) return;
+
+    const revealElements = section.querySelectorAll('.card, .offer-item, .philosophy-container');
 
     revealElements.forEach((el, index) => {
         el.classList.add('scroll-reveal');
-        // Delay máximo de 0.3s para no ser molesto
-        el.style.transitionDelay = `${Math.min(index * 0.05, 0.3)}s`;
+        el.style.transitionDelay = `${Math.min(index * 0.03, 0.3)}s`;
     });
 
     const observer = new IntersectionObserver((entries) => {
@@ -125,8 +213,50 @@ function initScrollReveal() {
 }
 
 /**
- * 4. EFECTOS HOVER EN TARJETAS
- * Animaciones suaves al pasar el mouse
+ * 6. BOTÓN DEL CTA
+ */
+function initCtaButton() {
+    // Delegación de eventos (el botón se carga después)
+    document.body.addEventListener('click', (e) => {
+        const btn = e.target.closest('#aboutCtaBtn');
+        if (btn) {
+            e.preventDefault();
+            addLoadingEffect(btn);
+
+            setTimeout(() => {
+                removeLoadingEffect(btn);
+                if (typeof window.navigateTo === 'function') {
+                    window.navigateTo('/planes');
+                } else {
+                    window.location.href = '/planes';
+                }
+            }, 300);
+        }
+    });
+}
+
+/**
+ * 7. EFECTO MAGNÉTICO EN BOTONES
+ */
+function initMagneticButtons() {
+    const buttons = document.querySelectorAll('.btn, .btn-primary');
+
+    buttons.forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+            const rect = btn.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
+        });
+
+        btn.addEventListener('mouseleave', () => {
+            btn.style.transform = 'translate(0, 0)';
+        });
+    });
+}
+
+/**
+ * 8. EFECTOS HOVER EN TARJETAS
  */
 function initCardHoverEffects() {
     const cards = document.querySelectorAll('.card');
@@ -150,40 +280,21 @@ function initCardHoverEffects() {
 }
 
 /**
- * 5. ANIMACIÓN DE FILOSOFÍA
- * Efecto sutil al entrar en vista
+ * 9. ANIMACIÓN DE FILOSOFÍA
  */
 function initPhilosophyAnimation() {
-    const philosophySection = document.querySelector('.philosophy');
     const philosophyImage = document.querySelector('.philosophy-image img');
-
-    if (!philosophySection) return;
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                philosophySection.classList.add('philosophy-visible');
-
-                if (philosophyImage && !philosophyImage.classList.contains('animated')) {
-                    philosophyImage.style.animation = 'floatImage 3s ease-in-out infinite';
-                    philosophyImage.classList.add('animated');
-                }
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.3 });
-
-    observer.observe(philosophySection);
+    if (philosophyImage && !philosophyImage.classList.contains('animated')) {
+        philosophyImage.style.animation = 'floatImage 3s ease-in-out infinite';
+        philosophyImage.classList.add('animated');
+    }
 }
 
 /**
- * 6. ANIMACIÓN DE ITEMS (Offer items)
- * Animación escalonada al hacer scroll
+ * 10. ANIMACIÓN DE OFFER ITEMS
  */
 function initOfferItemsAnimation() {
     const offerItems = document.querySelectorAll('.offer-item');
-
-    if (offerItems.length === 0) return;
 
     const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry, index) => {
@@ -200,7 +311,7 @@ function initOfferItemsAnimation() {
 }
 
 /**
- * 7. EFECTO DE CARGA EN BOTONES
+ * 11. UTILIDADES
  */
 function addLoadingEffect(button) {
     const originalText = button.innerHTML;
@@ -220,35 +331,20 @@ function removeLoadingEffect(button) {
 }
 
 /**
- * 8. FUNCIÓN PÚBLICA PARA ACTUALIZAR TEXTOS (internacionalización)
+ * 12. LIMPIEZA (SPA)
  */
-export function updateAboutTexts(locale = 'es') {
-    const texts = {
-        es: {
-            heroTitle: 'neoShop',
-            heroDesc: 'Punto de venta que entiende a las personas, no al revés.',
-            missionTitle: 'Misión',
-            visionTitle: 'Visión',
-            valuesTitle: 'Valores'
-        },
-        en: {
-            heroTitle: 'neoShop',
-            heroDesc: 'Point of sale that understands people, not the other way around.',
-            missionTitle: 'Mission',
-            visionTitle: 'Vision',
-            valuesTitle: 'Values'
-        }
-    };
+export function cleanupAboutUs() {
+    const magneticButtons = document.querySelectorAll('.btn, .btn-primary');
+    magneticButtons.forEach(btn => {
+        btn.removeEventListener('mousemove', () => { });
+        btn.removeEventListener('mouseleave', () => { });
+    });
 
-    const heroTitle = document.querySelector('.about-hero h1');
-    const heroDesc = document.querySelector('.about-hero p');
-    const missionTitle = document.querySelector('.mission .card-title h2');
-    const visionTitle = document.querySelector('.vision .card-title h2');
-    const valuesTitle = document.querySelector('.values .card-title h2');
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        card.removeEventListener('mouseenter', () => { });
+        card.removeEventListener('mouseleave', () => { });
+    });
 
-    if (heroTitle && texts[locale]) heroTitle.textContent = texts[locale].heroTitle;
-    if (heroDesc && texts[locale]) heroDesc.textContent = texts[locale].heroDesc;
-    if (missionTitle && texts[locale]) missionTitle.textContent = texts[locale].missionTitle;
-    if (visionTitle && texts[locale]) visionTitle.textContent = texts[locale].visionTitle;
-    if (valuesTitle && texts[locale]) valuesTitle.textContent = texts[locale].valuesTitle;
+    console.log('🧹 AboutUs controller cleaned up');
 }
