@@ -1,0 +1,8 @@
+{
+    "projects": {
+        "neoshopmx": "neoshop-mx",
+        "default": "neoshop-mx"
+    },
+    "targets": {},
+    "etags": {}
+}
