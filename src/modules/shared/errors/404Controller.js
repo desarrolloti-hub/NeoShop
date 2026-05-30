@@ -1,34 +1,60 @@
 /* ========================================
-   MAINTENANCE CONTROLLER - Versión simplificada
+   404 CONTROLLER - Solo animación de entrada
    ======================================== */
 
 export async function init404Controller() {
-    console.log('🔧 Maintenance controller activado');
+    console.log('🔧 404 controller inicializado');
+
+    // Animar el contenido al cargar
+    animate404Content();
+
+    // Inicializar botón volver
     initBackButton();
 }
 
 /**
- * BOTÓN VOLVER - History.back() forzoso
+ * 1. Animar el contenido desde abajo
+ */
+function animate404Content() {
+    const maintenanceCard = document.querySelector('.maintenance-card');
+    if (!maintenanceCard) return;
+
+    maintenanceCard.style.opacity = '0';
+    maintenanceCard.style.transform = 'translateY(20px)';
+    maintenanceCard.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+
+    maintenanceCard.offsetHeight;
+
+    maintenanceCard.style.opacity = '1';
+    maintenanceCard.style.transform = 'translateY(0)';
+}
+
+/**
+ * 2. Botón volver
  */
 function initBackButton() {
     const backButton = document.getElementById('backButton');
+    if (!backButton) return;
 
-    if (backButton) {
-        backButton.addEventListener('click', (e) => {
-            e.preventDefault(); // Evita que el href="#" haga scroll al top
+    const newButton = backButton.cloneNode(true);
+    backButton.parentNode.replaceChild(newButton, backButton);
 
-            // Efecto visual al hacer click
-            backButton.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                backButton.style.transform = '';
-            }, 150);
+    newButton.addEventListener('click', (e) => {
+        e.preventDefault();
 
-            // Volver a la página anterior
-            if (window.history.length > 1) {
-                window.history.back();
-            } else {
-                window.location.href = '/';
-            }
-        });
-    }
+        newButton.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            newButton.style.transform = '';
+        }, 150);
+
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.location.href = '/';
+        }
+    });
+}
+
+export function cleanup404() {
+    console.log('🧹 404 controller cleaned up');
 }
