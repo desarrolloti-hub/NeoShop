@@ -14,7 +14,7 @@
             },
             {
                 "source": "**",
-                "destination": "/shared/errors/404.html"
+                "destination": "/index.html"
             }
         ],
         "headers": [
