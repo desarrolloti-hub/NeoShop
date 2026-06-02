@@ -2,7 +2,7 @@
    ROUTES - Definición de rutas
    ======================================== */
 
-// Importar controllers de vistas
+// Visitor
 import { loginController } from '../modules/visitor/login/loginController.js';
 import { init404Controller } from '../modules/shared/errors/404Controller.js';
 import { plansController } from '../modules/visitor/plans/plansController.js';
@@ -12,6 +12,18 @@ import { createAccountController } from '../modules/visitor/createAccount/create
 import { contactController } from '../modules/visitor/contact/contactController.js';
 
 
+
+/* ========================================
+                Rutas HTML 
+   ======================================== */
+
+
+
+
+/* ========================================
+       ----------- Visitor -----------
+   ======================================== */
+
 export const routes = {
     "/": {
         view: "/modules/visitor/home/home.html",
@@ -20,10 +32,6 @@ export const routes = {
     "/planes": {
         view: "/modules/visitor/plans/plans.html",
         controller: plansController
-    },
-    "/ss": {
-        view: "/src/views/services.html",
-        controller: null
     },
     "/nosotros": {
         view: "/modules/visitor/aboutUs/aboutUs.html",
@@ -41,6 +49,11 @@ export const routes = {
         view: "/modules/visitor/createAccount/createAccount.html",
         controller: createAccountController
     },
+
+
+    /* ========================================
+         ----------- Todos -----------
+   ======================================== */
     '/404': {
         view: '/modules/shared/errors/404.html',
         controller: init404Controller
