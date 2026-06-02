@@ -23,15 +23,41 @@
 @import url('./components/forms.css');
 
 
+/* ------------- shared ------------- */
+
+/* errors */
+@import url('./shared/errors/404.css');
+
+
+
 /* Pages */
-@import url('./pages/home.css');
-@import url('./pages/aboutUs.css');
-@import url('./pages/contact.css');
-@import url('./pages/login.css');
-@import url('./pages/plans.css');
-@import url('./pages/aboutUs.css');
-@import url('./pages/createAccount.css');
-@import url('./pages/404.css');
+
+
+/* ------------- visitor ------------- */
+
+/* home */
+@import url('./pages/visitor/home/home.css');
+
+/* login */
+@import url('./pages/visitor/login/login.css');
+
+/* plans */
+@import url('./pages/visitor/plans/plans.css');
+
+/* contact */
+@import url('./pages/visitor/contact/contact.css');
+
+/* aboutUs */
+@import url('./pages/visitor/aboutUs/aboutUs.css');
+
+/* createAccount */
+@import url('./pages/visitor/createAccount/createAccount.css');
+
+
+
+
+
+
 
 /* Utilidades (opcional) 
 @import url('utils/animations.css');
