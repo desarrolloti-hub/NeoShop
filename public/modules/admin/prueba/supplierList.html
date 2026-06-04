@@ -1,0 +1,63 @@
+<!-- FILE: supplierList.html -->
+<!-- Suppliers list view - visual match with design system -->
+<div class="supplier-list-container">
+    <div class="supplier-list-card">
+        <div class="list-header">
+            <h2><i class="fas fa-truck"></i> Mis Proveedores</h2>
+            <button type="button" class="btn btn-primary" id="addNewSupplierBtn">
+                <i class="fas fa-plus"></i> Nuevo proveedor
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="supplier-table">
+                <thead>
+                    <tr>
+                        <th>Imagen</th>
+                        <th>Nombre</th>
+                        <th>Razón social</th>
+                        <th>Teléfono</th>
+                        <th>Correo</th>
+                        <th>RFC</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="supplierTableBody">
+                    <!-- Dynamic rows will be injected here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="list-footer" id="supplierListFooter">
+            <p class="total-count" id="totalSuppliersCount">Total: 0 proveedores</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for view/edit (demo only, no real logic) -->
+<div id="supplierModal" class="supplier-modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Detalles del proveedor</h3>
+            <span class="modal-close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="modal-avatar">
+                <img id="modalAvatar" src="" alt="Avatar" style="display: none;">
+                <i id="modalAvatarIcon" class="fas fa-store"></i>
+            </div>
+            <div class="modal-info">
+                <p><strong>Nombre:</strong> <span id="modalNombre"></span></p>
+                <p><strong>Razón social:</strong> <span id="modalRazonSocial"></span></p>
+                <p><strong>Teléfono:</strong> <span id="modalTelefono"></span></p>
+                <p><strong>Teléfono alterno:</strong> <span id="modalTelefonoAlterno"></span></p>
+                <p><strong>Dirección fiscal:</strong> <span id="modalDireccion"></span></p>
+                <p><strong>Correo:</strong> <span id="modalCorreo"></span></p>
+                <p><strong>RFC:</strong> <span id="modalRfc"></span></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="closeModalBtn">Cerrar</button>
+        </div>
+    </div>
+</div>

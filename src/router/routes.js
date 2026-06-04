@@ -12,6 +12,10 @@ import { createAccountController } from '../modules/visitor/createAccount/create
 import { contactController } from '../modules/visitor/contact/contactController.js';
 
 
+import { cleanupSupplierForm } from '../modules/admin/prueba/createAccount.js';
+
+import { cleanupSupplierList } from '../modules/admin/prueba/supplierListController.js';
+
 
 /* ========================================
                 Rutas HTML 
@@ -50,6 +54,17 @@ export const routes = {
         controller: createAccountController
     },
 
+
+    "/crear": {
+        view: "/modules/admin/prueba/createAccount.html",
+        controller: cleanupSupplierForm
+    },
+
+
+      "/lista": {
+        view: "/modules/admin/prueba/supplierList.html",
+        controller: cleanupSupplierList
+    },
 
     /* ========================================
          ----------- Todos -----------

@@ -64,7 +64,8 @@
 
 
 
-
+@import url('./pages/admin/prueba/createAccount.css');
+@import url('./pages/admin/prueba/supplierList.css');
 
 /* Utilidades (opcional) 
 @import url('utils/animations.css');

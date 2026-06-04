@@ -1,0 +1,41 @@
+<!-- FILE: supplierForm.html -->
+<!-- Supplier registration form view - visual match with createAccount style -->
+<div class="auth-container">
+    <div class="supplier-card">
+        <!-- Image upload section (similar avatar style but square/rounded) -->
+        <div class="avatar-wrapper" id="supplierImageWrapper">
+            <div class="avatar-circle" id="supplierAvatarCircle">
+                <i class="fas fa-store" id="supplierAvatarIcon"></i>
+                <img id="supplierAvatarPreview" alt="Imagen del proveedor">
+            </div>
+            <div class="avatar-overlay">
+                <i class="fas fa-camera"></i>
+            </div>
+        </div>
+
+        <input type="file" id="supplierImageInput" accept="image/*" style="display: none;">
+        <button type="button" id="removeSupplierImageBtn">
+            <i class="fas fa-trash"></i> Eliminar imagen
+        </button>
+
+        <h2>Registrar proveedor</h2>
+
+        <form id="supplierForm">
+            <input type="text" name="nombre" placeholder="Nombre" required>
+            <input type="text" name="razonSocial" placeholder="Denominación o razón social" required>
+            <input type="tel" name="telefono" placeholder="Teléfono" required>
+            <input type="tel" name="telefonoAlterno" placeholder="Teléfono alterno">
+            <input type="text" name="direccionFiscal" placeholder="Dirección fiscal" required>
+            <input type="email" name="correo" placeholder="Correo electrónico" required>
+            <input type="text" name="rfc" placeholder="RFC" required>
+
+            <button type="submit" class="btn btn-primary">
+                Registrar proveedor <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <div class="supplier-links">
+            <p>¿Ya tienes proveedores registrados? <span><a href="proveedoresLista">Ver listado</a></span></p>
+        </div>
+    </div>
+</div>
