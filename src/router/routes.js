@@ -12,7 +12,7 @@ import { createAccountController } from '../modules/visitor/createAccount/create
 import { contactController } from '../modules/visitor/contact/contactController.js';
 
 
-import { cleanupSupplierForm } from '../modules/admin/prueba/createAccount.js';
+import { cleanupSupplierForm } from '../modules/admin/provider/create/createAccount.js';
 
 import { cleanupSupplierList } from '../modules/admin/prueba/supplierListController.js';
 
@@ -56,7 +56,7 @@ export const routes = {
 
 
     "/crear": {
-        view: "/modules/admin/prueba/createAccount.html",
+        view: "/modules/admin/provider/create/createAccount.html",
         controller: cleanupSupplierForm
     },
 
