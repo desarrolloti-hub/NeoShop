@@ -1,5 +1,5 @@
 /* FILE: supplierList.css */
-/* Suppliers list styles - matching createAccount and forms design system */
+/* Suppliers list styles - usando tabla + cards responsive */
 
 .supplier-list-container {
     padding: var(--spacing-xl) var(--spacing-lg);
@@ -8,10 +8,11 @@
 
 .supplier-list-card {
     background: var(--bg-white);
-    border-radius: var(--border-radius-lg);
+    border-radius: 0px;
     box-shadow: var(--shadow-md);
     padding: var(--spacing-xl);
-    max-width: 1400px;
+    max-width: 1600px;
+    width: 100%;
     margin: 0 auto;
     animation: fadeIn 0.4s ease-out;
 }
@@ -45,105 +46,76 @@
     gap: var(--spacing-sm);
 }
 
-/* Table styles */
-.table-responsive {
-    overflow-x: auto;
+/* ============================================
+   TABLA - SOBRESCRITURAS
+   ============================================ */
+.supplier-list-card .component-table-wrapper {
+    padding: 0;
     margin-bottom: var(--spacing-lg);
 }
 
-.supplier-table {
+.supplier-list-card .component-table {
     width: 100%;
-    border-collapse: collapse;
-    font-size: var(--font-size-sm);
+    min-width: 100%;
+    table-layout: auto;
 }
 
-.supplier-table thead tr {
-    background: var(--bg-gray);
-    border-bottom: 2px solid var(--border-light);
+.supplier-list-card .component-table th,
+.supplier-list-card .component-table td {
+    white-space: nowrap;
 }
 
-.supplier-table th {
-    text-align: left;
-    padding: var(--spacing-md) var(--spacing-sm);
-    font-weight: 700;
-    color: var(--color-secondary-dark);
-    font-size: var(--font-size-sm);
+.supplier-list-card .component-table td:first-child,
+.supplier-list-card .component-table th:first-child {
+    padding-left: 12px;
 }
 
-.supplier-table td {
-    padding: var(--spacing-md) var(--spacing-sm);
-    border-bottom: 1px solid var(--border-light);
-    vertical-align: middle;
-    color: var(--text-gray);
+.supplier-list-card .component-table td:last-child,
+.supplier-list-card .component-table th:last-child {
+    padding-right: 12px;
 }
 
-.supplier-table tr:hover {
-    background: var(--bg-light);
-}
-
-/* Image cell */
-.supplier-avatar-cell {
-    width: 50px;
-    text-align: center;
-}
-
+/* Avatar en tabla */
 .supplier-avatar-list {
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 0px;
     object-fit: cover;
     border: 2px solid var(--color-primary-light);
+    background: white;
 }
 
 .supplier-icon-list {
-    font-size: 1.8rem;
-    color: var(--color-primary-light);
-}
-
-/* Action buttons */
-.action-buttons {
-    display: flex;
-    gap: var(--spacing-xs);
-}
-
-.btn-icon {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.2rem;
-    padding: var(--spacing-xs);
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition-fast);
-}
-
-.btn-view {
+    font-size: 1.5rem;
     color: var(--color-primary);
 }
 
-.btn-view:hover {
-    background: var(--bg-blue-light);
-    transform: scale(1.1);
+/* Botones de acción en tabla */
+.supplier-list-card .action-badge {
+    display: flex;
+    gap: 8px;
+    color: white;
 }
 
-.btn-edit {
-    color: #eab308;
+.btn-icon-supplier {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 6px 8px;
+    border-radius: 0px;
+    transition: var(--transition-fast);
+    color: white;
 }
 
-.btn-edit:hover {
-    background: #fef9e3;
-    transform: scale(1.1);
+.btn-icon-supplier:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(1.05);
 }
 
-.btn-delete {
-    color: #ef4444;
-}
-
-.btn-delete:hover {
-    background: #fee2e2;
-    transform: scale(1.1);
-}
-
-/* Footer */
+/* ============================================
+   FOOTER
+   ============================================ */
 .list-footer {
     text-align: right;
     padding-top: var(--spacing-md);
@@ -156,20 +128,45 @@
     font-weight: 500;
 }
 
-/* Empty state */
-.empty-row td {
-    text-align: center;
-    padding: var(--spacing-2xl) !important;
-    color: var(--text-muted);
+/* ============================================
+   RESPONSIVE - solo ocultar/mostrar containers
+   ============================================ */
+@media (max-width: 768px) {
+    .supplier-list-card .component-table-wrapper {
+        display: none;
+    }
+    
+    #supplierCardsContainer {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
+    }
 }
 
-.empty-row i {
-    font-size: 3rem;
-    margin-bottom: var(--spacing-sm);
-    color: var(--border-light);
+@media (max-width: 550px) {
+    .supplier-list-container {
+        padding: var(--spacing-lg) var(--spacing-md);
+    }
+
+    .supplier-list-card {
+        padding: var(--spacing-lg);
+    }
+
+    .list-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    #supplierCardsContainer {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
 }
 
-/* Modal styles (same style as create account) */
+/* ============================================
+   MODAL STYLES
+   ============================================ */
 .supplier-modal {
     position: fixed;
     top: 0;
@@ -186,7 +183,7 @@
 
 .modal-content {
     background: var(--bg-white);
-    border-radius: var(--border-radius-lg);
+    border-radius: 0px;
     max-width: 500px;
     width: 90%;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
@@ -228,7 +225,6 @@
     flex-shrink: 0;
     width: 100px;
     height: 100px;
-    border-radius: 50%;
     background: var(--bg-gray);
     display: flex;
     align-items: center;
@@ -244,7 +240,6 @@
 .modal-avatar img {
     width: 100%;
     height: 100%;
-    border-radius: 50%;
     object-fit: cover;
 }
 
@@ -270,7 +265,9 @@
     justify-content: flex-end;
 }
 
-/* Animations */
+/* ============================================
+   ANIMATIONS
+   ============================================ */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -291,31 +288,7 @@
     }
 }
 
-/* Responsive */
-@media (max-width: 850px) {
-    .supplier-list-container {
-        padding: var(--spacing-lg) var(--spacing-md);
-    }
-
-    .supplier-list-card {
-        padding: var(--spacing-lg);
-    }
-
-    .list-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .supplier-table th,
-    .supplier-table td {
-        padding: var(--spacing-sm) var(--spacing-xs);
-        font-size: 0.75rem;
-    }
-
-    .btn-icon {
-        font-size: 1rem;
-    }
-
+@media (max-width: 550px) {
     .modal-body {
         flex-direction: column;
         align-items: center;

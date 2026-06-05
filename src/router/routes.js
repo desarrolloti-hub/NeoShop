@@ -12,10 +12,22 @@ import { createAccountController } from '../modules/visitor/createAccount/create
 import { contactController } from '../modules/visitor/contact/contactController.js';
 
 
-import { cleanupSupplierForm } from '../modules/admin/provider/create/createAccount.js';
 
-import { cleanupSupplierList } from '../modules/admin/prueba/supplierListController.js';
 
+
+    /* ========================================
+         ----------- Supplier -----------
+   ======================================== */
+
+import { createSupplierController } from '../modules/admin/supplier/create/createSupplierController.js';
+import { readSupplierController } from '../modules/admin/supplier/read/readSupplierController.js';
+import { updateSupplierController } from '../modules/admin/supplier/update/updateSupplierController.js';
+
+
+    /* ========================================
+     ----------- cashSessionStatus -----------    
+    ======================================== */
+import { cashSessionStatusController } from '../modules/admin/cashSessionStatus/cashSessionStatusController.js';
 
 /* ========================================
                 Rutas HTML 
@@ -55,16 +67,38 @@ export const routes = {
     },
 
 
-    "/crear": {
-        view: "/modules/admin/provider/create/createAccount.html",
-        controller: cleanupSupplierForm
+
+
+    /* ========================================
+         ----------- Supplier -----------
+   ======================================== */
+
+
+      "/updateSupplier": {
+        view: "/modules/admin/supplier/update/updateSupplier.html",
+        controller: updateSupplierController
+    },
+    "/createSupplier": {
+        view: "/modules/admin/supplier/create/createSupplier.html",
+        controller: createSupplierController
+    },
+      "/readSupplier": {
+        view: "/modules/admin/supplier/read/readSupplier.html",
+        controller: readSupplierController
+    },
+
+        
+    /* ========================================
+     ----------- cashSessionStatus -----------    
+    ======================================== */
+
+    "/cashSessionStatus": {
+        view: "/modules/admin/cashSessionStatus/cashSessionStatus.html",
+        controller: cashSessionStatusController
     },
 
 
-      "/lista": {
-        view: "/modules/admin/prueba/supplierList.html",
-        controller: cleanupSupplierList
-    },
+    
 
     /* ========================================
          ----------- Todos -----------

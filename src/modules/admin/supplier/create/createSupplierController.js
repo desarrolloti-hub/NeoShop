@@ -1,9 +1,9 @@
-/* FILE: supplierFormController.js */
+/* FILE: createSupplierController.js */
 /* Controller for supplier form - UI only, no business logic.
    Handles image preview, remove button, and dummy form submission.
    Visual behavior matches createAccountController.js */
 
-export function supplierFormController() {
+export function createSupplierController() {
     console.log('📝 Supplier form controller initialized (UI only)');
 
     animateSupplierCard();

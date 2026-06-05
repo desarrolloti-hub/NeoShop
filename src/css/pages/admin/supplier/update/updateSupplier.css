@@ -1,0 +1,230 @@
+/* FILE: updateSupplier.css */
+/* Supplier update form styles - matching createAccount.css design system */
+
+.supplier-card {
+    background: var(--bg-white);
+    max-width: 500px;
+    width: 90%;
+    border-radius: var(--border-radius-md);
+    padding: 2.5rem var(--spacing-xl);
+    text-align: center;
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+    margin: 30px auto;
+}
+
+/* Avatar / image wrapper (reusing same style as createAccount) */
+.avatar-wrapper {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin: 0 auto var(--spacing-sm);
+    cursor: pointer;
+}
+
+.avatar-circle {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 3px solid var(--color-primary);
+    transition: var(--transition-fast);
+    background: var(--bg-gray);
+}
+
+.avatar-circle i {
+    font-size: var(--font-size-3xl);
+    color: var(--color-primary);
+}
+
+.avatar-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+    border-radius: 50%;
+}
+
+.avatar-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(69, 109, 162, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: var(--transition-fast);
+}
+
+.avatar-wrapper:hover .avatar-overlay {
+    opacity: 1;
+}
+
+.avatar-overlay i {
+    color: white;
+    font-size: var(--font-size-xl);
+}
+
+#supplierImageInput {
+    display: none;
+}
+
+/* Remove image button */
+#removeSupplierImageBtn {
+    display: none;
+    margin: var(--spacing-xs) auto 0;
+    padding: 6px 16px;
+    border: none;
+    border-radius: var(--border-radius-md);
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    transition: var(--transition-normal);
+}
+
+#removeSupplierImageBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(220, 38, 38, 0.4);
+}
+
+.supplier-card h2 {
+    color: var(--color-primary);
+    margin: var(--spacing-sm) 0 var(--spacing-lg);
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+}
+
+.supplier-links {
+    margin-top: var(--spacing-lg);
+    font-size: var(--font-size-sm);
+    color: #6b7280;
+}
+
+.supplier-links span {
+    color: var(--color-primary);
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.supplier-links span:hover {
+    text-decoration: underline;
+}
+
+a {
+    text-decoration: none;
+    color: var(--color-primary);
+}
+
+/* Form inputs spacing */
+.supplier-card input {
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+/* Button styles */
+.supplier-card .btn-primary {
+    width: 100%;
+    justify-content: center;
+}
+
+.supplier-card .btn-secondary {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-md);
+    padding: 12px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.supplier-card .btn-secondary:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(75, 85, 99, 0.3);
+    background: linear-gradient(135deg, #5a6268, #3a4249);
+}
+
+/* Animation same as createAccount */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Loading overlay for update */
+.update-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.update-loading-spinner {
+    background: white;
+    padding: 20px 30px;
+    border-radius: var(--border-radius-md);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.update-loading-spinner i {
+    font-size: 24px;
+}
+
+/* Responsive */
+@media (max-width: 550px) {
+    .supplier-card {
+        padding: 2rem var(--spacing-lg);
+        width: 95%;
+    }
+    
+    #updateSupplierForm div {
+        flex-direction: column;
+    }
+}

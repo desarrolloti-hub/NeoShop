@@ -35,13 +35,36 @@ let mockSuppliers = [
         correo: 'roberto@logissanchez.com',
         rfc: 'SALR900505XXX',
         imagen: null
+    },
+    {
+        id: 4,
+        nombre: 'Mariana Gutiérrez',
+        razonSocial: 'Gutiérrez y Asociados S.A.P.I. de C.V.',
+        telefono: '555-2223344',
+        telefonoAlterno: '555-2223345',
+        direccionFiscal: 'Av. Universidad 1500, Col. Narvarte, CDMX',
+        correo: 'contacto@gutierrezasociados.com',
+        rfc: 'GUMA850617XXX',
+        imagen: null
+    },
+    {
+        id: 5,
+        nombre: 'Fernando Ramírez',
+        razonSocial: 'Ramírez Soluciones Empresariales',
+        telefono: '555-8887766',
+        telefonoAlterno: '555-8887767',
+        direccionFiscal: 'Paseo de la Reforma 2500, Col. Lomas de Chapultepec, CDMX',
+        correo: 'framirez@ramirezsoluciones.com',
+        rfc: 'RAFE920303XXX',
+        imagen: null
     }
 ];
 
-export function supplierListController() {
-    console.log('📋 Suppliers list controller initialized (UI demo)');
+export function readSupplierController() {
+    console.log('Suppliers list controller initialized (UI demo)');
 
     renderSuppliersTable();
+    renderSuppliersCards();
     initAddSupplierButton();
     initModalClose();
     initOutsideModalClose();
@@ -60,11 +83,15 @@ function renderSuppliersTable() {
         tbody.innerHTML = `
             <tr class="empty-row">
                 <td colspan="7">
-                    <i class="fas fa-box-open"></i><br>
-                    No hay proveedores registrados<br>
-                    <button class="btn btn-primary" id="emptyAddBtn" style="margin-top: 10px;">
-                        <i class="fas fa-plus"></i> Agregar proveedor
-                    </button>
+                    <div class="middle-block" style="justify-content: center; background-color: transparent; box-shadow: none;">
+                        <span>
+                            <i class="fas fa-store-slash"></i><br>
+                            No hay proveedores registrados<br>
+                            <button class="btn btn-primary" id="emptyAddBtn" style="margin-top: 10px;">
+                                <i class="fas fa-plus"></i> Agregar proveedor
+                            </button>
+                        </span>
+                    </div>
                 </td>
             </tr>
         `;
@@ -73,7 +100,7 @@ function renderSuppliersTable() {
         const emptyAddBtn = document.getElementById('emptyAddBtn');
         if (emptyAddBtn) {
             emptyAddBtn.addEventListener('click', () => {
-                showTemporaryMessage('📝 Redirigiría al formulario de registro (demo)', 'info');
+                showTemporaryMessage('Redirigiría al formulario de registro (demo)', 'info');
             });
         }
         return;
@@ -82,30 +109,35 @@ function renderSuppliersTable() {
     let html = '';
     mockSuppliers.forEach(supplier => {
         const hasImage = supplier.imagen && supplier.imagen !== '';
+        
         html += `
             <tr data-id="${supplier.id}">
-                <td class="supplier-avatar-cell">
-                    ${hasImage ? 
-                        `<img src="${supplier.imagen}" class="supplier-avatar-list" alt="avatar">` : 
-                        `<i class="fas fa-store supplier-icon-list"></i>`
-                    }
-                </td>
-                <td>${escapeHtml(supplier.nombre)}</td>
-                <td>${escapeHtml(supplier.razonSocial)}</td>
-                <td>${escapeHtml(supplier.telefono)}</td>
-                <td>${escapeHtml(supplier.correo)}</td>
-                <td>${escapeHtml(supplier.rfc)}</td>
                 <td>
-                    <div class="action-buttons">
-                        <button class="btn-icon btn-view" data-action="view" data-id="${supplier.id}" title="Ver detalles">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn-icon btn-edit" data-action="edit" data-id="${supplier.id}" title="Editar (demo)">
-                            <i class="fas fa-pencil-alt"></i>
-                        </button>
-                        <button class="btn-icon btn-delete" data-action="delete" data-id="${supplier.id}" title="Eliminar (demo)">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                    <div class="direct-text">
+                        ${hasImage ? 
+                            `<img src="${supplier.imagen}" class="supplier-avatar-list" alt="avatar">` : 
+                            `<i class="fas fa-store supplier-icon-list"></i>`
+                        }
+                    </div>
+                </td>
+                <td><div class="middle-block"><span>${escapeHtml(supplier.nombre)}</span></div></td>
+                <td><div class="middle-block"><span>${escapeHtml(supplier.razonSocial)}</span></div></td>
+                <td><div class="middle-block"><span>${escapeHtml(supplier.telefono)}</span></div></td>
+                <td><div class="middle-block"><span>${escapeHtml(supplier.correo)}</span></div></td>
+                <td><div class="middle-block"><span>${escapeHtml(supplier.rfc)}</span></div></td>
+                <td>
+                    <div class="direct-text">
+                        <div class="action-badge">
+                            <button class="btn-icon-supplier btn-view" data-action="view" data-id="${supplier.id}" title="Ver detalles">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-icon-supplier btn-edit" data-action="edit" data-id="${supplier.id}" title="Editar (demo)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon-supplier btn-delete" data-action="delete" data-id="${supplier.id}" title="Eliminar (demo)">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
                     </div>
                 </td>
             </tr>
@@ -115,7 +147,6 @@ function renderSuppliersTable() {
     tbody.innerHTML = html;
     if (totalSpan) totalSpan.textContent = `Total: ${mockSuppliers.length} proveedores`;
 
-    // Attach event listeners to action buttons
     document.querySelectorAll('.btn-view').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -128,11 +159,105 @@ function renderSuppliersTable() {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const id = parseInt(btn.dataset.id);
-            showTemporaryMessage(`✏️ Editar proveedor ID: ${id} (demo visual)`, 'info');
+            showTemporaryMessage(`Editar proveedor ID: ${id} (demo visual)`, 'info');
         });
     });
 
     document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = parseInt(btn.dataset.id);
+            deleteSupplierDemo(id);
+        });
+    });
+}
+
+/**
+ * Render compact suppliers cards for mobile view
+ * Solo muestra: imagen, nombre, razón social y acciones
+ */
+/**
+ * Render compact suppliers cards for mobile view
+ * Botones estilo tabla: fondo azul claro con iconos blancos
+ */
+function renderSuppliersCards() {
+    const cardsContainer = document.getElementById('supplierCardsContainer');
+    const totalSpan = document.getElementById('totalSuppliersCount');
+
+    if (!cardsContainer) return;
+
+    if (mockSuppliers.length === 0) {
+        cardsContainer.innerHTML = `
+            <div class="cards-empty-state">
+                <i class="fas fa-store-slash"></i>
+                <p>No hay proveedores registrados</p>
+                <button class="btn btn-primary" id="emptyCardsAddBtn" style="margin-top: 10px;">
+                    <i class="fas fa-plus"></i> Agregar proveedor
+                </button>
+            </div>
+        `;
+        const emptyCardsAddBtn = document.getElementById('emptyCardsAddBtn');
+        if (emptyCardsAddBtn) {
+            emptyCardsAddBtn.addEventListener('click', () => {
+                showTemporaryMessage('Redirigiría al formulario de registro (demo)', 'info');
+            });
+        }
+        return;
+    }
+
+    let cardsHtml = '';
+    mockSuppliers.forEach(supplier => {
+        const hasImage = supplier.imagen && supplier.imagen !== '';
+        
+        cardsHtml += `
+            <div class="supplier-card-item" data-id="${supplier.id}">
+                <div class="supplier-card-header">
+                    <div class="supplier-card-avatar">
+                        ${hasImage ? 
+                            `<img src="${supplier.imagen}" alt="avatar">` : 
+                            `<i class="fas fa-store"></i>`
+                        }
+                    </div>
+                    <div class="supplier-card-title">
+                        <h4>${escapeHtml(supplier.nombre)}</h4>
+                        <small>${escapeHtml(supplier.razonSocial)}</small>
+                    </div>
+                </div>
+                <div class="supplier-card-actions">
+                    <button class="card-action-icon btn-view" data-action="view" data-id="${supplier.id}" title="Ver detalles">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="card-action-icon btn-edit" data-action="edit" data-id="${supplier.id}" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="card-action-icon btn-delete" data-action="delete" data-id="${supplier.id}" title="Eliminar">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+
+    cardsContainer.innerHTML = cardsHtml;
+    if (totalSpan) totalSpan.textContent = `Total: ${mockSuppliers.length} proveedores`;
+
+    cardsContainer.querySelectorAll('.card-action-icon.btn-view').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = parseInt(btn.dataset.id);
+            viewSupplierDetails(id);
+        });
+    });
+
+    cardsContainer.querySelectorAll('.card-action-icon.btn-edit').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = parseInt(btn.dataset.id);
+            showTemporaryMessage(`Editar proveedor ID: ${id} (demo visual)`, 'info');
+        });
+    });
+
+    cardsContainer.querySelectorAll('.card-action-icon.btn-delete').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const id = parseInt(btn.dataset.id);
@@ -192,14 +317,12 @@ function deleteSupplierDemo(id) {
     const supplier = mockSuppliers.find(s => s.id === id);
     if (!supplier) return;
 
-    // Show confirmation-like toast
-    showTemporaryMessage(`🗑️ Proveedor "${supplier.nombre}" eliminado (demo)`, 'error');
+    showTemporaryMessage(`Proveedor "${supplier.nombre}" eliminado (demo)`, 'error');
 
-    // Remove from mock array
     mockSuppliers = mockSuppliers.filter(s => s.id !== id);
 
-    // Re-render table
     renderSuppliersTable();
+    renderSuppliersCards();
 }
 
 /**
@@ -211,7 +334,7 @@ function initAddSupplierButton() {
         const newBtn = addBtn.cloneNode(true);
         addBtn.parentNode.replaceChild(newBtn, addBtn);
         newBtn.addEventListener('click', () => {
-            showTemporaryMessage('➕ Redirigiría al formulario de registro de proveedores (demo)', 'info');
+            showTemporaryMessage('Redirigiría al formulario de registro de proveedores (demo)', 'info');
         });
     }
 }
@@ -262,7 +385,7 @@ function escapeHtml(str) {
 }
 
 /**
- * Toast message (same style as createAccount)
+ * Toast message
  */
 function showTemporaryMessage(message, type = 'info') {
     const existingToast = document.querySelector('.supplier-toast-list');
@@ -283,6 +406,7 @@ function showTemporaryMessage(message, type = 'info') {
         z-index: 10000;
         animation: slideInRight 0.3s ease;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        font-family: 'Inter', sans-serif;
     `;
 
     document.body.appendChild(toast);
@@ -299,5 +423,5 @@ function showTemporaryMessage(message, type = 'info') {
 export function cleanupSupplierList() {
     const modal = document.getElementById('supplierModal');
     if (modal) modal.style.display = 'none';
-    console.log('🧹 Supplier list controller cleaned up');
+    console.log('Supplier list controller cleaned up');
 }

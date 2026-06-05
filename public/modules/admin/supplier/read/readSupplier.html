@@ -1,5 +1,5 @@
 <!-- FILE: supplierList.html -->
-<!-- Suppliers list view - visual match with design system -->
+<!-- Suppliers list view - usando componente de tabla + cards responsive -->
 <div class="supplier-list-container">
     <div class="supplier-list-card">
         <div class="list-header">
@@ -9,8 +9,9 @@
             </button>
         </div>
 
-        <div class="table-responsive">
-            <table class="supplier-table">
+        <!-- TABLA - se oculta en móvil -->
+        <div class="component-table-wrapper cards-table-wrapper">
+            <table class="component-table">
                 <thead>
                     <tr>
                         <th>Imagen</th>
@@ -23,9 +24,14 @@
                     </tr>
                 </thead>
                 <tbody id="supplierTableBody">
-                    <!-- Dynamic rows will be injected here -->
+                    <!-- Los registros se inyectan dinámicamente con JS -->
                 </tbody>
             </table>
+        </div>
+
+        <!-- CARDS - se muestra en móvil -->
+        <div class="component-cards" id="supplierCardsContainer">
+            <!-- Las cards se generan dinámicamente con JS -->
         </div>
 
         <div class="list-footer" id="supplierListFooter">
@@ -34,7 +40,7 @@
     </div>
 </div>
 
-<!-- Modal for view/edit (demo only, no real logic) -->
+<!-- Modal for view -->
 <div id="supplierModal" class="supplier-modal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
