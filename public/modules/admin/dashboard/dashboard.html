@@ -1,0 +1,227 @@
+<!-- pages/dashboard.html -->
+<div class="dashboard-container">
+    <!-- Top Navbar -->
+    <div class="top-navbar">
+        <div class="page-title">
+            <h1>Dashboard</h1>
+            <p>Bienvenido de nuevo, Admin</p>
+        </div>
+        <div class="user-menu">
+            <div class="notification-icon">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">3</span>
+            </div>
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjetas de estadísticas - 4 tarjetas como en la imagen -->
+    <div class="dashboard-grid">
+        <div class="stat-card scroll-reveal" data-stat="ventas">
+            <div class="stat-info">
+                <h3>Ventas Totales</h3>
+                <div class="stat-number">456</div>
+                <div class="stat-trend up">
+                    <i class="fas fa-arrow-up"></i> +12.5%
+                </div>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+        </div>
+        <div class="stat-card scroll-reveal" data-stat="ingresos">
+            <div class="stat-info">
+                <h3>Ingresos</h3>
+                <div class="stat-number">$12,456</div>
+                <div class="stat-trend up">
+                    <i class="fas fa-arrow-up"></i> +8.2%
+                </div>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+        </div>
+        <div class="stat-card scroll-reveal" data-stat="clientes">
+            <div class="stat-info">
+                <h3>Clientes Nuevos</h3>
+                <div class="stat-number">89</div>
+                <div class="stat-trend up">
+                    <i class="fas fa-arrow-up"></i> +5
+                </div>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+        <div class="stat-card scroll-reveal" data-stat="productos">
+            <div class="stat-info">
+                <h3>Productos</h3>
+                <div class="stat-number">147</div>
+                <div class="stat-trend">
+                    <i class="fas fa-box"></i> Activos
+                </div>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-boxes"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Gráficos -->
+    <div class="charts-section">
+        <div class="chart-card scroll-reveal">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-line"></i> Ventas por semana</h3>
+                <select id="weekSelect" class="btn-outline">
+                    <option value="current">Esta semana</option>
+                    <option value="previous">Semana pasada</option>
+                </select>
+            </div>
+            <div class="chart-container" id="salesChart">
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="height: 0px;" data-height="40"></div>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="height: 0px;" data-height="65"></div>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="height: 0px;" data-height="55"></div>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="height: 0px;" data-height="80"></div>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="height: 0px;" data-height="70"></div>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="height: 0px;" data-height="90"></div>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="height: 0px;" data-height="60"></div>
+                </div>
+            </div>
+            <div class="chart-days">
+                <span class="chart-label">Lun</span>
+                <span class="chart-label">Mar</span>
+                <span class="chart-label">Mié</span>
+                <span class="chart-label">Jue</span>
+                <span class="chart-label">Vie</span>
+                <span class="chart-label">Sáb</span>
+                <span class="chart-label">Dom</span>
+            </div>
+        </div>
+
+        <div class="chart-card scroll-reveal">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-pie"></i> Productos más vendidos</h3>
+                <button class="btn-outline" id="viewAllProducts">Ver más</button>
+            </div>
+            <div class="top-products" id="topProducts">
+                <div class="product-item">
+                    <div>
+                        <strong>Laptop neoBook</strong>
+                        <div class="stat-trend up">
+                            <i class="fas fa-arrow-up"></i> 234 ventas
+                        </div>
+                    </div>
+                    <span class="badge badge-success">234 uds</span>
+                </div>
+                <div class="product-item">
+                    <div>
+                        <strong>Mouse inalámbrico</strong>
+                        <div class="stat-trend up">
+                            <i class="fas fa-arrow-up"></i> 189 ventas
+                        </div>
+                    </div>
+                    <span class="badge badge-success">189 uds</span>
+                </div>
+                <div class="product-item">
+                    <div>
+                        <strong>Teclado mecánico</strong>
+                        <div class="stat-trend down">
+                            <i class="fas fa-arrow-down"></i> 145 ventas
+                        </div>
+                    </div>
+                    <span class="badge badge-warning">145 uds</span>
+                </div>
+                <div class="product-item">
+                    <div>
+                        <strong>Monitor 24"</strong>
+                        <div class="stat-trend up">
+                            <i class="fas fa-arrow-up"></i> 98 ventas
+                        </div>
+                    </div>
+                    <span class="badge badge-success">98 uds</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ventas Recientes -->
+    <div class="recent-sales scroll-reveal">
+        <div class="section-title">
+            <h3><i class="fas fa-clock"></i> Ventas Recientes</h3>
+            <button class="btn-outline" id="viewAllSales">Ver todas</button>
+        </div>
+        <div class="sales-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID Venta</th>
+                        <th>Cliente</th>
+                        <th>Producto</th>
+                        <th>Monto</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="salesTableBody">
+                    <tr>
+                        <td>#001234</td>
+                        <td>María González</td>
+                        <td>Laptop neoBook</td>
+                        <td>$1,299</td>
+                        <td><span class="badge badge-success">Completado</span></td>
+                    </tr>
+                    <tr>
+                        <td>#001235</td>
+                        <td>Carlos Ruiz</td>
+                        <td>Mouse inalámbrico</td>
+                        <td>$45</td>
+                        <td><span class="badge badge-success">Completado</span></td>
+                    </tr>
+                    <tr>
+                        <td>#001236</td>
+                        <td>Ana Martínez</td>
+                        <td>Teclado mecánico</td>
+                        <td>$89</td>
+                        <td><span class="badge badge-warning">Pendiente</span></td>
+                    </tr>
+                    <tr>
+                        <td>#001237</td>
+                        <td>Luis Fernández</td>
+                        <td>Monitor 24"</td>
+                        <td>$299</td>
+                        <td><span class="badge badge-success">Completado</span></td>
+                    </tr>
+                    <tr>
+                        <td>#001238</td>
+                        <td>Laura Silva</td>
+                        <td>Laptop neoBook</td>
+                        <td>$1,299</td>
+                        <td><span class="badge badge-success">Completado</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Botones como en la imagen -->
+    <div class="button-group">
+        <button class="btn-primary" id="btnNuevo"><i class="fas fa-plus"></i> Nuevo</button>
+        <button class="btn-primary" id="btnEditar"><i class="fas fa-edit"></i> Editar</button>
+        <button class="btn-secondary" id="btnExportar"><i class="fas fa-download"></i> Exportar</button>
+        <button class="btn-secondary" id="btnImprimir"><i class="fas fa-print"></i> Imprimir</button>
+    </div>
+</div>
