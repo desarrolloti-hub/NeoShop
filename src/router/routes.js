@@ -13,6 +13,22 @@ import { contactController } from '../modules/visitor/contact/contactController.
 
 
 
+
+
+    /* ========================================
+         ----------- Supplier -----------
+   ======================================== */
+
+import { createSupplierController } from '../modules/admin/supplier/create/createSupplierController.js';
+import { readSupplierController } from '../modules/admin/supplier/read/readSupplierController.js';
+import { updateSupplierController } from '../modules/admin/supplier/update/updateSupplierController.js';
+
+
+    /* ========================================
+     ----------- cashSessionStatus -----------    
+    ======================================== */
+import { cashSessionStatusController } from '../modules/admin/cashSessionStatus/cashSessionStatusController.js';
+
 /* ========================================
                 Rutas HTML 
    ======================================== */
@@ -50,6 +66,39 @@ export const routes = {
         controller: createAccountController
     },
 
+
+
+
+    /* ========================================
+         ----------- Supplier -----------
+   ======================================== */
+
+
+      "/updateSupplier": {
+        view: "/modules/admin/supplier/update/updateSupplier.html",
+        controller: updateSupplierController
+    },
+    "/createSupplier": {
+        view: "/modules/admin/supplier/create/createSupplier.html",
+        controller: createSupplierController
+    },
+      "/readSupplier": {
+        view: "/modules/admin/supplier/read/readSupplier.html",
+        controller: readSupplierController
+    },
+
+        
+    /* ========================================
+     ----------- cashSessionStatus -----------    
+    ======================================== */
+
+    "/cashSessionStatus": {
+        view: "/modules/admin/cashSessionStatus/cashSessionStatus.html",
+        controller: cashSessionStatusController
+    },
+
+
+    
 
     /* ========================================
          ----------- Todos -----------

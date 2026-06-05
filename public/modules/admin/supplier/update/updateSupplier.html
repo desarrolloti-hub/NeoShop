@@ -1,0 +1,49 @@
+<!-- FILE: updateSupplier.html -->
+<!-- Supplier update form view - visual match with createAccount style -->
+<div class="auth-container">
+    <div class="supplier-card">
+        <!-- Image upload section (same avatar style) -->
+        <div class="avatar-wrapper" id="supplierImageWrapper">
+            <div class="avatar-circle" id="supplierAvatarCircle">
+                <i class="fas fa-store" id="supplierAvatarIcon"></i>
+                <img id="supplierAvatarPreview" alt="Imagen del proveedor">
+            </div>
+            <div class="avatar-overlay">
+                <i class="fas fa-camera"></i>
+            </div>
+        </div>
+
+        <input type="file" id="supplierImageInput" accept="image/*" style="display: none;">
+        <button type="button" id="removeSupplierImageBtn">
+            <i class="fas fa-trash"></i> Eliminar imagen
+        </button>
+
+        <h2>Actualizar proveedor</h2>
+
+        <form id="updateSupplierForm">
+            <!-- Hidden field for supplier ID -->
+            <input type="hidden" name="id" id="supplierId">
+            
+            <input type="text" name="nombre" id="nombre" placeholder="Nombre" required>
+            <input type="text" name="razonSocial" id="razonSocial" placeholder="Denominación o razón social" required>
+            <input type="tel" name="telefono" id="telefono" placeholder="Teléfono" required>
+            <input type="tel" name="telefonoAlterno" id="telefonoAlterno" placeholder="Teléfono alterno">
+            <input type="text" name="direccionFiscal" id="direccionFiscal" placeholder="Dirección fiscal" required>
+            <input type="email" name="correo" id="correo" placeholder="Correo electrónico" required>
+            <input type="text" name="rfc" id="rfc" placeholder="RFC" required>
+
+            <div style="display: flex; gap: 12px; margin-top: 8px;">
+                <button type="submit" class="btn btn-primary" style="flex: 2;">
+                    Actualizar proveedor <i class="fas fa-save"></i>
+                </button>
+                <button type="button" id="cancelUpdateBtn" class="btn btn-secondary" style="flex: 1;">
+                    Cancelar <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </form>
+
+        <div class="supplier-links">
+            <p><span><a href="proveedoresLista">← Volver al listado de proveedores</a></span></p>
+        </div>
+    </div>
+</div>
