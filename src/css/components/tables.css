@@ -1,146 +1,146 @@
 /* ============================================
-   tables.css - COMPONENTE DE TABLA ESTILIZADA
-   ============================================ 
-   Uso: Importar después de variables.css
-   Clase principal: .component-table
+   tables.css - COMPONENTE DE TABLA UNIVERSAL
    ============================================ */
 
-/* Contenedor de la tabla (responsive con scroll) */
 .component-table-wrapper {
     overflow-x: auto;
-    max-width: 100%;
-    padding: 0.5rem;
+    width: 100%;
 }
 
-/* Tabla principal: más ancha - ocupa 100% del contenedor */
 .component-table {
-    border-collapse: separate;
-    border-spacing: 0 12px;
     width: 100%;
-    min-width: 100%;  /* Cambiado de 800px a 100% */
-    background-color: transparent;
-    font-family: var(--font-family);
-    table-layout: auto;  /* Permite que las columnas se ajusten al contenido */
+    border-collapse: collapse;
+    font-family: var(--font-family, 'Inter', sans-serif);
 }
 
-/* ============================================
-   CABECERAS
-   ============================================ */
-.component-table thead tr {
-    background-color: transparent;
-}
-
-.component-table th {
-    font-weight: 700;
-    padding: 14px 18px;
+.component-table thead th {
+    background-color: var(--color-primary, #456da2);
     color: white;
-    font-size: var(--font-size-sm);
-    letter-spacing: 0.03em;
-    text-align: left;
-    text-transform: uppercase;
-    background-color: var(--color-primary);
-    border: none;
-}
-
-/* ============================================
-   CELDAS: fondo azul claro (color de fila)
-   ============================================ */
-.component-table td {
-    padding: 8px;
-    background-color: #7d98bb;  /* Usando color-primary-light */
-    border: none;
-    box-shadow: var(--shadow-sm);
-    transition: all var(--transition-fast) ease;
-}
-
-/* ============================================
-   BLOQUE INTERNO: azul muy clarito (casi blanco)
-   SOLO para las celdas del medio
-   ============================================ */
-.component-table .middle-block {
-    background-color: var(--color-primary-extraligth);
-    padding: 10px 14px;
-    width: 100%;
-    min-height: 48px;
-    display: flex;
-    align-items: center;
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
-    transition: all var(--transition-fast) ease;
-}
-
-/* Texto dentro del bloque azul clarito */
-.component-table .middle-block span {
-    color: var(--text-dark);
-}
-
-/* ============================================
-   ESTILO DIRECTO para IDENTIFICADOR y ACTIONS
-   (sin bloque interno, texto blanco sobre fondo azul claro)
-   ============================================ */
-.component-table .direct-text {
-    padding: 10px 14px;
-    display: block;
     font-weight: 600;
-    color: white;
+    padding: 12px;
+    text-align: left;
 }
 
-/* Badge de acciones (texto blanco) */
+.component-table tbody td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+    background-color: white;
+}
+
+.component-table tbody tr:hover td {
+    background-color: #f8fafc;
+}
+
+/* Icono en tabla */
+.component-table .supplier-table-icon,
+.component-table .customer-table-icon {
+    font-size: 1.5rem;
+    color: var(--color-primary);
+}
+
+/* Bloque medio */
+.component-table .middle-block span {
+    color: #1e293b;
+}
+
+/* Acciones de tabla - USANDO ESTILOS DE BUTTONS.CSS */
 .component-table .action-badge {
+    display: flex;
+    gap: 8px;
+}
+
+/* Botones base - heredan de .btn pero adaptados para tabla */
+.component-table .action-badge button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.75rem;
     font-weight: 500;
-    background: transparent;
-    display: inline-block;
-    cursor: default;
-    font-size: var(--font-size-sm);
-    letter-spacing: 0.3px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-family: var(--font-family);
+}
+
+/* Boton Ver - estilo primary */
+.component-table .action-badge .btn-view {
+    background: var(--color-primary);
     color: white;
 }
 
-/* ============================================
-   SÍMBOLO & (ampersand)
-   ============================================ */
-.component-table .symbol-amp {
-    font-family: monospace;
-    font-weight: 700;
-    color: var(--color-primary-dark);
-    background-color: rgba(69, 109, 162, 0.15);
-    padding: 4px 12px;
+.component-table .action-badge .btn-view:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+}
+
+/* Boton Editar - estilo secundario */
+.component-table .action-badge .btn-edit {
+    background: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+}
+
+.component-table .action-badge .btn-edit:hover {
+    background: var(--color-primary);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Boton Eliminar / Deshabilitar - estilo peligro */
+.component-table .action-badge .btn-delete,
+.component-table .action-badge .btn-disable {
+    background: #dc2626;
+    color: white;
+}
+
+.component-table .action-badge .btn-delete:hover,
+.component-table .action-badge .btn-disable:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+/* Points badge en tabla - SIN FONDO, solo el numero con color */
+.points-badge {
     display: inline-block;
-    letter-spacing: 0.5px;
+    padding: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    min-width: 55px;
+    text-align: left;
+    background: transparent;
 }
 
-/* ============================================
-   EFECTOS HOVER
-   ============================================ */
-.component-table td:hover {
-    background-color: var(--color-primary);
-    transform: scale(1.01);
+/* Puntos muy bajos (0 - 500) - azul muy claro */
+.points-badge.points-low {
+    color: var(--color-primary-extraligth);
 }
 
-.component-table td:hover .middle-block {
-    background-color: var(--color-primary-extraligth);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+/* Puntos medios (500 - 1000) - azul claro */
+.points-badge.points-medium-low {
+    color: var(--color-primary-light);
 }
 
-/* ============================================
-   RESPONSIVE: ocultar tabla y mostrar cards
-   ============================================ */
+/* Puntos medios-altos (1000 - 1500) - azul base */
+.points-badge.points-medium {
+    color: var(--color-primary);
+}
+
+/* Puntos altos (1500 - 2500) - azul oscuro */
+.points-badge.points-high {
+    color: var(--color-primary-dark);
+}
+
+/* Puntos muy altos (2500+) - azul mas oscuro */
+.points-badge.points-very-high {
+    color: var(--color-primary-darkest);
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-    .component-table-wrapper {
+    .component-table-wrapper.desktop-view {
         display: none;
-    }
-}
-
-@media (max-width: 760px) {
-    .component-table td {
-        padding: 6px;
-    }
-    .component-table .middle-block {
-        padding: 6px 10px;
-    }
-    .component-table .direct-text {
-        padding: 6px 10px;
-    }
-    .component-table {
-        border-spacing: 0 8px;
     }
 }
