@@ -1,0 +1,153 @@
+<!-- FILE: customerList.html -->
+<!-- Customers list view - usando componentes universales -->
+
+<div class="customer-list-container">
+    <div class="customer-list-card">
+        <div class="list-header">
+            <h2><i class="fas fa-users"></i> Mis Clientes</h2>
+            <button type="button" class="btn btn-primary" id="addNewCustomerBtn">
+                <i class="fas fa-plus"></i> Nuevo cliente
+            </button>
+        </div>
+
+        <!-- TABLA - visible en escritorio -->
+        <div class="component-table-wrapper desktop-view">
+            <table class="component-table">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Nombre / Tienda</th>
+                        <th>Telefono</th>
+                        <th>Email</th>
+                        <th>RFC</th>
+                        <th>Puntos</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="customerTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- CARDS - visible en movil -->
+        <div id="customerCardsContainer" class="mobile-view"></div>
+
+        <div class="list-footer">
+            <p class="total-count" id="totalCustomersCount">Total: 0 clientes</p>
+        </div>
+    </div>
+</div>
+
+<!-- TEMPLATES para clonar desde JS -->
+<template id="customerRowTemplate">
+    <tr>
+        <td class="direct-text">
+            <i class="fas fa-user-circle customer-table-icon"></i>
+        </td>
+        <td><div class="middle-block"><span><strong class="customer-name"></strong><br><small class="customer-slug" style="color: #64748b; font-size: 0.7rem;"></small></span></div></td>
+        <td><div class="middle-block"><span class="customer-phone"></span></div></td>
+        <td><div class="middle-block"><span class="customer-email"></span></div></td>
+        <td><div class="middle-block"><span class="customer-rfc"></span></div></td>
+        <td><div class="middle-block"><span class="points-badge"></span></div></td>
+        <td>
+            <div class="action-badge">
+                <button class="btn-view" data-action="view" title="Ver detalles"><i class="fas fa-eye"></i></button>
+                <button class="btn-disable" data-action="disable" title="Deshabilitar cuenta"><i class="fas fa-ban"></i></button>
+            </div>
+        </td>
+    </tr>
+</template>
+
+<template id="customerCardTemplate">
+    <div class="customer-card-item">
+        <div class="customer-card-header">
+            <div class="customer-card-avatar">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="customer-card-title">
+                <h4 class="card-name"></h4>
+                <small class="card-slug"></small>
+            </div>
+        </div>
+        <div class="customer-card-field">
+            <strong>Telefono:</strong>
+            <span class="card-phone"></span>
+        </div>
+        <div class="customer-card-field">
+            <strong>Email:</strong>
+            <span class="card-email"></span>
+        </div>
+        <div class="customer-card-field">
+            <strong>RFC:</strong>
+            <span class="card-rfc"></span>
+        </div>
+        <div class="customer-card-field">
+            <strong>Puntos:</strong>
+            <span class="card-points"></span>
+        </div>
+        <div class="customer-card-divider"></div>
+        <div class="customer-card-actions">
+            <button class="card-action-icon btn-view" data-action="view" title="Ver detalles">
+                <i class="fas fa-eye"></i> Ver
+            </button>
+            <button class="card-action-icon btn-disable" data-action="disable" title="Deshabilitar cuenta">
+                <i class="fas fa-ban"></i> Deshabilitar
+            </button>
+        </div>
+    </div>
+</template>
+
+<!-- Template para estado vacio en TABLA -->
+<template id="emptyTableState">
+    <tr class="empty-row">
+        <td colspan="7">
+            <div style="text-align: center; padding: 40px;">
+                <i class="fas fa-user-slash" style="font-size: 48px; color: #cbd5e1;"></i><br>
+                No hay clientes registrados<br>
+                <button class="btn btn-primary" id="emptyAddBtn" style="margin-top: 10px;">
+                    <i class="fas fa-plus"></i> Agregar cliente
+                </button>
+            </div>
+        </td>
+    </tr>
+</template>
+
+<!-- Template para estado vacio en CARDS -->
+<template id="emptyCardState">
+    <div class="cards-empty-state">
+        <i class="fas fa-user-slash"></i>
+        <p>No hay clientes registrados</p>
+        <button class="btn btn-primary" id="emptyCardsAddBtn" style="margin-top: 10px;">
+            <i class="fas fa-plus"></i> Agregar cliente
+        </button>
+    </div>
+</template>
+
+<!-- MODAL para detalles -->
+<div id="customerModal" class="modal-container" style="display: none;">
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Detalles del cliente</h3>
+                <span class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-avatar">
+                    <i id="modalAvatarIcon" class="fas fa-user-circle"></i>
+                </div>
+                <div class="modal-info">
+                    <p><strong>Nombre:</strong> <span id="modalName"></span></p>
+                    <p><strong>Tienda/Slug:</strong> <span id="modalStoreSlug"></span></p>
+                    <p><strong>Telefono:</strong> <span id="modalPhone"></span></p>
+                    <p><strong>Email:</strong> <span id="modalEmail"></span></p>
+                    <p><strong>Direccion fiscal:</strong> <span id="modalTaxAddress"></span></p>
+                    <p><strong>RFC:</strong> <span id="modalRfc"></span></p>
+                    <p><strong>Puntos acumulados:</strong> <span id="modalPoints"></span></p>
+                    <p><strong>Estado:</strong> <span id="modalActive"></span></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="closeModalBtn">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>

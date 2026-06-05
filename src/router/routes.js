@@ -14,6 +14,15 @@ import { contactController } from '../modules/visitor/contact/contactController.
 
 
 
+  /* ---------------------- Admin  ---------------------- */
+
+
+  /* ========================================
+         ----------- customer -----------
+   ======================================== */
+import { readCustomerController } from '../modules/admin/customer/readCustomerController.js';
+
+
 
     /* ========================================
          ----------- Supplier -----------
@@ -27,6 +36,7 @@ import { updateSupplierController } from '../modules/admin/supplier/update/updat
     /* ========================================
      ----------- cashSessionStatus -----------    
     ======================================== */
+
 import { cashSessionStatusController } from '../modules/admin/cashSessionStatus/cashSessionStatusController.js';
 
 /* ========================================
@@ -65,6 +75,21 @@ export const routes = {
         view: "/modules/visitor/createAccount/createAccount.html",
         controller: createAccountController
     },
+
+
+
+
+    /* ========================================
+         ----------- customer -----------
+   ======================================== */
+
+      "/readCustomer": {
+        view: "/modules/admin/customer/readCustomer.html",
+        controller: readCustomerController
+    },
+
+
+
 
 
 
