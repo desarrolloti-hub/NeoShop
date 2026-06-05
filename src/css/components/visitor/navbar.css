@@ -89,20 +89,8 @@
 
 
 
-.navbar:not(.scrolled) .btn-outline-nav {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-}
 
-.navbar.scrolled .btn-outline-nav {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    background: transparent;
-}
 
-.btn-outline-nav:hover {
-    border-bottom: 2px solid var(--color-primary);
-}
 
 .menu-toggle {
     display: none;
