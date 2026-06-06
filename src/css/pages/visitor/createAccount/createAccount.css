@@ -156,3 +156,68 @@ input {
         opacity: 0;
     }
 }
+
+/* ========================================
+   DIVISOR Y BOTÓN DE GOOGLE
+   ======================================== */
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--border-light, #e5e7eb);
+}
+
+.auth-divider span {
+    padding: 0 16px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: #6b7280;
+}
+
+.btn-google {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: white;
+    border: 1px solid var(--border-light, #e5e7eb);
+    color: #3c4043;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 10px;
+    margin-top: 8px;
+}
+
+.btn-google:hover {
+    background: #f8f9fa;
+    border-color: var(--color-primary, #456da2);
+    transform: translateY(-2px);
+}
+
+.btn-google:active {
+    transform: scale(0.98);
+}
+
+.btn-google:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-google i {
+    font-size: 18px;
+    color: #4285F4;
+}

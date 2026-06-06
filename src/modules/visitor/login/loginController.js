@@ -1,100 +1,106 @@
 /* ========================================
-   LOGIN CONTROLLER - Solo animación de entrada
-   El formulario ya existe en el HTML, solo se anima al cargar
+   LOGIN CONTROLLER - Escucha formulario y llama a service
    ======================================== */
+
+import { AdminService } from '/services/adminService.js';
+import { AuthService, ROLES } from '/services/authService.js';
+
+let isLoading = false;
 
 export async function loginController() {
     console.log('🔐 Login controller inicializado');
 
-    // Animar el formulario al cargar
-    animateLoginForm();
+    if (AdminService.isAuthenticated()) {
+        redirectByRole();
+        return;
+    }
 
-    // Inicializar funcionalidades
+    animateLoginForm();
     initLoginForm();
+    initGoogleLogin();
 }
 
-/**
- * 1. Animar el formulario al cargar (fadeIn + translateY)
- */
 function animateLoginForm() {
     const loginCard = document.querySelector('.login-card');
     if (!loginCard) return;
-
-    // Ocultar inicialmente
     loginCard.style.opacity = '0';
     loginCard.style.transform = 'translateY(20px)';
     loginCard.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-
-    // Forzar reflow
     loginCard.offsetHeight;
-
-    // Mostrar con animación
     loginCard.style.opacity = '1';
     loginCard.style.transform = 'translateY(0)';
 }
 
-/**
- * 2. LOGIN - Manejo del formulario
- */
+function redirectByRole() {
+    const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+    if (redirectUrl) {
+        sessionStorage.removeItem('redirectAfterLogin');
+        window.location.href = redirectUrl;
+        return;
+    }
+    window.location.href = '/adminHome';
+}
+
 function initLoginForm() {
     const loginForm = document.getElementById('loginForm');
     if (!loginForm) return;
 
-    // Remover event listeners previos
-    const newForm = loginForm.cloneNode(true);
-    loginForm.parentNode.replaceChild(newForm, loginForm);
-
-    newForm.addEventListener('submit', async (e) => {
+    loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (isLoading) return;
 
         const email = document.getElementById('loginUser')?.value.trim();
         const password = document.getElementById('loginPass')?.value;
 
         if (!email || !password) {
-            showTemporaryMessage('❌ Por favor, completa todos los campos', 'error');
+            showTemporaryMessage('❌ Completa todos los campos', 'error');
             return;
         }
 
-        if (!validateEmail(email)) {
-            showTemporaryMessage('❌ Correo electrónico inválido', 'error');
-            return;
-        }
-
-        const submitBtn = newForm.querySelector('button[type="submit"]');
+        isLoading = true;
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ingresando...';
         submitBtn.disabled = true;
 
-        await simulateApiCall();
-
-        showTemporaryMessage('✅ ¡Bienvenido de vuelta!', 'success');
-
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-
-        setTimeout(() => {
-            if (typeof window.navigateTo === 'function') {
-                window.navigateTo('/dashboard');
-            } else {
-                console.log('🔓 Login exitoso');
-            }
-        }, 1000);
+        try {
+            await AdminService.login(email, password, false);
+            showTemporaryMessage('✅ ¡Bienvenido!', 'success');
+            setTimeout(() => redirectByRole(), 1000);
+        } catch (error) {
+            showTemporaryMessage(`❌ ${error.message}`, 'error');
+        } finally {
+            isLoading = false;
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
     });
 }
 
-/**
- * 3. Validaciones
- */
-function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-}
+function initGoogleLogin() {
+    const googleBtn = document.getElementById('googleLoginBtn');
+    if (!googleBtn) return;
 
-/**
- * 4. Utilidades
- */
-function simulateApiCall() {
-    return new Promise(resolve => setTimeout(resolve, 1200));
+    googleBtn.addEventListener('click', async () => {
+        if (isLoading) return;
+
+        isLoading = true;
+        const originalText = googleBtn.innerHTML;
+        googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+        googleBtn.disabled = true;
+
+        try {
+            await AdminService.login(null, null, true);
+            showTemporaryMessage('✅ Sesión iniciada con Google', 'success');
+            setTimeout(() => redirectByRole(), 1000);
+        } catch (error) {
+            showTemporaryMessage(`❌ ${error.message}`, 'error');
+        } finally {
+            isLoading = false;
+            googleBtn.innerHTML = originalText;
+            googleBtn.disabled = false;
+        }
+    });
 }
 
 function showTemporaryMessage(message, type = 'info') {
@@ -102,6 +108,7 @@ function showTemporaryMessage(message, type = 'info') {
     if (existingToast) existingToast.remove();
 
     const toast = document.createElement('div');
+    toast.className = 'auth-toast';
     toast.innerHTML = message;
     toast.style.cssText = `
         position: fixed;
@@ -111,23 +118,13 @@ function showTemporaryMessage(message, type = 'info') {
         color: white;
         padding: 12px 24px;
         border-radius: 10px;
-        font-weight: 500;
         z-index: 10000;
         animation: slideInRight 0.3s ease;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     `;
-
     document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    setTimeout(() => toast.remove(), 3000);
 }
 
-/**
- * 5. Limpieza
- */
 export function cleanupLogin() {
     console.log('🧹 Login controller cleaned up');
 }

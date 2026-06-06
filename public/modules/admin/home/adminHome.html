@@ -1,0 +1,144 @@
+<!-- ========================================
+   DASHBOARD ADMIN - NEO
+   Panel de control para administrador
+   ======================================== -->
+
+<section class="admin-dashboard">
+    <!-- Header -->
+    <div class="admin-dashboard-header">
+        <div>
+            <h1>Dashboard</h1>
+            <p class="text-muted">Bienvenido de vuelta, Administrador</p>
+        </div>
+        <div class="admin-date" id="adminDate">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Cargando fecha...</span>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="admin-stats-grid">
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="admin-stat-info">
+                <span class="admin-stat-label">Ventas totales</span>
+                <strong class="admin-stat-number" id="totalSales">$0</strong>
+                <span class="admin-stat-trend positive">
+                    <i class="fas fa-arrow-up"></i> +12%
+                </span>
+            </div>
+        </div>
+
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="admin-stat-info">
+                <span class="admin-stat-label">Pedidos</span>
+                <strong class="admin-stat-number" id="totalOrders">0</strong>
+                <span class="admin-stat-trend positive">
+                    <i class="fas fa-arrow-up"></i> +8%
+                </span>
+            </div>
+        </div>
+
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="admin-stat-info">
+                <span class="admin-stat-label">Clientes nuevos</span>
+                <strong class="admin-stat-number" id="newCustomers">0</strong>
+                <span class="admin-stat-trend positive">
+                    <i class="fas fa-arrow-up"></i> +15%
+                </span>
+            </div>
+        </div>
+
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon">
+                <i class="fas fa-boxes"></i>
+            </div>
+            <div class="admin-stat-info">
+                <span class="admin-stat-label">Productos</span>
+                <strong class="admin-stat-number" id="totalProducts">0</strong>
+                <span class="admin-stat-trend">
+                    <i class="fas fa-arrow-up"></i> +3
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fila 1: Gráfico + Pedidos recientes -->
+    <div class="admin-dashboard-row">
+        <div class="admin-chart-card">
+            <div class="admin-card-header">
+                <h3>Ventas de los últimos 7 días</h3>
+                <div class="admin-chart-legend">
+                    <span><i class="fas fa-circle"></i> Esta semana</span>
+                </div>
+            </div>
+            <div class="admin-chart-container">
+                <canvas id="salesChart" width="800" height="250"></canvas>
+            </div>
+        </div>
+
+        <div class="admin-recent-card">
+            <div class="admin-card-header">
+                <h3>Pedidos recientes</h3>
+                <a href="/orders" class="admin-link-view" data-link>Ver todos <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="admin-recent-list" id="recentOrders">
+                <div class="admin-loading">Cargando pedidos...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fila 2: Top productos + Stock bajo -->
+    <div class="admin-dashboard-row">
+        <div class="admin-top-card">
+            <div class="admin-card-header">
+                <h3>Productos más vendidos</h3>
+                <a href="/productsList" class="admin-link-view" data-link>Ver todos <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="admin-top-list" id="topProducts">
+                <div class="admin-loading">Cargando productos...</div>
+            </div>
+        </div>
+
+        <div class="admin-stock-card">
+            <div class="admin-card-header">
+                <h3>Stock bajo <span class="admin-badge-warning">¡Alerta!</span></h3>
+                <a href="/productsList" class="admin-link-view" data-link>Actualizar <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="admin-stock-list" id="lowStockProducts">
+                <div class="admin-loading">Cargando alertas...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div class="admin-quick-access">
+        <h3>Accesos rápidos</h3>
+        <div class="admin-quick-grid">
+            <a href="/productsAdmin" class="admin-quick-card" data-link>
+                <i class="fas fa-plus-circle"></i>
+                <span>Agregar producto</span>
+            </a>
+            <a href="/users" class="admin-quick-card" data-link>
+                <i class="fas fa-user-plus"></i>
+                <span>Nuevo usuario</span>
+            </a>
+            <a href="/orders" class="admin-quick-card" data-link>
+                <i class="fas fa-truck"></i>
+                <span>Actualizar pedido</span>
+            </a>
+            <a href="/reports" class="admin-quick-card" data-link>
+                <i class="fas fa-chart-bar"></i>
+                <span>Generar reporte</span>
+            </a>
+        </div>
+    </div>
+</section>

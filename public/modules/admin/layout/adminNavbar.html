@@ -1,0 +1,31 @@
+<!-- adminNavbar.html (partial) - Navbar horizontal para admin con botón de logout visible -->
+<div class="admin-navbar" id="adminNavbar">
+    <div class="admin-nav-container">
+        <a href="/adminHome" class="admin-logo">
+            <img src="assets/icons/logotipoNeoShopSinFondo512.png" alt="neoShop Admin">
+            <span class="admin-logo-text">Admin Panel</span>
+        </a>
+
+        <div class="admin-nav-wrapper">
+            <ul class="admin-nav-menu" id="adminNavMenu">
+                <li><a href="/adminHome" data-link><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="/productsList" data-link><i class="fas fa-boxes"></i> Productos</a></li>
+                <li><a href="/productsAdmin" data-link><i class="fas fa-plus-circle"></i> Agregar</a></li>
+                <li><a href="/orders" data-link><i class="fas fa-shopping-cart"></i> Pedidos</a></li>
+                <li><a href="/readSupplier" data-link><i class="fas fa-users"></i> Proveedores</a></li>
+                <li><a href="/users" data-link><i class="fas fa-users"></i> Usuarios</a></li>
+                <li><a href="/settings" data-link><i class="fas fa-cog"></i> Configuración</a></li>
+            </ul>
+
+            <!-- 🔥 BOTÓN DE CERRAR SESIÓN SIEMPRE VISIBLE 🔥 -->
+            <button class="admin-logout-btn" id="adminLogoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Cerrar Sesión</span>
+            </button>
+
+            <button class="admin-menu-toggle" id="adminMenuToggle" aria-label="Menú">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </div>
+</div>

@@ -61,8 +61,13 @@
 /* createAccount */
 @import url('./pages/visitor/createAccount/createAccount.css');
 
+    /* ========================================
+         ----------- admin -----------
+   ======================================== */
 
+@import url('./components/admin/adminNavbar.css');   
 
+@import url('./pages/admin/home/adminHome.css');   
 
     /* ========================================
          ----------- customer -----------

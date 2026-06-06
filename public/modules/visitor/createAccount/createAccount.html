@@ -19,15 +19,25 @@
         <h2>Crear cuenta</h2>
 
         <form id="registerForm">
-            <input type="text" placeholder="Empresa / Negocio" required>
-            <input type="text" placeholder="Nombre completo" required>
-            <input type="email" placeholder="Correo electrónico" required>
-            <input type="password" placeholder="Contraseña" required>
+            <!-- ❌ ELIMINADO: campo Empresa / Negocio -->
+            <input type="text" placeholder="Nombre completo" id="fullName" required>
+            <input type="email" placeholder="Correo electrónico" id="email" required>
+            <input type="password" placeholder="Contraseña" id="password" required>
 
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
                 Crear cuenta <i class="fas fa-arrow-right"></i>
             </button>
         </form>
+
+        <!-- 🆕 DIVISOR Y BOTÓN DE GOOGLE -->
+        <div class="auth-divider">
+            <span>O</span>
+        </div>
+
+        <button type="button" class="btn-google" id="googleRegisterBtn">
+            <i class="fab fa-google"></i>
+            Crear cuenta con Google
+        </button>
 
         <div class="register-links">
             <p>¿Ya tienes cuenta? <span><a href="iniciarSesion">Inicia Sesión</a></span></p>

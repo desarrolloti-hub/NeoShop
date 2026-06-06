@@ -94,3 +94,160 @@
     align-items: center;
     min-height: 500px;
 }
+.login-card {
+    background: var(--bg-white);
+    max-width: 400px;
+    width: 90%;
+    border-radius: var(--border-radius-md);
+    padding: 2.5rem var(--spacing-xl);
+    text-align: center;
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+    margin: 30px auto;
+}
+
+.login-card i.fa-user {
+    font-size: var(--font-size-3xl);
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-xs);
+    border: var(--color-primary) solid;
+    border-radius: 50%;
+    padding: 30px;
+}
+
+.login-card h2 {
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-lg);
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+}
+
+.login-links {
+    margin-top: var(--spacing-lg);
+    font-size: var(--font-size-sm);
+    color: #6b7280;
+}
+
+.login-links a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.login-links a:hover {
+    text-decoration: underline;
+}
+
+.login-links p span {
+    color: var(--color-primary);
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.login-links p span:hover {
+    text-decoration: underline;
+}
+
+/* Animaciones para los formularios */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.lazy-auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 500px;
+}
+
+/* ========================================
+   DIVISOR Y BOTÓN DE GOOGLE (mismos estilos que en register)
+   ======================================== */
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--border-light, #e5e7eb);
+}
+
+.auth-divider span {
+    padding: 0 16px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: #6b7280;
+}
+
+.btn-google {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: white;
+    border: 1px solid var(--border-light, #e5e7eb);
+    color: #3c4043;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 10px;
+    margin-top: 8px;
+}
+
+.btn-google:hover {
+    background: #f8f9fa;
+    border-color: var(--color-primary, #456da2);
+    transform: translateY(-2px);
+}
+
+.btn-google:active {
+    transform: scale(0.98);
+}
+
+.btn-google:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-google i {
+    font-size: 18px;
+    color: #4285F4;
+}
