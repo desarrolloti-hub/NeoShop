@@ -10,6 +10,7 @@ import { homeController } from '../modules/visitor/home/homeController.js';
 import { aboutUsController } from '../modules/visitor/aboutUs/aboutUsController.js';
 import { createAccountController } from '../modules/visitor/createAccount/createAccounController.js';
 import { contactController } from '../modules/visitor/contact/contactController.js';
+import { termsAndConditionsController } from '../modules/visitor/termsAndConditions/termsAndConditionsController.js';
 
 
 
@@ -80,6 +81,10 @@ export const routes = {
     "/crearCuenta": {
         view: "/modules/visitor/createAccount/createAccount.html",
         controller: createAccountController
+    },
+    "/terminosYCondiciones": {
+        view: "/modules/visitor/termsAndConditions/termsAndConditions.html",
+        controller: termsAndConditionsController,
     },
 
 

@@ -2,7 +2,7 @@
 <!-- Supplier update form view - visual match with createAccount style -->
 <div class="auth-container">
     <div class="supplier-card">
-        <!-- Image upload section (same avatar style) -->
+        <!-- Image upload section -->
         <div class="avatar-wrapper" id="supplierImageWrapper">
             <div class="avatar-circle" id="supplierAvatarCircle">
                 <i class="fas fa-store" id="supplierAvatarIcon"></i>
@@ -13,7 +13,7 @@
             </div>
         </div>
 
-        <input type="file" id="supplierImageInput" accept="image/*" style="display: none;">
+        <input type="file" id="supplierImageInput" accept="image/*">
         <button type="button" id="removeSupplierImageBtn">
             <i class="fas fa-trash"></i> Eliminar imagen
         </button>
@@ -21,7 +21,6 @@
         <h2>Actualizar proveedor</h2>
 
         <form id="updateSupplierForm">
-            <!-- Hidden field for supplier ID -->
             <input type="hidden" name="id" id="supplierId">
             
             <input type="text" name="nombre" id="nombre" placeholder="Nombre" required>
@@ -32,18 +31,18 @@
             <input type="email" name="correo" id="correo" placeholder="Correo electrónico" required>
             <input type="text" name="rfc" id="rfc" placeholder="RFC" required>
 
-            <div style="display: flex; gap: 12px; margin-top: 8px;">
-                <button type="submit" class="btn btn-primary" style="flex: 2;">
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primary">
                     Actualizar proveedor <i class="fas fa-save"></i>
                 </button>
-                <button type="button" id="cancelUpdateBtn" class="btn btn-secondary" style="flex: 1;">
+                <button type="button" id="cancelUpdateBtn" class="btn btn-secondary">
                     Cancelar <i class="fas fa-times"></i>
                 </button>
             </div>
         </form>
 
         <div class="supplier-links">
-            <p><span><a href="proveedoresLista">← Volver al listado de proveedores</a></span></p>
+            <p><a href="/readSupplier">← Volver al listado de proveedores</a></p>
         </div>
     </div>
 </div>

@@ -1,17 +1,30 @@
 <!-- FILE: supplierList.html -->
-<!-- Suppliers list view - usando componentes universales -->
-
 <div class="supplier-list-container">
     <div class="supplier-list-card">
         <div class="list-header">
             <h2><i class="fas fa-truck"></i> Mis Proveedores</h2>
-            <!-- 🔥 CAMBIO: de button a link con ruta /createSupplier 🔥 -->
             <a href="/createSupplier" class="btn btn-primary" id="addNewSupplierBtn" data-link>
                 <i class="fas fa-plus"></i> Nuevo proveedor
             </a>
         </div>
 
-        <!-- TABLA - visible en escritorio -->
+        <!-- Filtros: Buscador + Toggle de estado -->
+        <div class="filters-wrapper">
+            <div class="search-wrapper">
+                <input type="text" id="searchSupplier" class="search-input" placeholder="Buscar por nombre, RFC o correo...">
+            </div>
+            
+            <!-- Toggle Switch para mostrar activos/inactivos -->
+            <div class="status-toggle-wrapper">
+                <span class="status-label">Inactivos</span>
+                <div class="status-filter-switch" id="statusFilterSwitch">
+                    <div class="status-filter-slider"></div>
+                </div>
+                <span class="status-label active">Activos</span>
+            </div>
+        </div>
+
+        <!-- TABLA -->
         <div class="component-table-wrapper desktop-view">
             <table class="component-table">
                 <thead>
@@ -22,14 +35,15 @@
                         <th>Teléfono</th>
                         <th>Correo</th>
                         <th>RFC</th>
-                        <th>Acciones</th>
+                        <th>Estado</th>
+                        <th>Activar/Desactivar</th>
                     </tr>
                 </thead>
                 <tbody id="supplierTableBody"></tbody>
             </table>
         </div>
 
-        <!-- CARDS - visible en móvil -->
+        <!-- CARDS -->
         <div id="supplierCardsContainer" class="mobile-view"></div>
 
         <div class="list-footer">
@@ -38,53 +52,61 @@
     </div>
 </div>
 
-<!-- TEMPLATES para clonar desde JS -->
+<!-- TEMPLATE TABLA -->
 <template id="supplierRowTemplate">
     <tr>
-        <td class="direct-text">
-            <i class="fas fa-store supplier-table-icon"></i>
-        </td>
+        <td class="supplier-img-container"></td>
         <td><div class="middle-block"><span class="supplier-name"></span></div></td>
         <td><div class="middle-block"><span class="supplier-business-name"></span></div></td>
         <td><div class="middle-block"><span class="supplier-phone"></span></div></td>
         <td><div class="middle-block"><span class="supplier-email"></span></div></td>
         <td><div class="middle-block"><span class="supplier-rfc"></span></div></td>
+        <td><span class="supplier-status"></span></td>
         <td>
             <div class="action-badge">
-                <button class="btn-view" data-action="view" title="Ver detalles"><i class="fas fa-eye"></i></button>
-                <button class="btn-edit" data-action="edit" title="Editar"><i class="fas fa-edit"></i></button>
-                <button class="btn-delete" data-action="delete" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+                <button class="btn-view" title="Ver detalles"><i class="fas fa-eye"></i></button>
+                <button class="btn-edit" title="Editar"><i class="fas fa-edit"></i></button>
+                <div class="status-switch-wrapper">
+                    <div class="status-row-switch" data-supplier-id="">
+                        <div class="status-row-slider"></div>
+                    </div>
+                </div>
             </div>
         </td>
     </tr>
 </template>
 
+<!-- TEMPLATE CARDS -->
 <template id="supplierCardTemplate">
     <div class="supplier-card-item">
         <div class="supplier-card-header">
-            <div class="supplier-card-avatar">
-                <i class="fas fa-store"></i>
-            </div>
+            <div class="supplier-card-avatar"></div>
             <div class="supplier-card-title">
                 <h4 class="card-name"></h4>
                 <small class="card-business-name"></small>
             </div>
         </div>
+        <div class="supplier-card-info">
+            <p><i class="fas fa-phone"></i> <span class="card-phone"></span></p>
+            <p><i class="fas fa-envelope"></i> <span class="card-email"></span></p>
+            <p><i class="fas fa-id-card"></i> <span class="card-rfc"></span></p>
+        </div>
+        <div class="supplier-card-status">
+            <span class="card-status"></span>
+        </div>
         <div class="supplier-card-actions">
-            <button class="card-action-icon btn-view" data-action="view" title="Ver detalles">
-                <i class="fas fa-eye"></i>
-            </button>
-            <button class="card-action-icon btn-edit" data-action="edit" title="Editar">
-                <i class="fas fa-edit"></i>
-            </button>
-            <button class="card-action-icon btn-delete" data-action="delete" title="Eliminar">
-                <i class="fas fa-trash-alt"></i>
-            </button>
+            <button class="card-action-icon btn-view" title="Ver detalles"><i class="fas fa-eye"></i> Ver</button>
+            <button class="card-action-icon btn-edit" title="Editar"><i class="fas fa-edit"></i> Editar</button>
+            <div class="status-switch-wrapper">
+                <div class="status-row-switch" data-supplier-id="">
+                    <div class="status-row-slider"></div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
 
-<!-- MODAL para detalles -->
+<!-- MODAL -->
 <div id="supplierModal" class="modal-container" style="display: none;">
     <div class="modal-overlay">
         <div class="modal-content">

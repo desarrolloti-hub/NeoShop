@@ -173,3 +173,32 @@ a {
         width: 95%;
     }
 }
+/* Asegurar que la preview se vea bien */
+.avatar-circle {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 3px solid var(--color-primary);
+    transition: var(--transition-fast);
+    background: var(--bg-gray);
+    position: relative;
+}
+
+.avatar-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+#supplierAvatarPreview {
+    display: none;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
