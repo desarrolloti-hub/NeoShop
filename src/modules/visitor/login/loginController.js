@@ -1,133 +1,172 @@
 /* ========================================
-   LOGIN CONTROLLER - Solo animación de entrada
-   El formulario ya existe en el HTML, solo se anima al cargar
+   LOGIN CONTROLLER - Escucha formulario y llama a service
+   IMPLEMENTA SWEETALERT2 PARA ERRORES AMIGABLES
    ======================================== */
 
+import { AdminService } from '/services/adminService.js';
+import { AuthService, ROLES } from '/services/authService.js';
+
+let isLoading = false;
+
 export async function loginController() {
-    console.log('🔐 Login controller inicializado');
+    console.error('Login controller inicializado');
 
-    // Animar el formulario al cargar
+    if (AdminService.isAuthenticated()) {
+        redirectByRole();
+        return;
+    }
+
     animateLoginForm();
-
-    // Inicializar funcionalidades
     initLoginForm();
+    initGoogleLogin();
 }
 
-/**
- * 1. Animar el formulario al cargar (fadeIn + translateY)
- */
 function animateLoginForm() {
     const loginCard = document.querySelector('.login-card');
     if (!loginCard) return;
-
-    // Ocultar inicialmente
     loginCard.style.opacity = '0';
     loginCard.style.transform = 'translateY(20px)';
     loginCard.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-
-    // Forzar reflow
     loginCard.offsetHeight;
-
-    // Mostrar con animación
     loginCard.style.opacity = '1';
     loginCard.style.transform = 'translateY(0)';
 }
 
-/**
- * 2. LOGIN - Manejo del formulario
- */
+function redirectByRole() {
+    const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+    if (redirectUrl) {
+        sessionStorage.removeItem('redirectAfterLogin');
+        window.location.href = redirectUrl;
+        return;
+    }
+    window.location.href = '/adminHome';
+}
+
 function initLoginForm() {
     const loginForm = document.getElementById('loginForm');
     if (!loginForm) return;
 
-    // Remover event listeners previos
-    const newForm = loginForm.cloneNode(true);
-    loginForm.parentNode.replaceChild(newForm, loginForm);
-
-    newForm.addEventListener('submit', async (e) => {
+    loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (isLoading) return;
 
         const email = document.getElementById('loginUser')?.value.trim();
         const password = document.getElementById('loginPass')?.value;
 
         if (!email || !password) {
-            showTemporaryMessage('❌ Por favor, completa todos los campos', 'error');
+            showTemporaryError('Campos incompletos', 'Por favor, ingresa tu correo electrónico y contraseña.');
             return;
         }
 
-        if (!validateEmail(email)) {
-            showTemporaryMessage('❌ Correo electrónico inválido', 'error');
-            return;
-        }
-
-        const submitBtn = newForm.querySelector('button[type="submit"]');
+        isLoading = true;
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ingresando...';
         submitBtn.disabled = true;
 
-        await simulateApiCall();
-
-        showTemporaryMessage('✅ ¡Bienvenido de vuelta!', 'success');
-
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-
-        setTimeout(() => {
-            if (typeof window.navigateTo === 'function') {
-                window.navigateTo('/dashboard');
-            } else {
-                console.log('🔓 Login exitoso');
-            }
-        }, 1000);
+        try {
+            await AdminService.login(email, password, false);
+            showSuccessToast('Bienvenido');
+            setTimeout(() => redirectByRole(), 1000);
+        } catch (error) {
+            const friendlyMessage = getFriendlyErrorMessage(error);
+            showTemporaryError('Acceso denegado', friendlyMessage);
+        } finally {
+            isLoading = false;
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
     });
 }
 
-/**
- * 3. Validaciones
- */
-function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
+function initGoogleLogin() {
+    const googleBtn = document.getElementById('googleLoginBtn');
+    if (!googleBtn) return;
+
+    googleBtn.addEventListener('click', async () => {
+        if (isLoading) return;
+
+        isLoading = true;
+        const originalText = googleBtn.innerHTML;
+        googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+        googleBtn.disabled = true;
+
+        try {
+            await AdminService.login(null, null, true);
+            showSuccessToast('Sesion iniciada con Google');
+            setTimeout(() => redirectByRole(), 1000);
+        } catch (error) {
+            const friendlyMessage = getFriendlyErrorMessage(error);
+            showTemporaryError('Error con Google', friendlyMessage);
+        } finally {
+            isLoading = false;
+            googleBtn.innerHTML = originalText;
+            googleBtn.disabled = false;
+        }
+    });
 }
 
-/**
- * 4. Utilidades
- */
-function simulateApiCall() {
-    return new Promise(resolve => setTimeout(resolve, 1200));
+function getFriendlyErrorMessage(error) {
+    const errorCode = error?.code || error?.message || '';
+    
+    const errorMap = {
+        'auth/invalid-login-credentials': 'Correo electronico o contrasena incorrectos. Por favor, verifica tus datos.',
+        'auth/wrong-password': 'Contrasena incorrecta. Intenta de nuevo.',
+        'auth/user-not-found': 'No encontramos una cuenta con este correo electronico.',
+        'auth/email-already-in-use': 'Este correo electronico ya esta registrado.',
+        'auth/weak-password': 'La contrasena es muy debil. Debe tener al menos 6 caracteres.',
+        'auth/invalid-email': 'El formato del correo electronico no es valido.',
+        'auth/too-many-requests': 'Demasiados intentos fallidos. Por favor, espera un momento e intenta de nuevo.',
+        'auth/network-request-failed': 'Error de conexion. Verifica tu red e intenta de nuevo.',
+        'auth/popup-closed-by-user': 'Cerraste la ventana de Google antes de completar el inicio de sesion.',
+        'auth/cancelled-popup-request': 'El inicio de sesion con Google fue cancelado.',
+        'auth/popup-blocked': 'El navegador bloqueo la ventana emergente de Google. Permite ventanas emergentes para este sitio.'
+    };
+    
+    for (const [code, message] of Object.entries(errorMap)) {
+        if (errorCode.includes(code)) {
+            return message;
+        }
+    }
+    
+    console.error('Error no mapeado:', error);
+    return 'Ocurrio un problema al iniciar sesion. Por favor, intenta de nuevo mas tarde.';
 }
 
-function showTemporaryMessage(message, type = 'info') {
-    const existingToast = document.querySelector('.auth-toast');
-    if (existingToast) existingToast.remove();
-
-    const toast = document.createElement('div');
-    toast.innerHTML = message;
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#22c55e' : '#ef4444'};
-        color: white;
-        padding: 12px 24px;
-        border-radius: 10px;
-        font-weight: 500;
-        z-index: 10000;
-        animation: slideInRight 0.3s ease;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    `;
-
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+function showTemporaryError(title, message) {
+    Swal.fire({
+        title: title,
+        html: message,
+        icon: 'error',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (popup) => {
+            popup.addEventListener('mouseenter', Swal.stopTimer);
+            popup.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
 }
 
-/**
- * 5. Limpieza
- */
+function showSuccessToast(message) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+    
+    Toast.fire({
+        icon: 'success',
+        title: message
+    });
+}
+
 export function cleanupLogin() {
-    console.log('🧹 Login controller cleaned up');
+    console.error('Login controller cleaned up');
 }

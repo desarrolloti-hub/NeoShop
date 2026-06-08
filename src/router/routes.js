@@ -10,11 +10,25 @@ import { homeController } from '../modules/visitor/home/homeController.js';
 import { aboutUsController } from '../modules/visitor/aboutUs/aboutUsController.js';
 import { createAccountController } from '../modules/visitor/createAccount/createAccounController.js';
 import { contactController } from '../modules/visitor/contact/contactController.js';
+import { termsAndConditionsController } from '../modules/visitor/termsAndConditions/termsAndConditionsController.js';
 
 
 
 
   /* ---------------------- Admin  ---------------------- */
+
+
+    /* ========================================
+         ----------- profile -----------
+   ======================================== */
+import { updateProfileController } from '../modules/admin/profile/updateProfileController.js';
+
+  
+  /* ========================================
+         ----------- home -----------
+   ======================================== */
+
+import { adminHomeController} from '../modules/admin/home/adminHomeController.js';
 
 
   /* ========================================
@@ -38,6 +52,7 @@ import { updateSupplierController } from '../modules/admin/supplier/update/updat
     ======================================== */
 
 import { cashSessionStatusController } from '../modules/admin/cashSessionStatus/cashSessionStatusController.js';
+import { readCashSessionsController  } from '../modules/admin/cashSessionStatus/read/readCashSessionsController.js';
 
 /* ========================================
                 Rutas HTML 
@@ -45,10 +60,9 @@ import { cashSessionStatusController } from '../modules/admin/cashSessionStatus/
 
 
 
-
-/* ========================================
-       ----------- Visitor -----------
-   ======================================== */
+/* ================================================================================
+       --------------------------------- Visitor ---------------------------------
+   ================================================================================ */
 
 export const routes = {
     "/": {
@@ -75,30 +89,26 @@ export const routes = {
         view: "/modules/visitor/createAccount/createAccount.html",
         controller: createAccountController
     },
-
-
-
-
-    /* ========================================
-         ----------- customer -----------
-   ======================================== */
-
-      "/readCustomer": {
-        view: "/modules/admin/customer/readCustomer.html",
-        controller: readCustomerController
+    "/terminosYCondiciones": {
+        view: "/modules/visitor/termsAndConditions/termsAndConditions.html",
+        controller: termsAndConditionsController,
     },
 
 
 
 
+/* ================================================================================
+       --------------------------------- Admin ---------------------------------
+   ================================================================================ */
 
 
+        /* customer */
+      "/readCustomer": {
+        view: "/modules/admin/customer/readCustomer.html",
+        controller: readCustomerController
+    },
 
-    /* ========================================
-         ----------- Supplier -----------
-   ======================================== */
-
-
+        /* supplier */
       "/updateSupplier": {
         view: "/modules/admin/supplier/update/updateSupplier.html",
         controller: updateSupplierController
@@ -112,6 +122,12 @@ export const routes = {
         controller: readSupplierController
     },
 
+    /* profile */
+    "/updateProfile": {
+        view: "/modules/admin/profile/updateProfile.html",
+        controller: updateProfileController
+    },
+
         
     /* ========================================
      ----------- cashSessionStatus -----------    
@@ -123,7 +139,21 @@ export const routes = {
     },
 
 
-    
+      "/readcashSessionStatus": {
+        view: "/modules/admin/cashSessionStatus/read/readCashSessions.html",
+        controller: readCashSessionsController
+    },
+
+
+
+
+ "/adminHome": {
+        view: "/modules/admin/home/adminHome.html",
+        controller: adminHomeController
+    },
+
+
+
 
     /* ========================================
          ----------- Todos -----------

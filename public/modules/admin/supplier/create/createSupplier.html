@@ -1,12 +1,10 @@
-<!-- FILE: supplierForm.html -->
-<!-- Supplier registration form view - visual match with createAccount style -->
 <div class="auth-container">
     <div class="supplier-card">
-        <!-- Image upload section (similar avatar style but square/rounded) -->
-        <div class="avatar-wrapper" id="supplierImageWrapper">
+        <!-- ✅ Contenedor para imagen -->
+        <div class="avatar-wrapper" id="supplierImageWrapper" style="cursor: pointer;">
             <div class="avatar-circle" id="supplierAvatarCircle">
                 <i class="fas fa-store" id="supplierAvatarIcon"></i>
-                <img id="supplierAvatarPreview" alt="Imagen del proveedor">
+                <img id="supplierAvatarPreview" alt="Imagen del proveedor" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
             </div>
             <div class="avatar-overlay">
                 <i class="fas fa-camera"></i>
@@ -14,7 +12,8 @@
         </div>
 
         <input type="file" id="supplierImageInput" accept="image/*" style="display: none;">
-        <button type="button" id="removeSupplierImageBtn">
+        
+        <button type="button" id="removeSupplierImageBtn" style="display: none; margin-top: 10px;">
             <i class="fas fa-trash"></i> Eliminar imagen
         </button>
 
@@ -35,7 +34,7 @@
         </form>
 
         <div class="supplier-links">
-            <p>¿Ya tienes proveedores registrados? <span><a href="proveedoresLista">Ver listado</a></span></p>
+            <p>¿Ya tienes proveedores registrados? <span><a href="readSupplier">Ver listado</a></span></p>
         </div>
     </div>
 </div>

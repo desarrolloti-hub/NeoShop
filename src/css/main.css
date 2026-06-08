@@ -8,27 +8,14 @@
 @import url('./base/reset.css');
 @import url('base/typography.css');
 
-/* Layout 
-@import url('./layout/containers.css');
-@import url('./layout/grid.css');
-@import url('./layout/sections.css');
-*/
 
 /* Components */
+
 @import url('./components/buttons.css');
 @import url('./components/tables.css');
 @import url('./components/forms.css');
 @import url('./components/cards.css');
-
-/* ------------- Components ------------- */
-
-
-
-/* ------------- Visitor ------------- */
-
-@import url('./components/visitor/footer.css');
-@import url('./components/visitor/navbar.css');
-
+@import url('./components/sweetAlerts.css');
 
 
 /* ------------- shared ------------- */
@@ -37,11 +24,13 @@
 @import url('./shared/errors/404.css');
 
 
-
-/* Pages */
-
-
 /* ------------- visitor ------------- */
+
+/* navbar */
+@import url('./components/visitor/navbar.css');
+
+/* footer */
+@import url('./components/visitor/footer.css');
 
 /* home */
 @import url('./pages/visitor/home/home.css');
@@ -61,36 +50,35 @@
 /* createAccount */
 @import url('./pages/visitor/createAccount/createAccount.css');
 
-
+/* termsAndConditions */
+@import url('./pages/visitor/termsAndConditions/termsAndConditions.css');
 
 
     /* ========================================
-         ----------- customer -----------
+         ----------- admin -----------
    ======================================== */
 
+/* navbar */
+@import url('./components/admin/adminNavbar.css');   
+
+/* home */
+@import url('./pages/admin/home/adminHome.css');   
+
+/* customers */
 @import url('./pages/admin/customer/readCustomer.css');
 
+/* profile */
+@import url('./pages/admin/profile/updateProfile.css');
 
-
-
-    /* ========================================
-         ----------- Supplier -----------
-   ======================================== */
-
+/* suppliers */
 @import url('./pages/admin/supplier/update/updateSupplier.css');
 @import url('./pages/admin/supplier/create/createSupplier.css');
 @import url('./pages/admin/supplier/read/readSupplier.css');
 
-
-    /* ========================================
-     ----------- cashSessionStatus -----------    
-    ======================================== */
+/* cash session status */
 @import url('./pages/admin/cashSessionStatus/cashSessionStatus.css');
+@import url('./pages/admin/cashSessionStatus/read/readCashSessions.css');
 
-/* Utilidades (opcional) 
-@import url('utils/animations.css');
-/* @import url('utils/helpers.css'); */
-/* @import url('utils/responsive.css'); */
 
 /* Estilos base adicionales */
 body {

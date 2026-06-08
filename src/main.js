@@ -1,18 +1,20 @@
+/* ========================================
+   MAIN - Inicialización completa
+   Orquesta carga de HTML y controladores
+   ======================================== */
 
-import { loadLayout } from './modules/visitor/layout/loadLayout.js';
-import { initNavbarController } from './modules/visitor/layout/navbarController.js';
-import { initFooterController } from './modules/visitor/layout/footerController.js';
+import { loadLayout, initLayoutWatcher } from './modules/shared/loadLayout/loadLayout.js';
 import { initRouter } from './router/router.js';
+import { AuthService, ROLES } from '../services/authService.js';
 
 function loadExternalScripts() {
     return new Promise((resolve) => {
-        // Verificar si ya están cargados
         if (document.querySelector('script[src*="swiper"]')) {
             resolve();
             return;
         }
 
-        // Cargar AOS
+        // AOS
         const aosLink = document.createElement('link');
         aosLink.rel = 'stylesheet';
         aosLink.href = 'https://unpkg.com/aos@2.3.1/dist/aos.css';
@@ -20,12 +22,10 @@ function loadExternalScripts() {
 
         const aosScript = document.createElement('script');
         aosScript.src = 'https://unpkg.com/aos@2.3.1/dist/aos.js';
-        aosScript.onload = () => {
-            window.AOS = AOS;
-        };
+        aosScript.onload = () => window.AOS?.init();
         document.body.appendChild(aosScript);
 
-        // Cargar Swiper
+        // Swiper
         const swiperLink = document.createElement('link');
         swiperLink.rel = 'stylesheet';
         swiperLink.href = 'https://unpkg.com/swiper/swiper-bundle.min.css';
@@ -39,27 +39,67 @@ function loadExternalScripts() {
         };
         document.body.appendChild(swiperScript);
 
-        // Timeout por si fallan
         setTimeout(resolve, 3000);
     });
 }
 
 /**
- * Inicializa la aplicación
+ * Inicializa los controladores según el rol
+ * Esto se ejecuta DESPUÉS de que el HTML está cargado
  */
+async function initLayoutControllers(role) {
+    console.log('🎮 Inicializando controladores para rol:', role);
+    
+    const controllersMap = {
+        [ROLES.ADMIN]: {
+            navbar: () => import('./modules/admin/layout/adminNavbarController.js').then(m => m.initAdminNavbarController?.()),
+            footer: () => import('./modules/admin/layout/footerController.js').then(m => m.initFooterController?.())
+        },
+        [ROLES.GUEST]: {
+            navbar: () => import('./modules/visitor/layout/navbarController.js').then(m => m.initNavbarController?.()),
+            footer: () => import('./modules/visitor/layout/footerController.js').then(m => m.initFooterController?.())
+        }
+    };
+    
+    const controllers = controllersMap[role] || controllersMap[ROLES.GUEST];
+    
+    await Promise.all([
+        controllers.navbar(),
+        controllers.footer()
+    ]);
+    
+    console.log('✅ Controladores inicializados para rol:', role);
+}
+
+/**
+ * Configura el listener que espera a que el HTML esté cargado
+ * para luego inicializar los controladores
+ */
+function setupLayoutReadyListener() {
+    window.addEventListener('layout:loaded', async (event) => {
+        const { role } = event.detail;
+        console.log('📦 Layout HTML cargado, inicializando controladores...');
+        await initLayoutControllers(role);
+    });
+}
+
 async function initApp() {
     try {
-        // Cargar scripts externos
+        console.log('🚀 Inicializando aplicación...');
+        
         await loadExternalScripts();
+        console.log('✅ Scripts externos cargados');
 
-        // 1. Cargar layouts persistentes
+        // Configurar listener para cuando el HTML esté listo
+        setupLayoutReadyListener();
+
+        // Cargar layouts HTML (esto dispara el evento 'layout:loaded')
         await loadLayout();
-
-        // 2. Inicializar controllers de layout
-        initNavbarController();
-        initFooterController();
-
-        // 3. Inicializar router
+        
+        // Watcher para recargar al hacer login/logout
+        initLayoutWatcher();
+        
+        // Router para páginas
         initRouter();
 
         console.log('✅ Aplicación inicializada correctamente');
@@ -68,5 +108,4 @@ async function initApp() {
     }
 }
 
-// Iniciar aplicación
 initApp();

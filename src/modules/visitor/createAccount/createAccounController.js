@@ -1,50 +1,44 @@
 /* ========================================
-   REGISTER CONTROLLER - Solo animación de entrada
-   El formulario ya existe en el HTML, solo se anima al cargar
+   REGISTER CONTROLLER - Conexion con AdminService
+   Registro de administradores con email y Google
+   IMPLEMENTA SWEETALERT2 TOASTS
+   CAMPOS SEPARADOS: NOMBRE Y APELLIDO
    ======================================== */
 
+import { AdminService } from '/services/adminService.js';
+
+let isLoading = false;
+
 export async function createAccountController() {
-    console.log('📝 Register controller inicializado');
+    console.error('Register controller inicializado');
 
-    // Animar el formulario al cargar
     animateRegisterForm();
-
-    // Inicializar funcionalidades
     initAvatarClick();
     initAvatarUpload();
     initRemoveImageButton();
     initRegisterFormSubmit();
+    initGoogleRegister();
 }
 
-/**
- * 1. Animar el formulario al cargar (fadeIn + translateY)
- */
 function animateRegisterForm() {
     const registerCard = document.querySelector('.register-card');
     if (!registerCard) return;
 
-    // Ocultar inicialmente
     registerCard.style.opacity = '0';
     registerCard.style.transform = 'translateY(20px)';
     registerCard.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
 
-    // Forzar reflow
     registerCard.offsetHeight;
 
-    // Mostrar con animación
     registerCard.style.opacity = '1';
     registerCard.style.transform = 'translateY(0)';
 }
 
-/**
- * 2. Inicializar click en avatar (abrir selector de archivos)
- */
 function initAvatarClick() {
     const avatarWrapper = document.querySelector('.avatar-wrapper');
     const profileImage = document.getElementById('profileImage');
 
     if (avatarWrapper && profileImage) {
-        // Remover event listeners previos para evitar duplicados
         const newWrapper = avatarWrapper.cloneNode(true);
         avatarWrapper.parentNode.replaceChild(newWrapper, avatarWrapper);
 
@@ -55,9 +49,6 @@ function initAvatarClick() {
     }
 }
 
-/**
- * 3. Inicializar subida y previsualización de avatar
- */
 function initAvatarUpload() {
     const profileImage = document.getElementById('profileImage');
     if (!profileImage) return;
@@ -70,12 +61,12 @@ function initAvatarUpload() {
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
-            showTemporaryMessage('❌ Selecciona una imagen válida', 'error');
+            showErrorToast('Selecciona una imagen valida');
             return;
         }
 
         if (file.size > 2 * 1024 * 1024) {
-            showTemporaryMessage('❌ La imagen no debe superar los 2MB', 'error');
+            showErrorToast('La imagen no debe superar los 2MB');
             return;
         }
 
@@ -97,9 +88,6 @@ function initAvatarUpload() {
     });
 }
 
-/**
- * 4. Inicializar botón eliminar imagen
- */
 function initRemoveImageButton() {
     const removeBtn = document.getElementById('removeImageBtn');
     if (!removeBtn) return;
@@ -120,13 +108,10 @@ function initRemoveImageButton() {
         if (avatarIcon) avatarIcon.style.display = 'block';
         newRemoveBtn.style.display = 'none';
 
-        showTemporaryMessage('🗑️ Foto eliminada', 'info');
+        showInfoToast('Foto eliminada');
     });
 }
 
-/**
- * 5. Inicializar envío del formulario de registro
- */
 function initRegisterFormSubmit() {
     const registerForm = document.getElementById('registerForm');
     if (!registerForm) return;
@@ -137,65 +122,157 @@ function initRegisterFormSubmit() {
     newForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const inputs = newForm.querySelectorAll('input');
-        const business = inputs[0]?.value.trim();
-        const fullName = inputs[1]?.value.trim();
-        const email = inputs[2]?.value.trim();
-        const password = inputs[3]?.value;
+        if (isLoading) return;
 
-        if (!validateData({ business, fullName, email, password })) {
+        const firstName = document.getElementById('firstName')?.value.trim();
+        const lastName = document.getElementById('lastName')?.value.trim();
+        const email = document.getElementById('email')?.value.trim();
+        const password = document.getElementById('password')?.value;
+
+        if (!firstName || firstName.length < 2) {
+            showErrorToast('Escribe tu nombre completo (minimo 2 letras)');
+            return;
+        }
+        
+        if (!lastName || lastName.length < 2) {
+            showErrorToast('Escribe tu apellido completo (minimo 2 letras)');
+            return;
+        }
+        
+        if (!validateEmail(email)) {
+            showErrorToast('El correo no es valido. Ejemplo: nombre@correo.com');
+            return;
+        }
+        
+        if (!password || password.length < 6) {
+            showErrorToast('La contrasena es muy corta. Usa al menos 6 caracteres');
             return;
         }
 
+        const avatarPreview = document.getElementById('avatarPreview');
+        const userPhoto = avatarPreview?.src || '';
+
+        const adminData = {
+            nombre: firstName,
+            apellido: lastName,
+            telefono: '',
+            email: email,
+            plan: null,
+            tiendas: {},
+            activo: true,
+            termsAccepted: true,
+            userPhoto: userPhoto
+        };
+
+        isLoading = true;
         const submitBtn = newForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando cuenta...';
         submitBtn.disabled = true;
 
-        await simulateApiCall();
+        try {
+            const result = await AdminService.register(adminData, password);
+            
+            showSuccessToast('Cuenta creada con exito. Ahora inicia sesion');
 
-        showTemporaryMessage('✅ ¡Cuenta creada exitosamente!', 'success');
+            newForm.reset();
+            const avatarPreviewEl = document.getElementById('avatarPreview');
+            const avatarIconEl = document.getElementById('avatarIcon');
+            const removeBtn = document.getElementById('removeImageBtn');
+            const profileImageInput = document.getElementById('profileImage');
 
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
+            if (avatarPreviewEl) {
+                avatarPreviewEl.src = '';
+                avatarPreviewEl.style.display = 'none';
+            }
+            if (avatarIconEl) avatarIconEl.style.display = 'block';
+            if (removeBtn) removeBtn.style.display = 'none';
+            if (profileImageInput) profileImageInput.value = '';
 
-        // Limpiar formulario
-        newForm.reset();
+            setTimeout(() => {
+                if (typeof window.navigateTo === 'function') {
+                    window.navigateTo('/iniciarSesion');
+                } else {
+                    window.location.href = '/iniciarSesion';
+                }
+            }, 2000);
 
-        const avatarPreview = document.getElementById('avatarPreview');
-        const avatarIcon = document.getElementById('avatarIcon');
-        const removeBtn = document.getElementById('removeImageBtn');
-
-        if (avatarPreview) {
-            avatarPreview.src = '';
-            avatarPreview.style.display = 'none';
+        } catch (error) {
+            console.error('Error en registro:', error);
+            const friendlyMessage = getFriendlyErrorMessage(error);
+            showErrorToast(friendlyMessage);
+        } finally {
+            isLoading = false;
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
         }
-        if (avatarIcon) avatarIcon.style.display = 'block';
-        if (removeBtn) removeBtn.style.display = 'none';
     });
 }
 
-/**
- * 6. Validaciones
- */
-function validateData(data) {
-    if (!data.business || data.business.length < 2) {
-        showTemporaryMessage('❌ Ingresa el nombre de tu negocio', 'error');
-        return false;
+function initGoogleRegister() {
+    const googleBtn = document.getElementById('googleRegisterBtn');
+    if (!googleBtn) return;
+
+    const newGoogleBtn = googleBtn.cloneNode(true);
+    googleBtn.parentNode.replaceChild(newGoogleBtn, googleBtn);
+
+    newGoogleBtn.addEventListener('click', async () => {
+        if (isLoading) return;
+
+        isLoading = true;
+        const originalText = newGoogleBtn.innerHTML;
+        newGoogleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+        newGoogleBtn.disabled = true;
+
+        try {
+            const result = await AdminService.login(null, null, true);
+            
+            showSuccessToast('Cuenta creada con Google. Redirigiendo...');
+
+            setTimeout(() => {
+                if (typeof window.navigateTo === 'function') {
+                    window.navigateTo('/iniciarSesion');
+                } else {
+                    window.location.href = '/iniciarSesion';
+                }
+            }, 1500);
+
+        } catch (error) {
+            console.error('Error en registro con Google:', error);
+            const friendlyMessage = getFriendlyErrorMessage(error);
+            showErrorToast(friendlyMessage);
+        } finally {
+            isLoading = false;
+            newGoogleBtn.innerHTML = originalText;
+            newGoogleBtn.disabled = false;
+        }
+    });
+}
+
+function getFriendlyErrorMessage(error) {
+    const errorCode = error?.code || error?.message || '';
+    
+    const errorMap = {
+        'auth/email-already-in-use': 'Este correo ya esta registrado. Usa otro correo o inicia sesion',
+        'auth/invalid-email': 'El correo no es valido. Ejemplo: nombre@correo.com',
+        'auth/weak-password': 'La contrasena es muy debil. Usa al menos 6 caracteres entre letras y numeros',
+        'auth/network-request-failed': 'Sin conexion a internet. Revisa tu red y vuelve a intentar',
+        'auth/popup-closed-by-user': 'Cerraste la ventana de Google. Da clic de nuevo en el boton de Google',
+        'auth/cancelled-popup-request': 'Cancelaste el registro con Google. Puedes usar correo y contrasena',
+        'auth/popup-blocked': 'El navegador no dejo abrir la ventana de Google. Permite ventanas emergentes',
+        'auth/too-many-requests': 'Demasiados intentos fallidos. Espera un momento y vuelve a intentar',
+        'auth/user-not-found': 'No existe cuenta con este correo. Revisa que este bien escrito',
+        'auth/wrong-password': 'La contrasena no coincide. Revisa mayusculas y minusculas'
+    };
+    
+    for (const [code, message] of Object.entries(errorMap)) {
+        if (errorCode.includes(code)) {
+            return message;
+        }
     }
-    if (!data.fullName || data.fullName.length < 3) {
-        showTemporaryMessage('❌ Ingresa tu nombre completo', 'error');
-        return false;
-    }
-    if (!validateEmail(data.email)) {
-        showTemporaryMessage('❌ Correo electrónico inválido', 'error');
-        return false;
-    }
-    if (!data.password || data.password.length < 6) {
-        showTemporaryMessage('❌ La contraseña debe tener al menos 6 caracteres', 'error');
-        return false;
-    }
-    return true;
+    
+    console.error('Error no mapeado:', error);
+    return 'Algo fallo. Revisa que el nombre, apellido, correo y contrasena esten bien escritos';
 }
 
 function validateEmail(email) {
@@ -203,41 +280,63 @@ function validateEmail(email) {
     return re.test(email);
 }
 
-function simulateApiCall() {
-    return new Promise(resolve => setTimeout(resolve, 1200));
+function showSuccessToast(message) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+    
+    Toast.fire({
+        icon: 'success',
+        title: message
+    });
 }
 
-function showTemporaryMessage(message, type = 'info') {
-    const existingToast = document.querySelector('.auth-toast');
-    if (existingToast) existingToast.remove();
-
-    const toast = document.createElement('div');
-    toast.innerHTML = message;
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#22c55e' : '#ef4444'};
-        color: white;
-        padding: 12px 24px;
-        border-radius: 10px;
-        font-weight: 500;
-        z-index: 10000;
-        animation: slideInRight 0.3s ease;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    `;
-
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+function showErrorToast(message) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+    
+    Toast.fire({
+        icon: 'error',
+        title: message
+    });
 }
 
-/**
- * 7. Limpieza
- */
+function showInfoToast(message) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+    
+    Toast.fire({
+        icon: 'info',
+        title: message
+    });
+}
+
 export function cleanupRegister() {
-    console.log('🧹 Register controller cleaned up');
+    console.error('Register controller cleaned up');
 }
