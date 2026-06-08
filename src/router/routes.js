@@ -17,6 +17,12 @@ import { termsAndConditionsController } from '../modules/visitor/termsAndConditi
 
   /* ---------------------- Admin  ---------------------- */
 
+
+    /* ========================================
+         ----------- profile -----------
+   ======================================== */
+import { updateProfileController } from '../modules/admin/profile/updateProfileController.js';
+
   
   /* ========================================
          ----------- home -----------
@@ -46,6 +52,7 @@ import { updateSupplierController } from '../modules/admin/supplier/update/updat
     ======================================== */
 
 import { cashSessionStatusController } from '../modules/admin/cashSessionStatus/cashSessionStatusController.js';
+import { readCashSessionsController  } from '../modules/admin/cashSessionStatus/read/readCashSessionsController.js';
 
 /* ========================================
                 Rutas HTML 
@@ -90,26 +97,18 @@ export const routes = {
 
 
 
-    /* ========================================
-         ----------- customer -----------
-   ======================================== */
+/* ================================================================================
+       --------------------------------- Admin ---------------------------------
+   ================================================================================ */
 
+
+        /* customer */
       "/readCustomer": {
         view: "/modules/admin/customer/readCustomer.html",
         controller: readCustomerController
     },
 
-
-
-
-
-
-
-    /* ========================================
-         ----------- Supplier -----------
-   ======================================== */
-
-
+        /* supplier */
       "/updateSupplier": {
         view: "/modules/admin/supplier/update/updateSupplier.html",
         controller: updateSupplierController
@@ -123,6 +122,12 @@ export const routes = {
         controller: readSupplierController
     },
 
+    /* profile */
+    "/updateProfile": {
+        view: "/modules/admin/profile/updateProfile.html",
+        controller: updateProfileController
+    },
+
         
     /* ========================================
      ----------- cashSessionStatus -----------    
@@ -134,11 +139,12 @@ export const routes = {
     },
 
 
-    
+      "/readcashSessionStatus": {
+        view: "/modules/admin/cashSessionStatus/read/readCashSessions.html",
+        controller: readCashSessionsController
+    },
 
-/* ================================================================================
-       --------------------------------- Admin ---------------------------------
-   ================================================================================ */
+
 
 
  "/adminHome": {

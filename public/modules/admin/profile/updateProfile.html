@@ -1,0 +1,224 @@
+<!-- FILE: updateProfile.html -->
+<!-- Completar perfil de la empresa - Onboarding de administrador -->
+<div class="profile-container">
+    <div class="profile-card">
+        <!-- Header -->
+        <div class="profile-header">
+            <div class="header-icon">
+                <i class="fas fa-store"></i>
+            </div>
+            <div class="header-title">
+                <h1>Completa tu perfil</h1>
+                <p class="header-subtitle">Configura los datos de tu negocio para comenzar</p>
+            </div>
+            <div class="step-badge">
+                Paso <span id="currentStepDisplay">1</span> de <span id="totalSteps">3</span>
+            </div>
+        </div>
+
+        <!-- Wizard steps -->
+        <div class="wizard-steps">
+            <div class="step-item active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">Datos del negocio</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-item" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">Ubicación</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-item" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-label">Plan</div>
+            </div>
+        </div>
+
+        <!-- Navegación superior -->
+        <div class="carousel-navigation">
+            <button type="button" class="btn-nav" id="prevBtn" disabled>
+                <i class="fas fa-arrow-left"></i> Anterior
+            </button>
+            <button type="button" class="btn-nav btn-nav-next" id="nextBtn">
+                Siguiente <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- Carrusel de paneles -->
+        <div class="carousel-container">
+            
+            <!-- PASO 1: Datos del negocio -->
+            <div class="carousel-panel active" data-panel="1">
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-building section-icon"></i>
+                        <h2>Información del negocio</h2>
+                    </div>
+                    <div class="form-grid">
+                        <div class="input-group full-width">
+                            <label>Nombre del negocio <span class="required">*</span></label>
+                            <input type="text" id="businessName" placeholder="Ej: Mi Tienda NeoShop">
+                            <span class="input-line"></span>
+                            <small>Este nombre aparecerá en facturas y reportes</small>
+                        </div>
+                        <div class="input-group">
+                            <label>RFC <span class="required">*</span></label>
+                            <input type="text" id="rfc" placeholder="XAXX010101XXX">
+                            <span class="input-line"></span>
+                        </div>
+                        <div class="input-group">
+                            <label>Teléfono <span class="required">*</span></label>
+                            <input type="tel" id="businessPhone" placeholder="55 1234 5678">
+                            <span class="input-line"></span>
+                        </div>
+                        <div class="input-group">
+                            <label>Correo de facturación</label>
+                            <input type="email" id="billingEmail" placeholder="facturacion@tutienda.com">
+                            <span class="input-line"></span>
+                            <small>Si es diferente al correo de la cuenta</small>
+                        </div>
+                        <div class="input-group full-width">
+                            <label>Logotipo / Imagen del negocio</label>
+                            <div class="logo-upload-area" id="logoUploadArea">
+                                <input type="file" id="logoInput" accept="image/*" style="display: none;">
+                                <div class="logo-placeholder" id="logoPlaceholder">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Haz clic para subir el logotipo</p>
+                                    <small>Formatos: JPG, PNG (max 2MB)</small>
+                                </div>
+                                <div class="logo-preview" id="logoPreview" style="display: none;">
+                                    <img id="logoPreviewImg" alt="Logotipo">
+                                    <button type="button" class="remove-logo" id="removeLogoBtn">✕</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PASO 2: Ubicación -->
+            <div class="carousel-panel" data-panel="2">
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-map-marker-alt section-icon"></i>
+                        <h2>Ubicación del negocio</h2>
+                    </div>
+                    <div class="form-grid">
+                        <div class="input-group full-width">
+                            <label>Calle <span class="required">*</span></label>
+                            <input type="text" id="street" placeholder="Calle y número">
+                            <span class="input-line"></span>
+                        </div>
+                        <div class="input-group">
+                            <label>Colonia</label>
+                            <input type="text" id="neighborhood" placeholder="Colonia">
+                            <span class="input-line"></span>
+                        </div>
+                        <div class="input-group">
+                            <label>Código postal</label>
+                            <input type="text" id="postalCode" placeholder="Código postal">
+                            <span class="input-line"></span>
+                        </div>
+                        <div class="input-group">
+                            <label>Ciudad</label>
+                            <input type="text" id="city" placeholder="Ciudad">
+                            <span class="input-line"></span>
+                        </div>
+                        <div class="input-group">
+                            <label>Estado</label>
+                            <input type="text" id="state" placeholder="Estado">
+                            <span class="input-line"></span>
+                        </div>
+                        <div class="input-group full-width">
+                            <label>Referencias adicionales</label>
+                            <textarea id="locationRefs" rows="2" placeholder="Ej: Entre calles, cerca del metro..."></textarea>
+                            <span class="input-line"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PASO 3: Plan -->
+            <div class="carousel-panel" data-panel="3">
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-rocket section-icon"></i>
+                        <h2>Selecciona tu plan</h2>
+                    </div>
+                    <div class="plans-grid">
+                        <div class="plan-card" data-plan="basic">
+                            <div class="plan-header">
+                                <i class="fas fa-store"></i>
+                                <h3>Básico</h3>
+                                <div class="plan-price">
+                                    <span class="currency">$</span>
+                                    <span class="amount">29</span>
+                                    <span class="period">/mes</span>
+                                </div>
+                            </div>
+                            <ul class="plan-features">
+                                <li><i class="fas fa-check"></i> Hasta 500 productos</li>
+                                <li><i class="fas fa-check"></i> Ventas ilimitadas</li>
+                                <li><i class="fas fa-check"></i> Reportes básicos</li>
+                                <li><i class="fas fa-check"></i> Soporte por email</li>
+                                <li><i class="fas fa-check"></i> 1 usuario</li>
+                            </ul>
+                        </div>
+                        <div class="plan-card featured" data-plan="pro">
+                            <div class="plan-badge">Recomendado</div>
+                            <div class="plan-header">
+                                <i class="fas fa-chart-line"></i>
+                                <h3>Profesional</h3>
+                                <div class="plan-price">
+                                    <span class="currency">$</span>
+                                    <span class="amount">59</span>
+                                    <span class="period">/mes</span>
+                                </div>
+                            </div>
+                            <ul class="plan-features">
+                                <li><i class="fas fa-check"></i> Productos ilimitados</li>
+                                <li><i class="fas fa-check"></i> Ventas ilimitadas</li>
+                                <li><i class="fas fa-check"></i> Reportes avanzados</li>
+                                <li><i class="fas fa-check"></i> Soporte prioritario 24/7</li>
+                                <li><i class="fas fa-check"></i> Hasta 5 usuarios</li>
+                                <li><i class="fas fa-check"></i> Múltiples sucursales</li>
+                            </ul>
+                        </div>
+                        <div class="plan-card" data-plan="enterprise">
+                            <div class="plan-header">
+                                <i class="fas fa-crown"></i>
+                                <h3>Empresarial</h3>
+                                <div class="plan-price">
+                                    <span class="currency">$</span>
+                                    <span class="amount">99</span>
+                                    <span class="period">/mes</span>
+                                </div>
+                            </div>
+                            <ul class="plan-features">
+                                <li><i class="fas fa-check"></i> Todo lo del plan Profesional</li>
+                                <li><i class="fas fa-check"></i> Usuarios ilimitados</li>
+                                <li><i class="fas fa-check"></i> API personalizada</li>
+                                <li><i class="fas fa-check"></i> Asesor dedicado</li>
+                                <li><i class="fas fa-check"></i> Capacitación incluida</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="selected-plan-info" id="selectedPlanInfo">
+                        <input type="hidden" id="selectedPlan" value="pro">
+                        <p><i class="fas fa-info-circle"></i> Plan seleccionado: <strong id="selectedPlanName">Profesional</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción finales (solo visibles en paso 3) -->
+        <div class="action-buttons" id="actionButtons">
+            <button type="button" class="btn-secondary" id="skipBtn">
+                <i class="fas fa-times"></i> Omitir por ahora
+            </button>
+            <button type="button" class="btn-primary" id="completeBtn">
+                <i class="fas fa-check"></i> Completar configuración
+            </button>
+        </div>
+    </div>
+</div>

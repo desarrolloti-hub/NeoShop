@@ -1,0 +1,115 @@
+<!-- FILE: readCashSessions.html -->
+<!-- Listado de cortes de caja - Historial de sesiones -->
+<div class="cash-sessions-container">
+    <div class="cash-sessions-card">
+        <div class="cash-sessions-header">
+            <div class="header-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="header-title">
+                <h1>Historial de Cortes de Caja</h1>
+                <p class="header-subtitle">Registro de todas las sesiones de caja cerradas</p>
+            </div>
+            <a href="/cashSessionStatus" class="btn btn-outline" data-link>
+                <i class="fas fa-cash-register"></i> Nuevo corte
+            </a>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filters-bar">
+            <div class="search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchSession" class="search-input" placeholder="Buscar por tienda, usuario o ID...">
+            </div>
+            <div class="date-filters">
+                <input type="date" id="startDate" class="date-input" placeholder="Fecha inicio">
+                <span class="date-separator">a</span>
+                <input type="date" id="endDate" class="date-input" placeholder="Fecha fin">
+                <button id="clearFiltersBtn" class="btn-clear" title="Limpiar filtros">
+                    <i class="fas fa-eraser"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabla de cortes -->
+        <div class="table-wrapper">
+            <table class="cash-sessions-table">
+                <thead>
+                    <tr>
+                        <th>ID Sesión</th>
+                        <th>Tienda / Sucursal</th>
+                        <th>Usuario</th>
+                        <th>Apertura</th>
+                        <th>Cierre</th>
+                        <th>Monto apertura</th>
+                        <th>Monto cierre</th>
+                        <th>Diferencia</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="sessionsTableBody">
+                    <tr class="loading-row">
+                        <td colspan="10">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-pulse"></i> Cargando cortes...
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Vista móvil (cards) -->
+        <div id="sessionsCardsContainer" class="sessions-cards-container" style="display: none;">
+            <!-- Las cards se generarán dinámicamente -->
+        </div>
+
+        <!-- Paginación -->
+        <div class="pagination-container" id="paginationContainer">
+            <button class="pagination-btn" id="prevPageBtn" disabled>
+                <i class="fas fa-chevron-left"></i> Anterior
+            </button>
+            <div class="pagination-info">
+                <span id="pageInfo">Página 1 de 1</span>
+            </div>
+            <button class="pagination-btn" id="nextPageBtn" disabled>
+                Siguiente <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Resumen estadístico -->
+        <div class="summary-footer">
+            <div class="summary-item">
+                <i class="fas fa-cash-register"></i>
+                <span>Total de cortes: <strong id="totalSessionsCount">0</strong></span>
+            </div>
+            <div class="summary-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Ventas totales: <strong id="totalSales">$0.00</strong></span>
+            </div>
+            <div class="summary-item">
+                <i class="fas fa-percent"></i>
+                <span>Promedio por corte: <strong id="averageSale">$0.00</strong></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver detalles del corte -->
+<div id="sessionModal" class="session-modal" style="display: none;">
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-receipt"></i> Detalles del corte</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="sessionModalBody">
+                <!-- Contenido dinámico -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal-btn">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>

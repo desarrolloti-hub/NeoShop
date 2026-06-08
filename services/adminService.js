@@ -1,5 +1,5 @@
 /* ========================================
-   ADMIN SERVICE - Lógica de negocio
+   ADMIN SERVICE - Logica de negocio
    ======================================== */
 
 import { Admin } from '/classes/adminModel.js';
@@ -21,10 +21,10 @@ export const AdminService = {
             throw new Error('El apellido debe tener al menos 2 caracteres');
         }
         if (!adminData.email || !this._validateEmail(adminData.email)) {
-            throw new Error('Correo electrónico inválido');
+            throw new Error('Correo electronico invalido');
         }
         if (!password || password.length < 6) {
-            throw new Error('La contraseña debe tener al menos 6 caracteres');
+            throw new Error('La contrasena debe tener al menos 6 caracteres');
         }
         
         const existing = await AdminRepository.getByEmail(adminData.email.toLowerCase().trim());
@@ -48,8 +48,10 @@ export const AdminService = {
         const result = await AdminRepository.registerWithEmail(admin.email, password, admin);
         
         await CacheService.clearCache(STORES.ADMINS || 'admins');
-        this._saveSession(result.userData.datosResumidos);
-        this._dispatchAuthChange(result.userData.datosResumidos);
+        
+        // ELIMINADO: Ya no guarda sesion en registro con email
+        // this._saveSession(result.userData.datosResumidos);
+        // this._dispatchAuthChange(result.userData.datosResumidos);
         
         return result;
     },
@@ -61,23 +63,23 @@ export const AdminService = {
             result = await AdminRepository.loginWithGoogle();
         } else {
             if (!email || !this._validateEmail(email)) {
-                throw new Error('Correo electrónico inválido');
+                throw new Error('Correo electronico invalido');
             }
             if (!password) {
-                throw new Error('La contraseña es requerida');
+                throw new Error('La contrasena es requerida');
             }
             result = await AdminRepository.loginWithEmail(email.toLowerCase().trim(), password);
         }
         
         if (!result.userData) {
-            throw new Error('No se encontró información del administrador');
+            throw new Error('No se encontro informacion del administrador');
         }
         
         if (!result.userData.activo) {
             throw new Error('Esta cuenta ha sido desactivada');
         }
         
-        // ✅ Guardar sesión con datos resumidos
+        // Guardar sesion solo en login
         const sessionData = {
             id: result.userData.id,
             nombre: result.userData.nombre,
@@ -114,7 +116,7 @@ export const AdminService = {
         return this._getSession();
     },
     
-    // ========== MÉTODOS PRIVADOS ==========
+    // ========== METODOS PRIVADOS ==========
     
     _validateEmail(email) {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

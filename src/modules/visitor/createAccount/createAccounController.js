@@ -1,6 +1,8 @@
 /* ========================================
-   REGISTER CONTROLLER - Conexión con AdminService
+   REGISTER CONTROLLER - Conexion con AdminService
    Registro de administradores con email y Google
+   IMPLEMENTA SWEETALERT2 TOASTS
+   CAMPOS SEPARADOS: NOMBRE Y APELLIDO
    ======================================== */
 
 import { AdminService } from '/services/adminService.js';
@@ -8,12 +10,9 @@ import { AdminService } from '/services/adminService.js';
 let isLoading = false;
 
 export async function createAccountController() {
-    console.log('📝 Register controller inicializado');
+    console.error('Register controller inicializado');
 
-    // Animar el formulario al cargar
     animateRegisterForm();
-
-    // Inicializar funcionalidades
     initAvatarClick();
     initAvatarUpload();
     initRemoveImageButton();
@@ -21,9 +20,6 @@ export async function createAccountController() {
     initGoogleRegister();
 }
 
-/**
- * 1. Animar el formulario al cargar
- */
 function animateRegisterForm() {
     const registerCard = document.querySelector('.register-card');
     if (!registerCard) return;
@@ -38,9 +34,6 @@ function animateRegisterForm() {
     registerCard.style.transform = 'translateY(0)';
 }
 
-/**
- * 2. Click en avatar - abrir selector de archivos
- */
 function initAvatarClick() {
     const avatarWrapper = document.querySelector('.avatar-wrapper');
     const profileImage = document.getElementById('profileImage');
@@ -56,9 +49,6 @@ function initAvatarClick() {
     }
 }
 
-/**
- * 3. Subida y previsualización de avatar
- */
 function initAvatarUpload() {
     const profileImage = document.getElementById('profileImage');
     if (!profileImage) return;
@@ -71,12 +61,12 @@ function initAvatarUpload() {
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
-            showTemporaryMessage('❌ Selecciona una imagen válida', 'error');
+            showErrorToast('Selecciona una imagen valida');
             return;
         }
 
         if (file.size > 2 * 1024 * 1024) {
-            showTemporaryMessage('❌ La imagen no debe superar los 2MB', 'error');
+            showErrorToast('La imagen no debe superar los 2MB');
             return;
         }
 
@@ -98,9 +88,6 @@ function initAvatarUpload() {
     });
 }
 
-/**
- * 4. Botón eliminar imagen
- */
 function initRemoveImageButton() {
     const removeBtn = document.getElementById('removeImageBtn');
     if (!removeBtn) return;
@@ -121,13 +108,10 @@ function initRemoveImageButton() {
         if (avatarIcon) avatarIcon.style.display = 'block';
         newRemoveBtn.style.display = 'none';
 
-        showTemporaryMessage('🗑️ Foto eliminada', 'info');
+        showInfoToast('Foto eliminada');
     });
 }
 
-/**
- * 5. Envío del formulario de registro con email/contraseña
- */
 function initRegisterFormSubmit() {
     const registerForm = document.getElementById('registerForm');
     if (!registerForm) return;
@@ -140,37 +124,37 @@ function initRegisterFormSubmit() {
 
         if (isLoading) return;
 
-        const fullName = document.getElementById('fullName')?.value.trim();
+        const firstName = document.getElementById('firstName')?.value.trim();
+        const lastName = document.getElementById('lastName')?.value.trim();
         const email = document.getElementById('email')?.value.trim();
         const password = document.getElementById('password')?.value;
 
-        // Validaciones básicas de UI
-        if (!fullName || fullName.length < 3) {
-            showTemporaryMessage('❌ Ingresa tu nombre completo', 'error');
+        if (!firstName || firstName.length < 2) {
+            showErrorToast('Escribe tu nombre completo (minimo 2 letras)');
             return;
         }
+        
+        if (!lastName || lastName.length < 2) {
+            showErrorToast('Escribe tu apellido completo (minimo 2 letras)');
+            return;
+        }
+        
         if (!validateEmail(email)) {
-            showTemporaryMessage('❌ Correo electrónico inválido', 'error');
+            showErrorToast('El correo no es valido. Ejemplo: nombre@correo.com');
             return;
         }
+        
         if (!password || password.length < 6) {
-            showTemporaryMessage('❌ La contraseña debe tener al menos 6 caracteres', 'error');
+            showErrorToast('La contrasena es muy corta. Usa al menos 6 caracteres');
             return;
         }
 
-        // Separar nombre y apellido
-        const nameParts = fullName.split(' ');
-        const nombre = nameParts[0] || '';
-        const apellido = nameParts.slice(1).join(' ') || '';
-
-        // Obtener foto de perfil (base64)
         const avatarPreview = document.getElementById('avatarPreview');
         const userPhoto = avatarPreview?.src || '';
 
-        // Preparar datos del administrador
         const adminData = {
-            nombre: nombre,
-            apellido: apellido,
+            nombre: firstName,
+            apellido: lastName,
             telefono: '',
             email: email,
             plan: null,
@@ -187,12 +171,10 @@ function initRegisterFormSubmit() {
         submitBtn.disabled = true;
 
         try {
-            // 👇 EL SERVICE VALIDA Y EL REPOSITORY GUARDA
             const result = await AdminService.register(adminData, password);
+            
+            showSuccessToast('Cuenta creada con exito. Ahora inicia sesion');
 
-            showTemporaryMessage('✅ ¡Cuenta creada exitosamente! Revisa tu correo', 'success');
-
-            // Limpiar formulario
             newForm.reset();
             const avatarPreviewEl = document.getElementById('avatarPreview');
             const avatarIconEl = document.getElementById('avatarIcon');
@@ -207,7 +189,6 @@ function initRegisterFormSubmit() {
             if (removeBtn) removeBtn.style.display = 'none';
             if (profileImageInput) profileImageInput.value = '';
 
-            // Redirigir después de 2 segundos
             setTimeout(() => {
                 if (typeof window.navigateTo === 'function') {
                     window.navigateTo('/iniciarSesion');
@@ -218,7 +199,8 @@ function initRegisterFormSubmit() {
 
         } catch (error) {
             console.error('Error en registro:', error);
-            showTemporaryMessage(`❌ ${error.message}`, 'error');
+            const friendlyMessage = getFriendlyErrorMessage(error);
+            showErrorToast(friendlyMessage);
         } finally {
             isLoading = false;
             submitBtn.innerHTML = originalText;
@@ -227,9 +209,6 @@ function initRegisterFormSubmit() {
     });
 }
 
-/**
- * 🆕 6. Registro con Google
- */
 function initGoogleRegister() {
     const googleBtn = document.getElementById('googleRegisterBtn');
     if (!googleBtn) return;
@@ -246,12 +225,10 @@ function initGoogleRegister() {
         newGoogleBtn.disabled = true;
 
         try {
-            // 👇 LOGIN CON GOOGLE (si no existe, crea el admin)
             const result = await AdminService.login(null, null, true);
+            
+            showSuccessToast('Cuenta creada con Google. Redirigiendo...');
 
-            showTemporaryMessage('✅ ¡Cuenta creada con Google exitosamente!', 'success');
-
-            // Redirigir después de 1.5 segundos
             setTimeout(() => {
                 if (typeof window.navigateTo === 'function') {
                     window.navigateTo('/iniciarSesion');
@@ -262,7 +239,8 @@ function initGoogleRegister() {
 
         } catch (error) {
             console.error('Error en registro con Google:', error);
-            showTemporaryMessage(`❌ ${error.message}`, 'error');
+            const friendlyMessage = getFriendlyErrorMessage(error);
+            showErrorToast(friendlyMessage);
         } finally {
             isLoading = false;
             newGoogleBtn.innerHTML = originalText;
@@ -271,49 +249,94 @@ function initGoogleRegister() {
     });
 }
 
-/**
- * Validar email
- */
+function getFriendlyErrorMessage(error) {
+    const errorCode = error?.code || error?.message || '';
+    
+    const errorMap = {
+        'auth/email-already-in-use': 'Este correo ya esta registrado. Usa otro correo o inicia sesion',
+        'auth/invalid-email': 'El correo no es valido. Ejemplo: nombre@correo.com',
+        'auth/weak-password': 'La contrasena es muy debil. Usa al menos 6 caracteres entre letras y numeros',
+        'auth/network-request-failed': 'Sin conexion a internet. Revisa tu red y vuelve a intentar',
+        'auth/popup-closed-by-user': 'Cerraste la ventana de Google. Da clic de nuevo en el boton de Google',
+        'auth/cancelled-popup-request': 'Cancelaste el registro con Google. Puedes usar correo y contrasena',
+        'auth/popup-blocked': 'El navegador no dejo abrir la ventana de Google. Permite ventanas emergentes',
+        'auth/too-many-requests': 'Demasiados intentos fallidos. Espera un momento y vuelve a intentar',
+        'auth/user-not-found': 'No existe cuenta con este correo. Revisa que este bien escrito',
+        'auth/wrong-password': 'La contrasena no coincide. Revisa mayusculas y minusculas'
+    };
+    
+    for (const [code, message] of Object.entries(errorMap)) {
+        if (errorCode.includes(code)) {
+            return message;
+        }
+    }
+    
+    console.error('Error no mapeado:', error);
+    return 'Algo fallo. Revisa que el nombre, apellido, correo y contrasena esten bien escritos';
+}
+
 function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
 }
 
-/**
- * Mostrar mensaje temporal
- */
-function showTemporaryMessage(message, type = 'info') {
-    const existingToast = document.querySelector('.auth-toast');
-    if (existingToast) existingToast.remove();
-
-    const toast = document.createElement('div');
-    toast.className = 'auth-toast';
-    toast.innerHTML = message;
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#3b82f6'};
-        color: white;
-        padding: 12px 24px;
-        border-radius: 10px;
-        font-weight: 500;
-        z-index: 10000;
-        animation: slideInRight 0.3s ease;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    `;
-
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+function showSuccessToast(message) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+    
+    Toast.fire({
+        icon: 'success',
+        title: message
+    });
 }
 
-/**
- * Limpieza
- */
+function showErrorToast(message) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+    
+    Toast.fire({
+        icon: 'error',
+        title: message
+    });
+}
+
+function showInfoToast(message) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+    
+    Toast.fire({
+        icon: 'info',
+        title: message
+    });
+}
+
 export function cleanupRegister() {
-    console.log('🧹 Register controller cleaned up');
+    console.error('Register controller cleaned up');
 }

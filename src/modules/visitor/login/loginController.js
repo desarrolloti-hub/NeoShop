@@ -1,5 +1,6 @@
 /* ========================================
    LOGIN CONTROLLER - Escucha formulario y llama a service
+   IMPLEMENTA SWEETALERT2 PARA ERRORES AMIGABLES
    ======================================== */
 
 import { AdminService } from '/services/adminService.js';
@@ -8,7 +9,7 @@ import { AuthService, ROLES } from '/services/authService.js';
 let isLoading = false;
 
 export async function loginController() {
-    console.log('🔐 Login controller inicializado');
+    console.error('Login controller inicializado');
 
     if (AdminService.isAuthenticated()) {
         redirectByRole();
@@ -53,7 +54,7 @@ function initLoginForm() {
         const password = document.getElementById('loginPass')?.value;
 
         if (!email || !password) {
-            showTemporaryMessage('❌ Completa todos los campos', 'error');
+            showTemporaryError('Campos incompletos', 'Por favor, ingresa tu correo electrónico y contraseña.');
             return;
         }
 
@@ -65,10 +66,11 @@ function initLoginForm() {
 
         try {
             await AdminService.login(email, password, false);
-            showTemporaryMessage('✅ ¡Bienvenido!', 'success');
+            showSuccessToast('Bienvenido');
             setTimeout(() => redirectByRole(), 1000);
         } catch (error) {
-            showTemporaryMessage(`❌ ${error.message}`, 'error');
+            const friendlyMessage = getFriendlyErrorMessage(error);
+            showTemporaryError('Acceso denegado', friendlyMessage);
         } finally {
             isLoading = false;
             submitBtn.innerHTML = originalText;
@@ -91,10 +93,11 @@ function initGoogleLogin() {
 
         try {
             await AdminService.login(null, null, true);
-            showTemporaryMessage('✅ Sesión iniciada con Google', 'success');
+            showSuccessToast('Sesion iniciada con Google');
             setTimeout(() => redirectByRole(), 1000);
         } catch (error) {
-            showTemporaryMessage(`❌ ${error.message}`, 'error');
+            const friendlyMessage = getFriendlyErrorMessage(error);
+            showTemporaryError('Error con Google', friendlyMessage);
         } finally {
             isLoading = false;
             googleBtn.innerHTML = originalText;
@@ -103,28 +106,67 @@ function initGoogleLogin() {
     });
 }
 
-function showTemporaryMessage(message, type = 'info') {
-    const existingToast = document.querySelector('.auth-toast');
-    if (existingToast) existingToast.remove();
+function getFriendlyErrorMessage(error) {
+    const errorCode = error?.code || error?.message || '';
+    
+    const errorMap = {
+        'auth/invalid-login-credentials': 'Correo electronico o contrasena incorrectos. Por favor, verifica tus datos.',
+        'auth/wrong-password': 'Contrasena incorrecta. Intenta de nuevo.',
+        'auth/user-not-found': 'No encontramos una cuenta con este correo electronico.',
+        'auth/email-already-in-use': 'Este correo electronico ya esta registrado.',
+        'auth/weak-password': 'La contrasena es muy debil. Debe tener al menos 6 caracteres.',
+        'auth/invalid-email': 'El formato del correo electronico no es valido.',
+        'auth/too-many-requests': 'Demasiados intentos fallidos. Por favor, espera un momento e intenta de nuevo.',
+        'auth/network-request-failed': 'Error de conexion. Verifica tu red e intenta de nuevo.',
+        'auth/popup-closed-by-user': 'Cerraste la ventana de Google antes de completar el inicio de sesion.',
+        'auth/cancelled-popup-request': 'El inicio de sesion con Google fue cancelado.',
+        'auth/popup-blocked': 'El navegador bloqueo la ventana emergente de Google. Permite ventanas emergentes para este sitio.'
+    };
+    
+    for (const [code, message] of Object.entries(errorMap)) {
+        if (errorCode.includes(code)) {
+            return message;
+        }
+    }
+    
+    console.error('Error no mapeado:', error);
+    return 'Ocurrio un problema al iniciar sesion. Por favor, intenta de nuevo mas tarde.';
+}
 
-    const toast = document.createElement('div');
-    toast.className = 'auth-toast';
-    toast.innerHTML = message;
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#22c55e' : '#ef4444'};
-        color: white;
-        padding: 12px 24px;
-        border-radius: 10px;
-        z-index: 10000;
-        animation: slideInRight 0.3s ease;
-    `;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+function showTemporaryError(title, message) {
+    Swal.fire({
+        title: title,
+        html: message,
+        icon: 'error',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (popup) => {
+            popup.addEventListener('mouseenter', Swal.stopTimer);
+            popup.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+}
+
+function showSuccessToast(message) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+    
+    Toast.fire({
+        icon: 'success',
+        title: message
+    });
 }
 
 export function cleanupLogin() {
-    console.log('🧹 Login controller cleaned up');
+    console.error('Login controller cleaned up');
 }

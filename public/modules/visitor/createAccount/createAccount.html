@@ -12,15 +12,18 @@
         </div>
 
         <input type="file" id="profileImage" accept="image/*">
-        <button type="button" id="removeImageBtn">
+        <button type="button" id="removeImageBtn" style="display: none;">
             <i class="fas fa-trash"></i> Eliminar foto
         </button>
 
         <h2>Crear cuenta</h2>
 
         <form id="registerForm">
-            <!-- ❌ ELIMINADO: campo Empresa / Negocio -->
-            <input type="text" placeholder="Nombre completo" id="fullName" required>
+            <!-- CAMPOS SEPARADOS: Nombre y Apellido -->
+            <div class="name-row">
+                <input type="text" placeholder="Nombre" id="firstName" required class="name-input">
+                <input type="text" placeholder="Apellido" id="lastName" required class="name-input">
+            </div>
             <input type="email" placeholder="Correo electrónico" id="email" required>
             <input type="password" placeholder="Contraseña" id="password" required>
 
@@ -29,7 +32,7 @@
             </button>
         </form>
 
-        <!-- 🆕 DIVISOR Y BOTÓN DE GOOGLE -->
+        <!-- DIVISOR Y BOTON DE GOOGLE -->
         <div class="auth-divider">
             <span>O</span>
         </div>
@@ -40,7 +43,7 @@
         </button>
 
         <div class="register-links">
-            <p>¿Ya tienes cuenta? <span><a href="iniciarSesion">Inicia Sesión</a></span></p>
+            <p>¿Ya tienes cuenta? <span><a href="iniciarSesion">Inicia Sesion</a></span></p>
         </div>
     </div>
 </div>
