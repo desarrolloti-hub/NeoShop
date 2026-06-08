@@ -1,32 +1,49 @@
-<!-- adminNavbar.html (partial) - Navbar horizontal para admin con botón de logout visible -->
-<div class="admin-navbar" id="adminNavbar">
-    <div class="admin-nav-container">
-        <a href="/adminHome" class="admin-logo">
-            <img src="assets/icons/logotipoNeoShopSinFondo512.png" alt="neoShop Admin">
-            <span class="admin-logo-text">Admin Panel</span>
-        </a>
-
-        <div class="admin-nav-wrapper">
-            <ul class="admin-nav-menu" id="adminNavMenu">
-                <li><a href="/adminHome" data-link><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="/productsList" data-link><i class="fas fa-boxes"></i> Productos</a></li>
-                <li><a href="/productsAdmin" data-link><i class="fas fa-plus-circle"></i> Agregar</a></li>
-                <li><a href="/orders" data-link><i class="fas fa-shopping-cart"></i> Pedidos</a></li>
-                <li><a href="/readSupplier" data-link><i class="fas fa-users"></i> Proveedores</a></li>
-                <li><a href="/users" data-link><i class="fas fa-users"></i> Usuarios</a></li>
-                <li><a href="/cashSessionStatus" data-link><i class="fas fa-users"></i> caja</a></li>
-                <li><a href="/updateProfile" data-link><i class="fas fa-cog"></i> Configuración</a></li>
-            </ul>
-
-            <!-- 🔥 BOTÓN DE CERRAR SESIÓN SIEMPRE VISIBLE 🔥 -->
-            <button class="admin-logout-btn" id="adminLogoutBtn">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Cerrar Sesión</span>
-            </button>
-
-            <button class="admin-menu-toggle" id="adminMenuToggle" aria-label="Menú">
-                <i class="fas fa-bars"></i>
-            </button>
+<!-- adminNavbar.html - Sidebar lateral para admin -->
+<aside class="admin-sidebar" id="adminNavbar">
+    <div class="admin-sidebar-header">
+        <div class="admin-logo">
+            <img src="assets/icons/logotipoNeoShopSinFondo512.png" alt="neoShop Admin" class="admin-logo-img">
         </div>
     </div>
-</div>
+
+    <nav class="admin-sidebar-nav">
+        <ul class="admin-nav-menu" id="adminNavMenu">
+            <li><a href="/adminHome" data-link><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+            <li><a href="/productsList" data-link><i class="fas fa-boxes"></i> <span>Productos</span></a></li>
+            <li><a href="/productsAdmin" data-link><i class="fas fa-plus-circle"></i> <span>Agregar</span></a></li>
+            <li><a href="/orders" data-link><i class="fas fa-shopping-cart"></i> <span>Pedidos</span></a></li>
+            <li><a href="/readSupplier" data-link><i class="fas fa-truck"></i> <span>Proveedores</span></a></li>
+            <li><a href="/users" data-link><i class="fas fa-users"></i> <span>Usuarios</span></a></li>
+            <li><a href="/cashSessionStatus" data-link><i class="fas fa-cash-register"></i> <span>Caja</span></a></li>
+            <li><a href="/updateProfile" data-link><i class="fas fa-cog"></i> <span>Configuración</span></a></li>
+        </ul>
+    </nav>
+
+    <div class="admin-sidebar-footer">
+        <!-- Información del usuario -->
+        <div class="admin-user-info" id="adminUserInfo">
+            <div class="admin-user-avatar" id="adminUserAvatar">
+                <img id="adminAvatarImg" class="admin-avatar-img" src="" alt="Avatar" style="display: none;">
+                <i id="adminAvatarIcon" class="fas fa-user-circle"></i>
+            </div>
+            <div class="admin-user-details">
+                <div class="admin-user-name" id="adminUserName">Cargando...</div>
+                <div class="admin-user-email" id="adminUserEmail">cargando@email.com</div>
+            </div>
+        </div>
+
+        <!-- Botón de cerrar sesión -->
+        <button class="admin-logout-btn" id="adminLogoutBtn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Cerrar Sesión</span>
+        </button>
+    </div>
+</aside>
+
+<!-- Botón hamburguesa FUERA del sidebar -->
+<button class="admin-menu-toggle-btn" id="adminMenuToggle">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- Overlay -->
+<div class="admin-overlay" id="adminOverlay"></div>
