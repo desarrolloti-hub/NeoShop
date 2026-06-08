@@ -15,7 +15,7 @@ export async function homeController() {
     setTimeout(() => {
         initStatsCounter();
         initFeatureCards();
-        initMagneticButtons();
+
         initDashboardAnimation();
     }, 100);
 
@@ -301,22 +301,7 @@ function initScrollReveal() {
 /**
  * 6. EFECTO MAGNÉTICO EN BOTONES
  */
-function initMagneticButtons() {
-    const buttons = document.querySelectorAll('.btn-primary, .btn-secondary');
 
-    buttons.forEach(btn => {
-        btn.addEventListener('mousemove', (e) => {
-            const rect = btn.getBoundingClientRect();
-            const x = e.clientX - rect.left - rect.width / 2;
-            const y = e.clientY - rect.top - rect.height / 2;
-            btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
-        });
-
-        btn.addEventListener('mouseleave', () => {
-            btn.style.transform = 'translate(0, 0)';
-        });
-    });
-}
 
 /**
  * 7. ANIMACIONES DEL DASHBOARD
