@@ -54,15 +54,16 @@
 @import url('./pages/visitor/termsAndConditions/termsAndConditions.css');
 
 
-    /* ========================================
+/* ========================================
          ----------- admin -----------
    ======================================== */
 
 /* navbar */
-@import url('./components/admin/adminNavbar.css');   
+@import url('./components/admin/adminNavbar.css');
+@import url('./components/admin/adminFooter.css');
 
 /* home */
-@import url('./pages/admin/home/adminHome.css');   
+@import url('./pages/admin/home/adminHome.css');
 
 /* customers */
 @import url('./pages/admin/customer/readCustomer.css');
@@ -78,19 +79,3 @@
 /* cash session status */
 @import url('./pages/admin/cashSessionStatus/cashSessionStatus.css');
 @import url('./pages/admin/cashSessionStatus/read/readCashSessions.css');
-
-
-/* Estilos base adicionales */
-body {
-    padding-top: 80px;
-}
-
-#app {
-    min-height: calc(100vh - 400px);
-}
-
-@media (max-width: 768px) {
-    body {
-        padding-top: 70px;
-    }
-}

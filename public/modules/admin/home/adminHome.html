@@ -72,28 +72,17 @@
     </div>
 
     <!-- Fila 1: Gráfico + Pedidos recientes -->
-    <div class="admin-dashboard-row">
-        <div class="admin-chart-card">
-            <div class="admin-card-header">
-                <h3>Ventas de los últimos 7 días</h3>
-                <div class="admin-chart-legend">
-                    <span><i class="fas fa-circle"></i> Esta semana</span>
-                </div>
-            </div>
-            <div class="admin-chart-container">
-                <canvas id="salesChart" width="800" height="250"></canvas>
-            </div>
-        </div>
 
-        <div class="admin-recent-card">
-            <div class="admin-card-header">
-                <h3>Pedidos recientes</h3>
-                <a href="/orders" class="admin-link-view" data-link>Ver todos <i class="fas fa-arrow-right"></i></a>
-            </div>
-            <div class="admin-recent-list" id="recentOrders">
-                <div class="admin-loading">Cargando pedidos...</div>
-            </div>
+
+    <div class="admin-recent-card">
+        <div class="admin-card-header">
+            <h3>Pedidos recientes</h3>
+            <a href="/orders" class="admin-link-view" data-link>Ver todos <i class="fas fa-arrow-right"></i></a>
         </div>
+        <div class="admin-recent-list" id="recentOrders">
+            <div class="admin-loading">Cargando pedidos...</div>
+        </div>
+    </div>
     </div>
 
     <!-- Fila 2: Top productos + Stock bajo -->

@@ -7,7 +7,7 @@ import { AuthService, ROLES } from '../../../../services/authService.js';
 const LAYOUT_PATHS = {
     [ROLES.ADMIN]: {
         navbar: '/modules/admin/layout/adminNavbar.html',
-        footer: '/modules/admin/layout/footer.html'
+        footer: '/modules/admin/layout/adminFooter.html'
     },
     [ROLES.GUEST]: {
         navbar: '/modules/visitor/layout/navbar.html',
@@ -27,7 +27,7 @@ async function loadComponent(url, containerId) {
         console.warn(`⚠️ Contenedor #${containerId} no encontrado`);
         return false;
     }
-    
+
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -42,14 +42,14 @@ async function loadComponent(url, containerId) {
 
 export async function loadLayout() {
     console.log('📦 Cargando layouts HTML...');
-    
+
     const paths = getLayoutPaths();
-    
+
     const [navbarLoaded, footerLoaded] = await Promise.all([
         loadComponent(paths.navbar, 'navbar'),
         loadComponent(paths.footer, 'footer')
     ]);
-    
+
     // ✅ Solo despacha evento con el rol, NO los controladores
     const event = new CustomEvent('layout:loaded', {
         detail: {
@@ -59,20 +59,20 @@ export async function loadLayout() {
         }
     });
     window.dispatchEvent(event);
-    
+
     console.log('✅ Layouts HTML cargados para rol:', AuthService.getUserRoleSync());
-    
+
     return { navbarLoaded, footerLoaded };
 }
 
 export async function reloadLayout() {
     console.log('🔄 Recargando layouts...');
-    
+
     const navbarContainer = document.getElementById('navbar');
     const footerContainer = document.getElementById('footer');
     if (navbarContainer) navbarContainer.innerHTML = '';
     if (footerContainer) footerContainer.innerHTML = '';
-    
+
     return await loadLayout();
 }
 
