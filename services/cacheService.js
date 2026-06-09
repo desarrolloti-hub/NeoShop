@@ -9,7 +9,7 @@ const DB_VERSION = 3; // ✅ Subir versión para agregar CASH_SESSIONS
 export const STORES = {
     ADMINS: 'admins',
     SUPPLIERS: 'suppliers',
-    CASH_SESSIONS: 'cash_sessions',  // ✅ Agregado para sesiones de caja
+    CASH_SESSIONS: 'cash_sessions', 
     TIENDAS: 'tiendas',
     PRODUCTOS: 'productos'
 };

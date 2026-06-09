@@ -15,7 +15,7 @@ export const CashSessionRepository = {
      * Guardar sesión de caja
      */
     async save(sessionData) {
-        // ✅ Crear objeto plano (sin getters ni métodos)
+        // Crear objeto plano (sin getters ni métodos)
         const plainData = {
             id: sessionData.id,
             sessionId: sessionData.sessionId || '',
@@ -33,7 +33,10 @@ export const CashSessionRepository = {
             notes: sessionData.notes || '',
             createdAt: sessionData.createdAt || new Date().toISOString(),
             updatedAt: sessionData.updatedAt || null,
-            closedBy: sessionData.closedBy || null
+            closedBy: sessionData.closedBy || null,
+            // ✅ NUEVO: Retiros
+            withdrawals: sessionData.withdrawals || [],
+            totalWithdrawn: sessionData.totalWithdrawn || 0
         };
         
         const sessionRef = doc(db, CASH_SESSIONS_COLLECTION, plainData.id);
@@ -76,6 +79,46 @@ export const CashSessionRepository = {
         );
         const querySnapshot = await getDocs(q);
         return querySnapshot.empty ? null : { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
+    },
+    
+    /**
+     * ✅ NUEVO: Registrar un retiro en la sesión
+     */
+    async addWithdrawal(sessionId, withdrawal) {
+        const session = await this.getById(sessionId);
+        if (!session) throw new Error('Sesión no encontrada');
+        
+        const withdrawals = [...(session.withdrawals || []), withdrawal];
+        const totalWithdrawn = withdrawals.reduce((sum, w) => sum + w.amount, 0);
+        
+        const sessionRef = doc(db, CASH_SESSIONS_COLLECTION, sessionId);
+        await updateDoc(sessionRef, {
+            withdrawals: withdrawals,
+            totalWithdrawn: totalWithdrawn,
+            updatedAt: new Date().toISOString()
+        });
+        
+        return { withdrawal, totalWithdrawn };
+    },
+    
+    /**
+     * ✅ NUEVO: Eliminar un retiro de la sesión
+     */
+    async removeWithdrawal(sessionId, withdrawalId) {
+        const session = await this.getById(sessionId);
+        if (!session) throw new Error('Sesión no encontrada');
+        
+        const withdrawals = (session.withdrawals || []).filter(w => w.id !== withdrawalId);
+        const totalWithdrawn = withdrawals.reduce((sum, w) => sum + w.amount, 0);
+        
+        const sessionRef = doc(db, CASH_SESSIONS_COLLECTION, sessionId);
+        await updateDoc(sessionRef, {
+            withdrawals: withdrawals,
+            totalWithdrawn: totalWithdrawn,
+            updatedAt: new Date().toISOString()
+        });
+        
+        return { withdrawals, totalWithdrawn };
     },
     
     /**

@@ -26,6 +26,10 @@ export class CashSession {
         this.closingTime = data.closingTime || null;
         this.closingCash = data.closingCash || null;
         
+        // ✅ NUEVO: Retiros parciales
+        this.withdrawals = data.withdrawals || []; // Array de objetos { amount, reason, date, userId, userName }
+        this.totalWithdrawn = data.totalWithdrawn || 0;
+        
         // Estado y observaciones
         this.status = data.status || 'open';  // 'open', 'closed', 'cancelled'
         this.notes = data.notes || '';
@@ -44,11 +48,29 @@ export class CashSession {
         return this.closingCash - this.openingCash;
     }
     
+    // ✅ NUEVO: Efectivo esperado (apertura + ingresos - retiros)
+    // Nota: Los ingresos vienen de ventas, eso se calcula aparte
+    get expectedCash() {
+        // Este es un cálculo básico, puedes ajustarlo según tu lógica de ventas
+        return this.openingCash - this.totalWithdrawn;
+    }
+    
+    // ✅ NUEVO: Diferencia con retiros considerados
+    get differenceWithWithdrawals() {
+        if (this.closingCash === null) return 0;
+        return this.closingCash - this.expectedCash;
+    }
+    
     // Diferencia formateada con signo
     get differenceFormatted() {
         const diff = this.difference;
         const sign = diff >= 0 ? '+' : '-';
         return `${sign} $${Math.abs(diff).toFixed(2)}`;
+    }
+    
+    // ✅ NUEVO: Total de retiros formateado
+    get totalWithdrawnFormatted() {
+        return `$${this.totalWithdrawn.toFixed(2)}`;
     }
     
     // ¿La diferencia es positiva (sobrante)?
@@ -97,6 +119,11 @@ export class CashSession {
         });
     }
     
+    // ✅ NUEVO: Últimos retiros (para mostrar en UI)
+    get recentWithdrawals() {
+        return [...this.withdrawals].reverse().slice(0, 5);
+    }
+    
     // Datos resumidos para listados
     get datosResumidos() {
         return {
@@ -108,6 +135,7 @@ export class CashSession {
             openingCash: this.openingCash,
             closingCash: this.closingCash,
             difference: this.difference,
+            totalWithdrawn: this.totalWithdrawn,
             status: this.status,
             statusLabel: this.statusLabel,
             openingTime: this.openingTime,
@@ -116,6 +144,54 @@ export class CashSession {
     }
     
     // ========== MÉTODOS ==========
+    
+    // ✅ NUEVO: Registrar un retiro parcial
+    withdraw(amount, reason, userId, userName) {
+        if (this.status !== 'open') {
+            throw new Error('No se puede retirar dinero de una sesión cerrada');
+        }
+        
+        if (amount <= 0) {
+            throw new Error('El monto del retiro debe ser mayor a 0');
+        }
+        
+        if (!reason || reason.trim() === '') {
+            throw new Error('Debes especificar una razón para el retiro');
+        }
+        
+        const withdrawal = {
+            id: `wtd_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+            amount: parseFloat(amount),
+            reason: reason.trim(),
+            date: new Date().toISOString(),
+            userId: userId,
+            userName: userName || 'Sistema'
+        };
+        
+        this.withdrawals.push(withdrawal);
+        this.totalWithdrawn = this.withdrawals.reduce((sum, w) => sum + w.amount, 0);
+        this.updatedAt = new Date().toISOString();
+        
+        return withdrawal;
+    }
+    
+    // ✅ NUEVO: Eliminar un retiro (solo si la sesión está abierta)
+    removeWithdrawal(withdrawalId) {
+        if (this.status !== 'open') {
+            throw new Error('No se puede modificar una sesión cerrada');
+        }
+        
+        const index = this.withdrawals.findIndex(w => w.id === withdrawalId);
+        if (index === -1) {
+            throw new Error('Retiro no encontrado');
+        }
+        
+        this.withdrawals.splice(index, 1);
+        this.totalWithdrawn = this.withdrawals.reduce((sum, w) => sum + w.amount, 0);
+        this.updatedAt = new Date().toISOString();
+        
+        return true;
+    }
     
     // Cerrar sesión
     close(closingCash, notes = '', closedBy = null) {
