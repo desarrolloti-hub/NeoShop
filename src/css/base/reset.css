@@ -20,6 +20,25 @@ body {
     width: 100%;
 }
 
+.credContainer {
+    padding: var(--spacing-xl);
+    max-width: 1400px;
+    margin: 0 auto;
+    width: calc(100% - 240px);
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+@media (max-width:850px) {
+    .credContainer {
+        width: 100%;
+        position: absolute;
+        top: 0;
+    }
+
+}
+
 
 /* Imágenes responsivas */
 img,
