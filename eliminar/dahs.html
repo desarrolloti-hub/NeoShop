@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>neoShop | Dashboard Pro + Proveedores + KPIs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* ========== TUS VARIABLES ORIGINALES ========== */
+    :root {
+      --color-primary-black: #031122;
+      --color-primary-darkest: #152e50;
+      --color-primary-darker: #26446b;
+      --color-primary-dark: #294b77;
+      --color-primary: #456da2;
+      --color-primary-light: #7d98bb;
+      --color-primary-extraligth: #bac8db;
+      --color-secondary: #1e3a5f;
+      --color-secondary-dark: #0f2a3f;
+      --bg-white: #ffffff;
+      --bg-light: #f9fbfe;
+      --bg-gray: #f0f4fa;
+      --bg-blue-light: #eef2fa;
+      --bg-blue-medium: #bac8db;
+      --text-dark: #1f2a44;
+      --text-gray: #334155;
+      --text-light: #e2e8f0;
+      --text-muted: #64748b;
+      --border-light: #cbd5e1;
+      --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 15px 25px rgba(0, 0, 0, 0.05);
+      --shadow-primary: 0 4px 8px rgba(69, 109, 162, 0.2);
+      --font-family: 'Inter', sans-serif;
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.85rem;
+      --font-size-base: 1rem;
+      --font-size-lg: 1.1rem;
+      --font-size-xl: 1.6rem;
+      --font-size-2xl: 2rem;
+      --font-size-3xl: 2.5rem;
+      --font-size-4xl: 3.2rem;
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 0.8rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+      --spacing-xl: 2rem;
+      --spacing-2xl: 3rem;
+      --border-radius-sm: 8px;
+      --border-radius-md: 10px;
+      --border-radius-lg: 12px;
+      --border-radius-xl: 16px;
+      --transition-fast: 0.2s;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-gray);
+      color: var(--text-dark);
+      height: 100vh;
+      overflow: hidden;
+    }
+    .dashboard {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      height: 100vh;
+      width: 100%;
+      overflow: hidden;
+    }
+    /* Sidebar estático */
+    .sidebar {
+      background-color: var(--bg-white);
+      border-right: 1px solid var(--border-light);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      box-shadow: var(--shadow-sm);
+    }
+    .sidebar-logo {
+      padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-lg);
+      border-bottom: 1px solid var(--border-light);
+    }
+    .sidebar-logo h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--color-primary-darkest), var(--color-primary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sidebar-logo h1 i { background: none; color: var(--color-primary); }
+    .sidebar-nav {
+      flex: 1;
+      padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-xl);
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      margin: 4px 0;
+      border-radius: var(--border-radius-md);
+      color: var(--text-gray);
+      font-weight: 500;
+      transition: all var(--transition-fast);
+      cursor: default;
+    }
+    .nav-item i { width: 22px; color: var(--color-primary-light); }
+    .nav-item:hover { background-color: var(--bg-blue-light); color: var(--color-primary-dark); }
+    .nav-divider { height: 1px; background: var(--border-light); margin: 12px 16px; }
+
+    /* Main content */
+    .main-content {
+      overflow-y: auto;
+      padding: var(--spacing-xl) var(--spacing-2xl);
+      background-color: var(--bg-light);
+    }
+    /* Top bar */
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-2xl);
+      padding-bottom: var(--spacing-md);
+      border-bottom: 1px solid var(--border-light);
+    }
+    .search-wrapper {
+      flex: 1;
+      max-width: 300px;
+      position: relative;
+    }
+    .search-wrapper i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+    .search-wrapper input {
+      width: 100%;
+      padding: 10px 12px 10px 36px;
+      border: 1px solid var(--border-light);
+      border-radius: 40px;
+      font-family: var(--font-family);
+      background: var(--bg-white);
+    }
+    .search-wrapper input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary-extraligth); }
+    .user-actions { display: flex; align-items: center; gap: var(--spacing-md); }
+    .icon-badge { position: relative; cursor: default; }
+    .icon-badge i { font-size: 1.3rem; color: var(--text-gray); }
+    .badge {
+      position: absolute;
+      top: -5px;
+      right: -8px;
+      background: var(--color-primary);
+      color: white;
+      font-size: 10px;
+      padding: 2px 5px;
+      border-radius: 20px;
+      font-weight: 700;
+    }
+    .avatar {
+      width: 40px;
+      height: 40px;
+      background: var(--color-primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+    }
+    /* Cards 456 ventas */
+    .cards-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: var(--spacing-lg); margin-bottom: var(--spacing-2xl); }
+    .stat-card { background: var(--bg-white); border-radius: var(--border-radius-xl); padding: var(--spacing-lg); text-align: center; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); transition: transform 0.2s; }
+    .stat-card:hover { transform: translateY(-3px); }
+    .card-number { font-size: var(--font-size-4xl); font-weight: 800; color: var(--color-primary-dark); }
+    .card-label { font-size: var(--font-size-lg); font-weight: 600; color: var(--text-gray); text-transform: uppercase; margin-top: 6px; }
+    .buttons-row { display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-2xl); }
+    .action-btn {
+      flex: 1; text-align: center; background: var(--bg-white); border: 1px solid var(--border-light);
+      border-radius: var(--border-radius-lg); padding: 12px; font-weight: 600; transition: all 0.2s;
+      cursor: default;
+    }
+    .action-btn:hover { background-color: var(--color-primary); border-color: var(--color-primary); color: white; transform: scale(0.98); }
+    
+    /* Sección estadística principal */
+    .stats-section { background: var(--bg-white); border-radius: var(--border-radius-xl); padding: var(--spacing-xl); margin-bottom: var(--spacing-2xl); }
+    .stats-title { display: flex; gap: 10px; border-left: 5px solid var(--color-primary); padding-left: var(--spacing-lg); margin-bottom: var(--spacing-xl); }
+    .stats-title span { font-size: var(--font-size-2xl); font-weight: 700; }
+    .bar-item { display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-md); }
+    .bar-label { width: 45px; font-weight: 500; }
+    .bar-line { flex: 1; height: 10px; background: var(--bg-blue-medium); border-radius: 20px; overflow: hidden; }
+    .bar-fill { height: 100%; background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light)); width: 0%; border-radius: 20px; }
+    .fill-80 { width: 80%; } .fill-65 { width: 65%; } .fill-92 { width: 92%; } .fill-48 { width: 48%; } .fill-74 { width: 74%; }
+
+    /* Grid 2 columnas para nuevos módulos */
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-lg);
+      margin: var(--spacing-2xl) 0;
+    }
+    /* Grid 3 columnas para info extra */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--spacing-lg);
+      margin: var(--spacing-2xl) 0;
+    }
+    .info-card {
+      background: var(--bg-white);
+      border-radius: var(--border-radius-lg);
+      padding: var(--spacing-lg);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light);
+    }
+    .info-card h4 { font-size: var(--font-size-base); margin-bottom: var(--spacing-md); display: flex; align-items: center; gap: 8px; }
+    .activity-list { list-style: none; }
+    .activity-list li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border-light); }
+    .activity-icon { width: 32px; height: 32px; background: var(--bg-blue-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--color-primary); }
+    .product-item { margin-bottom: var(--spacing-md); }
+    .product-name { display: flex; justify-content: space-between; font-size: var(--font-size-sm); margin-bottom: 6px; }
+    .progress-bar-bg { height: 6px; background: var(--bg-blue-medium); border-radius: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--color-primary); width: 0%; border-radius: 10px; }
+
+    /* Stock crítico */
+    .stock-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .stock-alert {
+      background: #fee2e2;
+      color: #b91c1c;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 30px;
+      font-weight: 700;
+    }
+
+    /* Mapa de regiones simulado */
+    .region-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .region-name i { width: 24px; color: var(--color-primary); }
+    .region-bar {
+      flex: 1;
+      height: 8px;
+      background: var(--bg-blue-medium);
+      border-radius: 10px;
+      margin: 0 12px;
+      overflow: hidden;
+    }
+    .region-fill { height: 100%; background: var(--color-primary); width: 0%; border-radius: 10px; }
+
+    /* Tarjeta financiera */
+    .financial-stats {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-md);
+    }
+    .financial-item { text-align: center; flex: 1; }
+    .financial-number { font-size: var(--font-size-xl); font-weight: 800; color: var(--color-primary-dark); }
+
+    /* Calendario entregas */
+    .calendar-mini {
+      background: var(--bg-white);
+      border-radius: var(--border-radius-lg);
+      text-align: center;
+    }
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .calendar-weekdays, .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      font-size: var(--font-size-xs);
+    }
+    .calendar-weekdays span { font-weight: 600; color: var(--text-muted); padding: 6px 0; }
+    .calendar-day {
+      display: inline-block;
+      padding: 6px 0;
+      border-radius: 30px;
+      font-size: var(--font-size-sm);
+      cursor: default;
+      transition: background 0.2s;
+    }
+    .calendar-day.today { background: var(--color-primary); color: white; font-weight: 700; }
+    .calendar-day.delivery { background: #fef3c7; color: #b45309; font-weight: 700; }
+    .delivery-list {
+      margin-top: var(--spacing-md);
+      text-align: left;
+      border-top: 1px solid var(--border-light);
+      padding-top: var(--spacing-md);
+    }
+    .delivery-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: var(--font-size-sm);
+      padding: 6px 0;
+      border-bottom: 1px dashed var(--border-light);
+    }
+    .delivery-info strong { display: block; color: var(--text-dark); }
+    .delivery-status {
+      background: #e6f7e6;
+      color: #2e7d32;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 30px;
+      font-weight: 700;
+    }
+    .badge-proximo {
+      background: var(--color-primary-light);
+      color: var(--color-primary-darkest);
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: 6px;
+    }
+    .dashboard-footer {
+      margin-top: var(--spacing-2xl);
+      padding-top: var(--spacing-md);
+      border-top: 1px solid var(--border-light);
+      text-align: center;
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+    }
+    @media (max-width: 1100px) {
+      .dashboard { grid-template-columns: 240px 1fr; }
+      .info-grid, .two-col-grid { grid-template-columns: 1fr; }
+      .main-content { padding: var(--spacing-lg); }
+    }
+    @media (max-width: 780px) {
+      .dashboard { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .top-bar { flex-direction: column; align-items: stretch; }
+      .search-wrapper { max-width: 100%; }
+      .cards-grid { grid-template-columns: 1fr; }
+      .buttons-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="dashboard">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h1><i class="fas fa-store"></i> neoShop</h1></div>
+    <nav class="sidebar-nav">
+      <div class="nav-item"><i class="fas fa-tachometer-alt"></i><span>Panel</span></div>
+      <div class="nav-item"><i class="fas fa-table"></i><span>Tablas</span></div>
+      <div class="nav-item"><i class="fas fa-chart-line"></i><span>Estadísticas</span></div>
+      <div class="nav-item"><i class="fas fa-wpforms"></i><span>Formularios</span></div>
+      <div class="nav-item"><i class="fas fa-user-circle"></i><span>Personal</span></div>
+      <div class="nav-item"><i class="fas fa-ellipsis-h"></i><span>Opción</span></div>
+      <div class="nav-item"><i class="fas fa-ellipsis-h"></i><span>Opción</span></div>
+      <div class="nav-divider"></div>
+      <div class="nav-item"><i class="fas fa-id-card"></i><span>Perfil</span></div>
+      <div class="nav-item"><i class="fas fa-cog"></i><span>Configuración</span></div>
+      <div class="nav-item"><i class="fas fa-ellipsis-v"></i><span>Opción</span></div>
+      <div class="nav-item"><i class="fas fa-ellipsis-v"></i><span>Opción</span></div>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="top-bar">
+      <div class="search-wrapper"><i class="fas fa-search"></i><input type="text" placeholder="Buscar..."></div>
+      <div class="user-actions">
+        <div class="icon-badge"><i class="far fa-bell"></i><span class="badge">3</span></div>
+        <div class="icon-badge"><i class="far fa-envelope"></i><span class="badge">5</span></div>
+        <div class="avatar"><span>JD</span></div>
+      </div>
+    </div>
+
+    <!-- 4 tarjetas Ventas -->
+    <div class="cards-grid">
+      <div class="stat-card"><div class="card-number">456</div><div class="card-label">Ventas</div><i class="fas fa-chart-simple" style="color: var(--color-primary-light); margin-top: 6px;"></i></div>
+      <div class="stat-card"><div class="card-number">456</div><div class="card-label">Ventas</div><i class="fas fa-chart-simple" style="color: var(--color-primary-light); margin-top: 6px;"></i></div>
+      <div class="stat-card"><div class="card-number">456</div><div class="card-label">Ventas</div><i class="fas fa-chart-simple" style="color: var(--color-primary-light); margin-top: 6px;"></i></div>
+      <div class="stat-card"><div class="card-number">456</div><div class="card-label">Ventas</div><i class="fas fa-chart-simple" style="color: var(--color-primary-light); margin-top: 6px;"></i></div>
+    </div>
+
+    <div class="buttons-row">
+      <div class="action-btn">Button</div><div class="action-btn">Button</div><div class="action-btn">Button</div><div class="action-btn">Button</div>
+    </div>
+
+    <!-- Estadísticas principales (gráfico de barras) -->
+    <div class="stats-section">
+      <div class="stats-title"><i class="fas fa-chart-line"></i><span>Título de Estadística</span></div>
+      <div class="bars-group">
+        <div class="bar-item"><span class="bar-label">Lun</span><div class="bar-line"><div class="bar-fill fill-80"></div></div><span>368</span></div>
+        <div class="bar-item"><span class="bar-label">Mar</span><div class="bar-line"><div class="bar-fill fill-65"></div></div><span>294</span></div>
+        <div class="bar-item"><span class="bar-label">Mié</span><div class="bar-line"><div class="bar-fill fill-92"></div></div><span>420</span></div>
+        <div class="bar-item"><span class="bar-label">Jue</span><div class="bar-line"><div class="bar-fill fill-48"></div></div><span>218</span></div>
+        <div class="bar-item"><span class="bar-label">Vie</span><div class="bar-line"><div class="bar-fill fill-74"></div></div><span>338</span></div>
+      </div>
+    </div>
+
+    <!-- NUEVOS MÓDULOS: Resumen financiero + Mapa de ventas por región -->
+    <div class="two-col-grid">
+      <!-- Tarjeta financiera -->
+      <div class="info-card">
+        <h4><i class="fas fa-chart-simple"></i> Resumen financiero</h4>
+        <div class="financial-stats">
+          <div class="financial-item"><div class="financial-number">$48.2K</div><div class="insight-label">Ingresos</div></div>
+          <div class="financial-item"><div class="financial-number">$31.5K</div><div class="insight-label">Costos</div></div>
+          <div class="financial-item"><div class="financial-number">$16.7K</div><div class="insight-label">Ganancia</div></div>
+        </div>
+        <div style="margin-top: var(--spacing-md); background: var(--bg-light); padding: 10px; border-radius: var(--border-radius-sm);">
+          <div style="display: flex; justify-content: space-between; font-size: var(--font-size-sm);"><span>Margen neto</span><span>34.6%</span></div>
+          <div class="progress-bar-bg" style="margin-top: 6px;"><div class="progress-fill" style="width: 34.6%;"></div></div>
+        </div>
+      </div>
+
+      <!-- Mapa de ventas por región (simulado) -->
+      <div class="info-card">
+        <h4><i class="fas fa-map-marker-alt"></i> Ventas por región</h4>
+        <div class="region-item"><div class="region-name"><i class="fas fa-globe-americas"></i> Norte</div><div class="region-bar"><div class="region-fill" style="width: 78%;"></div></div><span>78%</span></div>
+        <div class="region-item"><div class="region-name"><i class="fas fa-globe-americas"></i> Sur</div><div class="region-bar"><div class="region-fill" style="width: 52%;"></div></div><span>52%</span></div>
+        <div class="region-item"><div class="region-name"><i class="fas fa-globe-americas"></i> Centro</div><div class="region-bar"><div class="region-fill" style="width: 64%;"></div></div><span>64%</span></div>
+        <div class="region-item"><div class="region-name"><i class="fas fa-globe-americas"></i> Occidente</div><div class="region-bar"><div class="region-fill" style="width: 45%;"></div></div><span>45%</span></div>
+      </div>
+    </div>
+
+    <!-- Grid de 3 columnas: Actividad reciente, Stock crítico, Calendario de entregas -->
+    <div class="info-grid">
+      <!-- Actividad reciente -->
+      <div class="info-card">
+        <h4><i class="fas fa-history"></i> Actividad reciente</h4>
+        <ul class="activity-list">
+          <li><div class="activity-icon"><i class="fas fa-cart-plus"></i></div><div class="activity-detail"><p>Nueva venta #2341</p><span class="activity-time">Hace 5 min</span></div></li>
+          <li><div class="activity-icon"><i class="fas fa-truck"></i></div><div class="activity-detail"><p>Pedido a Proveedor A</p><span class="activity-time">Hace 1 hora</span></div></li>
+          <li><div class="activity-icon"><i class="fas fa-boxes"></i></div><div class="activity-detail"><p>Actualización stock</p><span class="activity-time">Hace 3 horas</span></div></li>
+          <li><div class="activity-icon"><i class="fas fa-chart-line"></i></div><div class="activity-detail"><p>Meta semanal alcanzada</p><span class="activity-time">Ayer</span></div></li>
+        </ul>
+      </div>
+
+      <!-- Stock crítico (nuevo) -->
+      <div class="info-card">
+        <h4><i class="fas fa-exclamation-triangle"></i> Stock crítico</h4>
+        <div class="stock-item"><span><strong>Auriculares Pro</strong> (solo 12 uds)</span><span class="stock-alert">¡Reordenar!</span></div>
+        <div class="stock-item"><span><strong>Smartwatch X1</strong> (solo 8 uds)</span><span class="stock-alert">Urgente</span></div>
+        <div class="stock-item"><span><strong>Teclado Mecánico</strong> (23 uds)</span><span class="stock-alert">Bajo stock</span></div>
+        <div class="stock-item"><span><strong>Monitor 24"</strong> (5 uds)</span><span class="stock-alert">Crítico</span></div>
+        <div style="margin-top: var(--spacing-md); text-align: center;"><i class="fas fa-warehouse"></i> <span style="font-size: var(--font-size-xs);">Actualizar inventario pronto</span></div>
+      </div>
+
+      <!-- Calendario + entregas de proveedores -->
+      <div class="info-card">
+        <h4><i class="fas fa-calendar-alt"></i> Próximas entregas <span class="badge-proximo">Proveedores</span></h4>
+        <div class="calendar-mini">
+          <div class="calendar-header"><span><i class="fas fa-chevron-left"></i></span><span>Junio 2026</span><span><i class="fas fa-chevron-right"></i></span></div>
+          <div class="calendar-weekdays"><span>D</span><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span></div>
+          <div class="calendar-days">
+            <span class="calendar-day">1</span><span class="calendar-day">2</span><span class="calendar-day today">3</span><span class="calendar-day">4</span><span class="calendar-day">5</span><span class="calendar-day">6</span><span class="calendar-day">7</span>
+            <span class="calendar-day">8</span><span class="calendar-day">9</span><span class="calendar-day delivery">10</span><span class="calendar-day">11</span><span class="calendar-day">12</span><span class="calendar-day">13</span><span class="calendar-day">14</span>
+          </div>
+          <div class="delivery-list">
+            <div class="delivery-item"><div class="delivery-info"><strong>📦 LogiTech Plus</strong><span>Componentes electrónicos</span></div><div class="delivery-status">10 Jun • En tránsito</div></div>
+            <div class="delivery-item"><div class="delivery-info"><strong>🏭 Industrial Sur</strong><span>Materia prima</span></div><div class="delivery-status">12 Jun • Próximo</div></div>
+            <div class="delivery-item"><div class="delivery-info"><strong>⚡ NeoSupply</strong><span>Stock principal</span></div><div class="delivery-status status-urgent" style="background:#ffe6e5; color:#c62828;">MAÑANA</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nueva fila: Top productos + Tendencias (gráfico simple) -->
+    <div class="two-col-grid">
+      <div class="info-card">
+        <h4><i class="fas fa-crown"></i> Top productos más vendidos</h4>
+        <div class="product-item"><div class="product-name"><span>Auriculares Pro</span><span>89 uds</span></div><div class="progress-bar-bg"><div class="progress-fill" style="width:89%"></div></div></div>
+        <div class="product-item"><div class="product-name"><span>Smartwatch X1</span><span>74 uds</span></div><div class="progress-bar-bg"><div class="progress-fill" style="width:74%"></div></div></div>
+        <div class="product-item"><div class="product-name"><span>Teclado Mecánico</span><span>62 uds</span></div><div class="progress-bar-bg"><div class="progress-fill" style="width:62%"></div></div></div>
+        <div class="product-item"><div class="product-name"><span>Monitor 24"</span><span>48 uds</span></div><div class="progress-bar-bg"><div class="progress-fill" style="width:48%"></div></div></div>
+      </div>
+
+      <!-- Tendencia de ventas (simulación con porcentaje) -->
+      <div class="info-card">
+        <h4><i class="fas fa-chart-line"></i> Tendencia vs. mes anterior</h4>
+        <div style="text-align: center; margin: var(--spacing-md) 0;">
+          <span style="font-size: var(--font-size-3xl); font-weight: 800; color: #10b981;">+18.5%</span>
+          <p style="color: var(--text-muted);">Crecimiento en ventas</p>
+        </div>
+        <div class="progress-bar-bg"><div class="progress-fill" style="width: 74%;"></div></div>
+        <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: var(--font-size-xs);">
+          <span>Meta: 500 ventas</span>
+          <span>Actual: 456</span>
+        </div>
+        <div style="margin-top: var(--spacing-lg); background: var(--bg-blue-light); padding: 10px; border-radius: var(--border-radius-sm);">
+          <i class="fas fa-calendar-week"></i> Proyección fin de mes: <strong>512 ventas</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-footer">
+      <p>neoShop v3.0 · Dashboard avanzado · Stock crítico · Próximas entregas · KPIs en tiempo real (simulados)</p>
+    </div>
+  </main>
+</div>
+</body>
+</html>

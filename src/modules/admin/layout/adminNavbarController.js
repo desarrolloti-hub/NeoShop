@@ -1,17 +1,51 @@
 /* ========================================
-   ADMIN NAVBAR CONTROLLER - Con nombre y correo
+   ADMIN NAVBAR CONTROLLER - Solo lógica de permisos
    ======================================== */
 
 import { AuthService } from '../../../../services/authService.js';
 
+// ==================== CONFIGURACIÓN DE PLANES ====================
+
+const PLANS = {
+    BASIC: 'basic',
+    PREMIUM: 'premium',
+    FULL_PREMIUM: 'full',
+    SPECIAL: 'special'
+};
+
+// Módulos permitidos por cada plan
+const PLAN_MODULES = {
+    [PLANS.BASIC]: [
+        'dashboard', 'productsList', 'orders', 'updateProfile'
+    ],
+    [PLANS.PREMIUM]: [
+        'dashboard', 'productsList', 'productsAdmin', 'orders', 'readSupplier', 'updateProfile'
+    ],
+    [PLANS.FULL_PREMIUM]: [
+        'dashboard', 'productsList', 'productsAdmin', 'orders', 'readSupplier',
+        'users', 'cashSessionStatus', 'reports', 'settings', 'updateProfile', 'customers'
+    ],
+    [PLANS.SPECIAL]: [
+        'dashboard', 'productsList', 'productsAdmin', 'orders', 'readSupplier',
+        'users', 'cashSessionStatus', 'reports', 'settings', 'updateProfile'
+    ]
+};
+
+// Módulos que SIEMPRE se muestran (independientemente del plan)
+const ALWAYS_VISIBLE = ['dashboard', 'updateProfile'];
+
+// ==================== CONTROLLER ====================
+
 let elements = {};
+let currentUserPlan = PLANS.BASIC;
 
 export function initAdminNavbarController() {
     waitForNavbar().then(() => {
         cacheElements();
         bindEvents();
         setActiveLink();
-        loadUserInfo();  // Cargar información del usuario
+        loadUserInfo();
+        applyModulePermissions();  // ← Aplica permisos sin modificar HTML
         console.log('✅ Admin Navbar Controller inicializado');
     }).catch(error => {
         console.error('❌ Error:', error);
@@ -45,63 +79,172 @@ function cacheElements() {
         logoutBtn: document.getElementById('adminLogoutBtn'),
         overlay: document.getElementById('adminOverlay'),
         body: document.body,
-        // Elementos del usuario
         userName: document.getElementById('adminUserName'),
         userEmail: document.getElementById('adminUserEmail'),
+        userPlan: document.getElementById('adminUserPlan'),
         userAvatar: document.getElementById('adminUserAvatar'),
         avatarImg: document.getElementById('adminAvatarImg'),
         avatarIcon: document.getElementById('adminAvatarIcon'),
-        userInfo: document.getElementById('adminUserInfo')
+        userInfo: document.getElementById('adminUserInfo'),
+        // Todos los items del menú con data-module
+        menuItems: document.querySelectorAll('[data-module]')
     };
 }
 
 function bindEvents() {
-    // Botón hamburguesa
     if (elements.menuToggle) {
         elements.menuToggle.addEventListener('click', toggleMenu);
     }
 
-    // Overlay
     if (elements.overlay) {
         elements.overlay.addEventListener('click', closeMenu);
     }
 
-    // Enlaces
     if (elements.navLinks) {
         elements.navLinks.forEach(link => {
             link.addEventListener('click', handleLinkClick);
         });
     }
 
-    // Logout
     if (elements.logoutBtn) {
         elements.logoutBtn.addEventListener('click', handleLogout);
     }
 
-    // Click en información del usuario (ir a perfil)
     if (elements.userInfo) {
         elements.userInfo.addEventListener('click', () => {
             closeMenu();
             if (typeof window.navigateTo === 'function') {
-                window.navigateTo('/updateProfile');
+                window.navigateTo('/editarPerfil');
             }
         });
     }
 
-    // Cerrar al redimensionar
     window.addEventListener('resize', handleResize);
 
-    // Cerrar al cambiar de ruta
     document.addEventListener('route:changed', () => {
         setActiveLink();
         closeMenu();
     });
 
-    // Escuchar cambios en la autenticación
     window.addEventListener('auth:changed', () => {
         loadUserInfo();
+        applyModulePermissions();  // Re-aplicar permisos al cambiar auth
     });
 }
+
+// ==================== LÓGICA DE PERMISOS ====================
+
+/**
+ * Obtener el plan del usuario desde localStorage
+ */
+function getUserPlan(userData) {
+    if (!userData) return PLANS.BASIC;
+
+    if (userData.plan) return userData.plan;
+    if (userData.suscription) return userData.suscription;
+    if (userData.subscription) return userData.subscription;
+    if (userData.membership) return userData.membership;
+    if (userData.role === 'admin' || userData.role === 'superadmin') return PLANS.SPECIAL;
+
+    return PLANS.BASIC;
+}
+
+/**
+ * Verificar si un módulo debe ser visible según el plan
+ */
+function isModuleVisible(moduleId, userPlan) {
+    // Siempre visible
+    if (ALWAYS_VISIBLE.includes(moduleId)) return true;
+
+    // Verificar si está en los módulos permitidos del plan
+    const allowedModules = PLAN_MODULES[userPlan] || PLAN_MODULES[PLANS.BASIC];
+    return allowedModules.includes(moduleId);
+}
+
+/**
+ * Aplicar permisos a los elementos del menú (ocultar/mostrar según plan)
+ */
+function applyModulePermissions() {
+    try {
+        // Obtener datos del usuario
+        let userData = null;
+        const adminUser = localStorage.getItem('admin_user');
+        const outletUser = localStorage.getItem('outlet_user');
+        const neoUser = localStorage.getItem('neoUser');
+
+        if (adminUser) {
+            userData = JSON.parse(adminUser);
+        } else if (outletUser) {
+            userData = JSON.parse(outletUser);
+        } else if (neoUser) {
+            userData = JSON.parse(neoUser);
+        }
+
+        currentUserPlan = getUserPlan(userData);
+
+        // Mostrar el plan en la UI
+        if (elements.userPlan) {
+            const planNames = {
+                [PLANS.BASIC]: 'Plan Básico',
+                [PLANS.PREMIUM]: 'Plan Premium',
+                [PLANS.FULL_PREMIUM]: 'Plan Full Premium',
+                [PLANS.SPECIAL]: 'Plan Special'
+            };
+            elements.userPlan.textContent = planNames[currentUserPlan] || 'Plan Básico';
+        }
+
+        // Aplicar visibilidad a cada módulo
+        if (elements.menuItems && elements.menuItems.length > 0) {
+            elements.menuItems.forEach(item => {
+                const moduleId = item.getAttribute('data-module');
+                if (moduleId) {
+                    const shouldBeVisible = isModuleVisible(moduleId, currentUserPlan);
+                    item.style.display = shouldBeVisible ? '' : 'none';
+                }
+            });
+        }
+
+        console.log(`✅ Permisos aplicados - Plan: ${currentUserPlan}`);
+
+    } catch (e) {
+        console.error('Error aplicando permisos:', e);
+    }
+}
+
+// ==================== FUNCIONES UTILITARIAS EXPORTABLES ====================
+
+/**
+ * Verificar si el usuario actual tiene acceso a un módulo específico
+ */
+export function hasModuleAccess(moduleId) {
+    return isModuleVisible(moduleId, currentUserPlan);
+}
+
+/**
+ * Obtener el plan actual del usuario
+ */
+export function getCurrentPlan() {
+    return currentUserPlan;
+}
+
+/**
+ * Verificar si el usuario tiene un plan específico o superior
+ */
+export function hasMinPlan(requiredPlan) {
+    const planLevels = {
+        [PLANS.BASIC]: 1,
+        [PLANS.PREMIUM]: 2,
+        [PLANS.FULL_PREMIUM]: 3,
+        [PLANS.SPECIAL]: 4
+    };
+
+    const currentLevel = planLevels[currentUserPlan] || 1;
+    const requiredLevel = planLevels[requiredPlan] || 1;
+
+    return currentLevel >= requiredLevel;
+}
+
+// ==================== FUNCIONES ORIGINALES (sin cambios) ====================
 
 function toggleMenu() {
     if (!elements.sidebar) return;
@@ -113,14 +256,12 @@ function toggleMenu() {
     }
 
     if (elements.sidebar.classList.contains('open')) {
-        // Guardar la posición actual del scroll
         const scrollY = window.scrollY;
         elements.body.style.position = 'fixed';
         elements.body.style.top = `-${scrollY}px`;
         elements.body.style.width = '100%';
         elements.body.style.overflow = 'hidden';
     } else {
-        // Restaurar el scroll
         const scrollY = elements.body.style.top;
         elements.body.style.position = '';
         elements.body.style.top = '';
@@ -141,7 +282,6 @@ function closeMenu() {
         elements.overlay.classList.remove('active');
     }
 
-    // Restaurar el scroll
     const scrollY = elements.body.style.top;
     elements.body.style.position = '';
     elements.body.style.top = '';
@@ -151,6 +291,7 @@ function closeMenu() {
         window.scrollTo(0, parseInt(scrollY || '0') * -1);
     }
 }
+
 function handleResize() {
     if (window.innerWidth > 850) {
         closeMenu();
@@ -188,15 +329,11 @@ function setActiveLink() {
     });
 }
 
-/**
- * Cargar información del usuario (nombre y correo)
- */
 function loadUserInfo() {
     try {
         let userData = null;
         let userEmail = null;
 
-        // Revisar diferentes fuentes de datos
         const adminUser = localStorage.getItem('admin_user');
         const outletUser = localStorage.getItem('outlet_user');
         const neoUser = localStorage.getItem('neoUser');
@@ -213,7 +350,6 @@ function loadUserInfo() {
         }
 
         if (userData) {
-            // Actualizar nombre
             if (elements.userName) {
                 const displayName = userData.name ||
                     userData.displayName ||
@@ -223,37 +359,31 @@ function loadUserInfo() {
                 elements.userName.textContent = displayName;
             }
 
-            // Actualizar correo
             if (elements.userEmail && userEmail) {
                 elements.userEmail.textContent = userEmail;
             } else if (elements.userEmail) {
                 elements.userEmail.textContent = 'usuario@ejemplo.com';
             }
 
-            // Actualizar avatar (si tiene foto)
             const photoURL = userData.photoURL || userData.avatar || userData.foto || userData.fotoURL;
             if (photoURL && elements.avatarImg && elements.avatarIcon) {
                 elements.avatarImg.src = photoURL;
                 elements.avatarImg.style.display = 'block';
                 elements.avatarIcon.style.display = 'none';
-                // Manejar error de carga de imagen
                 elements.avatarImg.onerror = () => {
                     elements.avatarImg.style.display = 'none';
                     elements.avatarIcon.style.display = 'flex';
                 };
             } else if (elements.avatarImg && elements.avatarIcon) {
-                // Si no tiene foto, mostrar ícono
                 elements.avatarImg.style.display = 'none';
                 elements.avatarIcon.style.display = 'flex';
             }
         } else {
-            // Datos por defecto
             if (elements.userName) elements.userName.textContent = 'Administrador';
             if (elements.userEmail) elements.userEmail.textContent = 'admin@neoshop.com';
         }
     } catch (e) {
         console.error('Error cargando información del usuario:', e);
-        // Valores por defecto
         if (elements.userName) elements.userName.textContent = 'Administrador';
         if (elements.userEmail) elements.userEmail.textContent = 'admin@neoshop.com';
     }
@@ -292,4 +422,5 @@ export function reinitialize() {
     bindEvents();
     setActiveLink();
     loadUserInfo();
+    applyModulePermissions();
 }

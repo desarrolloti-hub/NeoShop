@@ -19,7 +19,7 @@ h2 {
 }
 
 p {
-    color: var(--text-body);
+    color: var(--font-size-base);
 }
 
 .highlight {

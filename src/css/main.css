@@ -54,7 +54,7 @@
 @import url('./pages/visitor/termsAndConditions/termsAndConditions.css');
 
 
-    /* ========================================
+/* ========================================
          ----------- admin -----------
    ======================================== */
 
@@ -62,10 +62,11 @@
    @import url('./pages/admin/store/create/createStore.css');
 
 /* navbar */
-@import url('./components/admin/adminNavbar.css');   
+@import url('./components/admin/adminNavbar.css');
+@import url('./components/admin/adminFooter.css');
 
 /* home */
-@import url('./pages/admin/home/adminHome.css');   
+@import url('./pages/admin/home/adminHome.css');
 
 /* customers */
 @import url('./pages/admin/customer/readCustomer.css');
@@ -80,6 +81,7 @@
 
 /* cash session status */
 @import url('./pages/admin/cashSessionStatus/cashSessionStatus.css');
+<<<<<<< HEAD
 @import url('./pages/admin/cashSessionStatus/read/readCashSessions.css');
 
 /*settings */
@@ -100,3 +102,6 @@ body {
         padding-top: 70px;
     }
 }
+=======
+@import url('./pages/admin/cashSessionStatus/read/readCashSessions.css');
+>>>>>>> 379aaf016361900d83c671110c860223549d6e77
