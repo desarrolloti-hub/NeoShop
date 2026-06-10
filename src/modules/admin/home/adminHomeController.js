@@ -3,6 +3,8 @@
    Panel de control para administrador
    ============================================ */
 
+import { AuthService } from '../../../../services/authService.js';
+
 let chart = null;
 let elements = {};
 
@@ -45,9 +47,43 @@ function cacheElements() {
         recentOrdersList: document.getElementById('recentOrders'),
         topProductsList: document.getElementById('topProducts'),
         lowStockList: document.getElementById('lowStockProducts'),
-        adminDateSpan: document.querySelector('#adminDate span'),
+        adminWelcomeSpan: document.getElementById('adminWelcome'), // Span para el nombre
         chartCanvas: document.getElementById('salesChart')
     };
+}
+
+function getAdminName() {
+    try {
+        // Obtener el usuario actual desde AuthService
+        const currentUser = AuthService.getCurrentUser();
+
+        console.log('Usuario actual:', currentUser); // Para depuración
+
+        if (currentUser && currentUser.nombre) {
+            return currentUser.nombre;
+        }
+
+        if (currentUser && currentUser.name) {
+            return currentUser.name;
+        }
+
+        if (currentUser && currentUser.email) {
+            // Si solo tiene email, tomar la parte antes del @
+            return currentUser.email.split('@')[0];
+        }
+
+        return 'Administrador';
+    } catch (error) {
+        console.error('Error obteniendo nombre del admin:', error);
+        return 'Administrador';
+    }
+}
+
+function updateWelcomeMessage() {
+    if (elements.adminWelcomeSpan) {
+        const adminName = getAdminName();
+        elements.adminWelcomeSpan.textContent = adminName;
+    }
 }
 
 function formatCurrency(value) {
@@ -59,39 +95,31 @@ function formatCurrency(value) {
     }).format(value);
 }
 
-function updateDate() {
-    const now = new Date();
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    if (elements.adminDateSpan) {
-        elements.adminDateSpan.textContent = now.toLocaleDateString('es-ES', options);
-    }
-}
-
 function animateNumber(element, start, end, isCurrency = false) {
     if (!element) return;
-    
+
     const duration = 1000;
     const startTime = performance.now();
-    
+
     function update(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
         const easeProgress = 1 - Math.pow(1 - progress, 3);
         const current = Math.floor(easeProgress * (end - start)) + start;
-        
+
         if (isCurrency) {
             element.textContent = formatCurrency(current);
         } else {
             element.textContent = current;
         }
-        
+
         if (progress < 1) {
             requestAnimationFrame(update);
         } else {
             element.textContent = isCurrency ? formatCurrency(end) : end;
         }
     }
-    
+
     requestAnimationFrame(update);
 }
 
@@ -104,7 +132,7 @@ function updateStats() {
 
 function initSalesChart() {
     if (!elements.chartCanvas) return;
-    
+
     if (typeof Chart === 'undefined') {
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
@@ -112,17 +140,17 @@ function initSalesChart() {
         document.head.appendChild(script);
         return;
     }
-    
+
     createChart();
 }
 
 function createChart() {
     if (!elements.chartCanvas) return;
-    
+
     const ctx = elements.chartCanvas.getContext('2d');
-    
+
     if (chart) chart.destroy();
-    
+
     chart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -165,9 +193,9 @@ function createChart() {
 
 function renderRecentOrders() {
     if (!elements.recentOrdersList) return;
-    
+
     const statusMap = { completed: 'Completado', pending: 'Pendiente', shipped: 'Enviado' };
-    
+
     elements.recentOrdersList.innerHTML = mockData.recentOrders.map(order => `
         <div class="admin-order-item">
             <div class="admin-order-info">
@@ -184,7 +212,7 @@ function renderRecentOrders() {
 
 function renderTopProducts() {
     if (!elements.topProductsList) return;
-    
+
     elements.topProductsList.innerHTML = mockData.topProducts.map((product, index) => `
         <div class="admin-product-item">
             <div class="admin-product-rank">${index + 1}</div>
@@ -199,7 +227,7 @@ function renderTopProducts() {
 
 function renderLowStockProducts() {
     if (!elements.lowStockList) return;
-    
+
     elements.lowStockList.innerHTML = mockData.lowStockProducts.map(product => `
         <div class="admin-stock-item">
             <span class="admin-stock-name">${product.name}</span>
@@ -210,14 +238,14 @@ function renderLowStockProducts() {
 
 export async function adminHomeController() {
     console.log('🏠 Admin Home Controller - Dashboard');
-    
+
     cacheElements();
-    updateDate();
+    updateWelcomeMessage(); // Actualiza con el nombre real del admin
     updateStats();
     renderRecentOrders();
     renderTopProducts();
     renderLowStockProducts();
     initSalesChart();
-    
+
     console.log('✅ Admin Dashboard cargado');
 }

@@ -1,7 +1,7 @@
 // repositories/productRepository.js
-import { db } from "../src/firebase/firebaseConfig.js";
-import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
-import Product from "../classes/Product.js";
+import { db } from '/config/firebaseConfig.js';
+import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import Product from "../classes/productModel.js";
 
 const PRODUCTS_COLLECTION = "products";
 
