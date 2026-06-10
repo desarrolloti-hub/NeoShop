@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>neoShop | Gestión de Ventas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* ========== VARIABLES ORIGINALES ========== */
+    :root {
+      --color-primary-black: #031122;
+      --color-primary-darkest: #152e50;
+      --color-primary-darker: #26446b;
+      --color-primary-dark: #294b77;
+      --color-primary: #456da2;
+      --color-primary-light: #7d98bb;
+      --color-primary-extraligth: #bac8db;
+      --color-secondary: #1e3a5f;
+      --color-secondary-dark: #0f2a3f;
+      --bg-white: #ffffff;
+      --bg-light: #f9fbfe;
+      --bg-gray: #f0f4fa;
+      --bg-blue-light: #eef2fa;
+      --bg-blue-medium: #bac8db;
+      --text-dark: #1f2a44;
+      --text-gray: #334155;
+      --text-light: #e2e8f0;
+      --text-muted: #64748b;
+      --border-light: #cbd5e1;
+      --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 15px 25px rgba(0, 0, 0, 0.05);
+      --shadow-primary: 0 4px 8px rgba(69, 109, 162, 0.2);
+      --font-family: 'Inter', sans-serif;
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.85rem;
+      --font-size-base: 1rem;
+      --font-size-lg: 1.1rem;
+      --font-size-xl: 1.6rem;
+      --font-size-2xl: 2rem;
+      --font-size-3xl: 2.5rem;
+      --font-size-4xl: 3.2rem;
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 0.8rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+      --spacing-xl: 2rem;
+      --spacing-2xl: 3rem;
+      --border-radius-sm: 8px;
+      --border-radius-md: 10px;
+      --border-radius-lg: 12px;
+      --border-radius-xl: 16px;
+      --transition-fast: 0.2s;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-gray);
+      color: var(--text-dark);
+      height: 100vh;
+      overflow: hidden;
+    }
+    .dashboard {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      height: 100vh;
+      width: 100%;
+      overflow: hidden;
+    }
+    /* Sidebar estático */
+    .sidebar {
+      background-color: var(--bg-white);
+      border-right: 1px solid var(--border-light);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      box-shadow: var(--shadow-sm);
+    }
+    .sidebar-logo {
+      padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-lg);
+      border-bottom: 1px solid var(--border-light);
+    }
+    .sidebar-logo h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--color-primary-darkest), var(--color-primary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sidebar-logo h1 i { background: none; color: var(--color-primary); }
+    .sidebar-nav {
+      flex: 1;
+      padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-xl);
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      margin: 4px 0;
+      border-radius: var(--border-radius-md);
+      color: var(--text-gray);
+      font-weight: 500;
+      transition: all var(--transition-fast);
+      cursor: default;
+    }
+    .nav-item i { width: 22px; color: var(--color-primary-light); }
+    .nav-item:hover { background-color: var(--bg-blue-light); color: var(--color-primary-dark); }
+    .nav-divider { height: 1px; background: var(--border-light); margin: 12px 16px; }
+    .nav-item.active {
+      background: var(--bg-blue-light);
+      color: var(--color-primary);
+    }
+
+    /* Main content */
+    .main-content {
+      overflow-y: auto;
+      padding: var(--spacing-xl) var(--spacing-2xl);
+      background-color: var(--bg-light);
+    }
+    /* Top bar */
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-2xl);
+      padding-bottom: var(--spacing-md);
+      border-bottom: 1px solid var(--border-light);
+    }
+    .search-wrapper {
+      flex: 1;
+      max-width: 300px;
+      position: relative;
+    }
+    .search-wrapper i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+    .search-wrapper input {
+      width: 100%;
+      padding: 10px 12px 10px 36px;
+      border: 1px solid var(--border-light);
+      border-radius: 40px;
+      font-family: var(--font-family);
+      background: var(--bg-white);
+    }
+    .search-wrapper input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary-extraligth); }
+    .user-actions { display: flex; align-items: center; gap: var(--spacing-md); }
+    .icon-badge { position: relative; cursor: default; }
+    .icon-badge i { font-size: 1.3rem; color: var(--text-gray); }
+    .badge {
+      position: absolute;
+      top: -5px;
+      right: -8px;
+      background: var(--color-primary);
+      color: white;
+      font-size: 10px;
+      padding: 2px 5px;
+      border-radius: 20px;
+      font-weight: 700;
+    }
+    .avatar {
+      width: 40px;
+      height: 40px;
+      background: var(--color-primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+    }
+
+    /* Page header */
+    .page-header {
+      margin-bottom: var(--spacing-xl);
+    }
+    .page-header h2 {
+      font-size: var(--font-size-2xl);
+      font-weight: 700;
+      color: var(--color-secondary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .page-header p {
+      color: var(--text-muted);
+      margin-top: var(--spacing-xs);
+    }
+
+    /* KPIs */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-2xl);
+    }
+    .kpi-card {
+      background: var(--bg-white);
+      border-radius: var(--border-radius-xl);
+      padding: var(--spacing-lg);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light);
+      transition: transform 0.2s;
+    }
+    .kpi-card:hover { transform: translateY(-3px); }
+    .kpi-title {
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+      margin-bottom: var(--spacing-xs);
+    }
+    .kpi-value {
+      font-size: var(--font-size-3xl);
+      font-weight: 800;
+      color: var(--color-primary-dark);
+    }
+    .kpi-trend {
+      font-size: var(--font-size-xs);
+      margin-top: var(--spacing-xs);
+      color: #10b981;
+    }
+
+    /* Gráfico de ventas diarias */
+    .chart-container {
+      background: var(--bg-white);
+      border-radius: var(--border-radius-xl);
+      padding: var(--spacing-lg);
+      margin-bottom: var(--spacing-2xl);
+      border: 1px solid var(--border-light);
+    }
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-lg);
+    }
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: var(--spacing-md);
+      justify-content: space-around;
+    }
+    .bar-item {
+      text-align: center;
+      flex: 1;
+    }
+    .bar {
+      background: var(--color-primary);
+      height: 0;
+      border-radius: var(--border-radius-sm);
+      transition: height 0.2s;
+      min-height: 4px;
+    }
+    .bar-label {
+      margin-top: var(--spacing-sm);
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+    }
+
+    /* Toolbar */
+    .sales-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-xl);
+    }
+    .filters {
+      display: flex;
+      gap: var(--spacing-md);
+      flex-wrap: wrap;
+    }
+    .filter-select, .filter-input {
+      padding: 8px 12px;
+      border: 1px solid var(--border-light);
+      border-radius: var(--border-radius-md);
+      background: var(--bg-white);
+      font-family: var(--font-family);
+    }
+    .btn-primary {
+      background: var(--color-primary);
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: var(--border-radius-md);
+      font-weight: 600;
+      cursor: default;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+    .btn-primary:hover {
+      background: var(--color-primary-dark);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-primary);
+    }
+
+    /* Tabla de ventas */
+    .sales-table-container {
+      background: var(--bg-white);
+      border-radius: var(--border-radius-xl);
+      border: 1px solid var(--border-light);
+      overflow-x: auto;
+      margin-bottom: var(--spacing-xl);
+    }
+    .sales-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--font-size-sm);
+    }
+    .sales-table th {
+      text-align: left;
+      padding: var(--spacing-md) var(--spacing-lg);
+      background: var(--bg-light);
+      border-bottom: 1px solid var(--border-light);
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    .sales-table td {
+      padding: var(--spacing-md) var(--spacing-lg);
+      border-bottom: 1px solid var(--border-light);
+      vertical-align: middle;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 30px;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+    }
+    .status-completed { background: #e0f2e9; color: #2e7d32; }
+    .status-pending { background: #fff3e0; color: #ed6c02; }
+    .status-cancelled { background: #ffe6e5; color: #c62828; }
+    .action-icons i {
+      margin: 0 6px;
+      color: var(--text-muted);
+      cursor: default;
+      transition: color 0.2s;
+    }
+    .action-icons i:hover { color: var(--color-primary); }
+
+    /* Paginación */
+    .pagination {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--spacing-sm);
+      margin-top: var(--spacing-lg);
+    }
+    .page-item {
+      padding: 6px 12px;
+      border: 1px solid var(--border-light);
+      border-radius: var(--border-radius-md);
+      background: var(--bg-white);
+      cursor: default;
+    }
+    .page-item.active {
+      background: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
+    }
+
+    /* MODAL para nueva venta */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal:target {
+      display: flex;
+    }
+    .modal-content {
+      background: var(--bg-white);
+      border-radius: var(--border-radius-xl);
+      width: 90%;
+      max-width: 550px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-md);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-lg);
+      border-bottom: 1px solid var(--border-light);
+    }
+    .modal-header h3 {
+      font-size: var(--font-size-xl);
+    }
+    .close-modal {
+      font-size: 1.5rem;
+      text-decoration: none;
+      color: var(--text-muted);
+    }
+    .modal-body {
+      padding: var(--spacing-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group label {
+      font-weight: 600;
+      font-size: var(--font-size-sm);
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 10px 12px;
+      border: 1px solid var(--border-light);
+      border-radius: var(--border-radius-md);
+      font-family: var(--font-family);
+    }
+    .modal-footer {
+      padding: var(--spacing-lg);
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--spacing-md);
+    }
+    .btn-secondary {
+      background: var(--bg-white);
+      border: 1px solid var(--border-light);
+      padding: 8px 20px;
+      border-radius: var(--border-radius-md);
+      text-decoration: none;
+      color: var(--text-gray);
+    }
+
+    @media (max-width: 1100px) {
+      .dashboard { grid-template-columns: 240px 1fr; }
+      .kpi-grid { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 780px) {
+      .dashboard { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .main-content { padding: var(--spacing-md); }
+      .top-bar { flex-direction: column; align-items: stretch; }
+      .search-wrapper { max-width: 100%; }
+      .sales-toolbar { flex-direction: column; align-items: stretch; }
+      .chart-bars { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+<div class="dashboard">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h1><i class="fas fa-store"></i> neoShop</h1></div>
+    <nav class="sidebar-nav">
+      <div class="nav-item"><i class="fas fa-tachometer-alt"></i><span>Panel</span></div>
+      <div class="nav-item"><i class="fas fa-table"></i><span>Tablas</span></div>
+      <div class="nav-item"><i class="fas fa-chart-line"></i><span>Estadísticas</span></div>
+      <div class="nav-item"><i class="fas fa-wpforms"></i><span>Formularios</span></div>
+      <div class="nav-item"><i class="fas fa-user-circle"></i><span>Personal</span></div>
+      <div class="nav-item active"><i class="fas fa-chart-simple"></i><span>Ventas</span></div>
+      <div class="nav-item"><i class="fas fa-ellipsis-h"></i><span>Opción</span></div>
+      <div class="nav-divider"></div>
+      <div class="nav-item"><i class="fas fa-id-card"></i><span>Perfil</span></div>
+      <div class="nav-item"><i class="fas fa-cog"></i><span>Configuración</span></div>
+      <div class="nav-item"><i class="fas fa-ellipsis-v"></i><span>Opción</span></div>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="top-bar">
+      <div class="search-wrapper"><i class="fas fa-search"></i><input type="text" placeholder="Buscar ventas..."></div>
+      <div class="user-actions">
+        <div class="icon-badge"><i class="far fa-bell"></i><span class="badge">3</span></div>
+        <div class="icon-badge"><i class="far fa-envelope"></i><span class="badge">5</span></div>
+        <div class="avatar"><span>JD</span></div>
+      </div>
+    </div>
+
+    <div class="page-header">
+      <h2><i class="fas fa-chart-line"></i> Gestión de Ventas</h2>
+      <p>Visualiza y administra todas las transacciones de tu tienda.</p>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-title">Total ventas</div><div class="kpi-value">1,284</div><div class="kpi-trend"><i class="fas fa-arrow-up"></i> +12% vs mes anterior</div></div>
+      <div class="kpi-card"><div class="kpi-title">Ingresos totales</div><div class="kpi-value">$48.2K</div><div class="kpi-trend"><i class="fas fa-arrow-up"></i> +8.5%</div></div>
+      <div class="kpi-card"><div class="kpi-title">Pedidos pendientes</div><div class="kpi-value">23</div><div class="kpi-trend" style="color:#ed6c02;"><i class="fas fa-clock"></i> Por procesar</div></div>
+      <div class="kpi-card"><div class="kpi-title">Clientes recurrentes</div><div class="kpi-value">342</div><div class="kpi-trend"><i class="fas fa-user-check"></i> +18 nuevos</div></div>
+    </div>
+
+    <!-- Gráfico de ventas diarias -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <span><i class="fas fa-calendar-alt"></i> Ventas diarias (últimos 7 días)</span>
+        <select class="filter-select" style="width: auto;"><option>Esta semana</option><option>Semana pasada</option></select>
+      </div>
+      <div class="chart-bars">
+        <div class="bar-item"><div class="bar" style="height: 60px;"></div><div class="bar-label">Lun</div><span>156</span></div>
+        <div class="bar-item"><div class="bar" style="height: 72px;"></div><div class="bar-label">Mar</div><span>189</span></div>
+        <div class="bar-item"><div class="bar" style="height: 88px;"></div><div class="bar-label">Mié</div><span>231</span></div>
+        <div class="bar-item"><div class="bar" style="height: 65px;"></div><div class="bar-label">Jue</div><span>172</span></div>
+        <div class="bar-item"><div class="bar" style="height: 94px;"></div><div class="bar-label">Vie</div><span>248</span></div>
+        <div class="bar-item"><div class="bar" style="height: 55px;"></div><div class="bar-label">Sáb</div><span>145</span></div>
+        <div class="bar-item"><div class="bar" style="height: 42px;"></div><div class="bar-label">Dom</div><span>110</span></div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="sales-toolbar">
+      <div class="filters">
+        <select class="filter-select">
+          <option>Todos los estados</option>
+          <option>Completado</option>
+          <option>Pendiente</option>
+          <option>Cancelado</option>
+        </select>
+        <input class="filter-input" type="date" placeholder="Fecha inicio">
+        <input class="filter-input" type="date" placeholder="Fecha fin">
+      </div>
+      <a href="#modal-venta" class="btn-primary"><i class="fas fa-plus"></i> Nueva Venta</a>
+    </div>
+
+    <!-- Tabla de ventas -->
+    <div class="sales-table-container">
+      <table class="sales-table">
+        <thead>
+          <tr><th>Orden #</th><th>Cliente</th><th>Fecha</th><th>Total</th><th>Estado</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>#V-1001</td><td>María González</td><td>2026-06-05</td><td>$245.99</td><td><span class="status-badge status-completed">Completado</span></td><td class="action-icons"><i class="fas fa-eye"></i> <i class="fas fa-print"></i></td></tr>
+          <tr><td>#V-1002</td><td>Carlos Méndez</td><td>2026-06-05</td><td>$89.50</td><td><span class="status-badge status-pending">Pendiente</span></td><td class="action-icons"><i class="fas fa-eye"></i> <i class="fas fa-edit"></i></td></tr>
+          <tr><td>#V-1003</td><td>Laura Fernández</td><td>2026-06-04</td><td>$567.30</td><td><span class="status-badge status-completed">Completado</span></td><td class="action-icons"><i class="fas fa-eye"></i> <i class="fas fa-print"></i></td></tr>
+          <tr><td>#V-1004</td><td>Roberto Díaz</td><td>2026-06-04</td><td>$129.99</td><td><span class="status-badge status-completed">Completado</span></td><td class="action-icons"><i class="fas fa-eye"></i> <i class="fas fa-print"></i></td></tr>
+          <tr><td>#V-1005</td><td>Ana Lucía Ríos</td><td>2026-06-03</td><td>$34.90</td><td><span class="status-badge status-cancelled">Cancelado</span></td><td class="action-icons"><i class="fas fa-eye"></i> <i class="fas fa-undo"></i></td></tr>
+          <tr><td>#V-1006</td><td>Jorge Castillo</td><td>2026-06-03</td><td>$478.20</td><td><span class="status-badge status-pending">Pendiente</span></td><td class="action-icons"><i class="fas fa-eye"></i> <i class="fas fa-edit"></i></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    <div class="pagination">
+      <span class="page-item">Anterior</span>
+      <span class="page-item active">1</span>
+      <span class="page-item">2</span>
+      <span class="page-item">3</span>
+      <span class="page-item">Siguiente</span>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL para nueva venta -->
+<div id="modal-venta" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3><i class="fas fa-cart-plus"></i> Nueva Venta</h3>
+      <a href="#" class="close-modal">&times;</a>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Cliente</label>
+        <input type="text" placeholder="Nombre o email del cliente">
+      </div>
+      <div class="form-group">
+        <label>Producto(s)</label>
+        <select>
+          <option>Auriculares Pro - $89.99</option>
+          <option>Smartwatch X1 - $199.99</option>
+          <option>Teclado Mecánico - $129.99</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Cantidad</label>
+        <input type="number" value="1" min="1">
+      </div>
+      <div class="form-group">
+        <label>Método de pago</label>
+        <select><option>Efectivo</option><option>Tarjeta crédito</option><option>Transferencia</option></select>
+      </div>
+      <div class="form-group">
+        <label>Total estimado</label>
+        <input type="text" readonly value="$0.00" style="background:var(--bg-light)">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a href="#" class="btn-secondary">Cancelar</a>
+      <a href="#" class="btn-primary" style="text-decoration:none;">Registrar Venta</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
