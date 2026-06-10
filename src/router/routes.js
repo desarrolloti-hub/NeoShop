@@ -15,44 +15,44 @@ import { termsAndConditionsController } from '../modules/visitor/termsAndConditi
 
 
 
-  /* ---------------------- Admin  ---------------------- */
+/* ---------------------- Admin  ---------------------- */
 
 
-    /* ========================================
-         ----------- profile -----------
-   ======================================== */
+/* ========================================
+     ----------- profile -----------
+======================================== */
 import { updateProfileController } from '../modules/admin/profile/updateProfileController.js';
 
-  
-  /* ========================================
-         ----------- home -----------
-   ======================================== */
 
-import { adminHomeController} from '../modules/admin/home/adminHomeController.js';
+/* ========================================
+       ----------- home -----------
+ ======================================== */
+
+import { adminHomeController } from '../modules/admin/home/adminHomeController.js';
 
 
-  /* ========================================
-         ----------- customer -----------
-   ======================================== */
+/* ========================================
+       ----------- customer -----------
+ ======================================== */
 import { readCustomerController } from '../modules/admin/customer/readCustomerController.js';
 
 
 
-    /* ========================================
-         ----------- Supplier -----------
-   ======================================== */
+/* ========================================
+     ----------- Supplier -----------
+======================================== */
 
 import { createSupplierController } from '../modules/admin/supplier/create/createSupplierController.js';
 import { readSupplierController } from '../modules/admin/supplier/read/readSupplierController.js';
 import { updateSupplierController } from '../modules/admin/supplier/update/updateSupplierController.js';
 
 
-    /* ========================================
-     ----------- cashSessionStatus -----------    
-    ======================================== */
+/* ========================================
+ ----------- cashSessionStatus -----------    
+======================================== */
 
 import { cashSessionStatusController } from '../modules/admin/cashSessionStatus/cashSessionStatusController.js';
-import { readCashSessionsController  } from '../modules/admin/cashSessionStatus/read/readCashSessionsController.js';
+import { readCashSessionsController } from '../modules/admin/cashSessionStatus/read/readCashSessionsController.js';
 
 /* ========================================
                 Rutas HTML 
@@ -97,49 +97,49 @@ export const routes = {
 
 
 
-/* ================================================================================
-       --------------------------------- Admin ---------------------------------
-   ================================================================================ */
+    /* ================================================================================
+           --------------------------------- Admin ---------------------------------
+       ================================================================================ */
 
 
-        /* customer */
-      "/readCustomer": {
+    /* customer */
+    "/clientes": {
         view: "/modules/admin/customer/readCustomer.html",
         controller: readCustomerController
     },
 
-        /* supplier */
-      "/updateSupplier": {
+    /* supplier */
+    "/editarProveedor": {
         view: "/modules/admin/supplier/update/updateSupplier.html",
         controller: updateSupplierController
     },
-    "/createSupplier": {
+    "/crearProveedor": {
         view: "/modules/admin/supplier/create/createSupplier.html",
         controller: createSupplierController
     },
-      "/readSupplier": {
+    "/proveedores": {
         view: "/modules/admin/supplier/read/readSupplier.html",
         controller: readSupplierController
     },
 
     /* profile */
-    "/updateProfile": {
+    "/editarPerfil": {
         view: "/modules/admin/profile/updateProfile.html",
         controller: updateProfileController
     },
 
-        
+
     /* ========================================
      ----------- cashSessionStatus -----------    
     ======================================== */
 
-    "/cashSessionStatus": {
+    "/caja": {
         view: "/modules/admin/cashSessionStatus/cashSessionStatus.html",
         controller: cashSessionStatusController
     },
 
 
-      "/readcashSessionStatus": {
+    "/estadoCaja": {
         view: "/modules/admin/cashSessionStatus/read/readCashSessions.html",
         controller: readCashSessionsController
     },
@@ -147,7 +147,7 @@ export const routes = {
 
 
 
- "/adminHome": {
+    "/inicioAdmin": {
         view: "/modules/admin/home/adminHome.html",
         controller: adminHomeController
     },

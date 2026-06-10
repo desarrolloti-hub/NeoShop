@@ -114,7 +114,7 @@ function bindEvents() {
         elements.userInfo.addEventListener('click', () => {
             closeMenu();
             if (typeof window.navigateTo === 'function') {
-                window.navigateTo('/updateProfile');
+                window.navigateTo('/editarPerfil');
             }
         });
     }
