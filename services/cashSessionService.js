@@ -39,7 +39,9 @@ export const CashSessionService = {
             userName: sessionData.userName || '',
             openingTime: new Date().toISOString(),
             openingCash: parseFloat(sessionData.openingCash),
-            status: 'open'
+            status: 'open',
+            withdrawals: [],
+            totalWithdrawn: 0
         });
         
         session.id = `cash_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
@@ -53,18 +55,93 @@ export const CashSessionService = {
     },
     
     /**
+     * ✅ NUEVO: Registrar un retiro parcial
+     */
+    async addWithdrawal(sessionId, amount, reason, userId, userName) {
+        // Validaciones
+        if (!sessionId) throw new Error('ID de sesión requerido');
+        if (!amount || amount <= 0) throw new Error('El monto del retiro debe ser mayor a 0');
+        if (!reason || reason.trim() === '') throw new Error('Debes especificar una razón para el retiro');
+        
+        // Obtener sesión actual
+        const currentSession = await CashSessionRepository.getById(sessionId);
+        if (!currentSession) throw new Error('Sesión de caja no encontrada');
+        
+        const session = new CashSession(currentSession);
+        
+        if (session.status !== 'open') {
+            throw new Error('No se puede retirar dinero de una sesión cerrada');
+        }
+        
+        // Validar que no se retire más de lo que hay en caja
+        // Nota: Esto es una validación básica, ajusta según tu lógica
+        if (amount > session.openingCash - session.totalWithdrawn) {
+            throw new Error(`No hay suficiente efectivo en caja. Disponible: $${(session.openingCash - session.totalWithdrawn).toFixed(2)}`);
+        }
+        
+        // Registrar retiro
+        const withdrawal = session.withdraw(amount, reason, userId, userName);
+        
+        // Guardar en repositorio
+        const result = await CashSessionRepository.addWithdrawal(sessionId, withdrawal);
+        
+        // Limpiar caché
+        await CacheService.clearCache(STORES.CASH_SESSIONS || 'cash_sessions');
+        
+        return {
+            session: new CashSession(await CashSessionRepository.getById(sessionId)),
+            withdrawal
+        };
+    },
+    
+    /**
+     * ✅ NUEVO: Eliminar un retiro
+     */
+    async removeWithdrawal(sessionId, withdrawalId) {
+        if (!sessionId) throw new Error('ID de sesión requerido');
+        if (!withdrawalId) throw new Error('ID de retiro requerido');
+        
+        const currentSession = await CashSessionRepository.getById(sessionId);
+        if (!currentSession) throw new Error('Sesión de caja no encontrada');
+        
+        const session = new CashSession(currentSession);
+        
+        if (session.status !== 'open') {
+            throw new Error('No se puede modificar una sesión cerrada');
+        }
+        
+        session.removeWithdrawal(withdrawalId);
+        
+        const result = await CashSessionRepository.removeWithdrawal(sessionId, withdrawalId);
+        
+        await CacheService.clearCache(STORES.CASH_SESSIONS || 'cash_sessions');
+        
+        return new CashSession(await CashSessionRepository.getById(sessionId));
+    },
+    
+    /**
+     * ✅ NUEVO: Obtener todos los retiros de una sesión
+     */
+    async getWithdrawals(sessionId) {
+        const session = await CashSessionRepository.getById(sessionId);
+        if (!session) throw new Error('Sesión no encontrada');
+        
+        return {
+            withdrawals: session.withdrawals || [],
+            totalWithdrawn: session.totalWithdrawn || 0
+        };
+    },
+    
+    /**
      * Obtener o crear sesión activa para una sucursal
-     * ✅ Esta es la lógica de negocio que faltaba
      */
     async getOrCreateActiveSession(branchId, userData = null) {
-        // Buscar sesión activa existente
         let activeSession = await CashSessionRepository.getActiveSession(branchId);
         
         if (activeSession) {
             return new CashSession(activeSession);
         }
         
-        // Si no existe, crear una nueva sesión por defecto
         console.log('📝 No hay sesión activa, creando una nueva...');
         
         const defaultSessionData = {
@@ -74,7 +151,7 @@ export const CashSessionService = {
             branchName: 'Sucursal Principal',
             userId: userData?.id || 'USR_DEFAULT',
             userName: userData?.nombreCompleto || 'Administrador',
-            openingCash: 0 // Monto por defecto, el usuario debería actualizarlo
+            openingCash: 0
         };
         
         const newSession = await this.openSession(defaultSessionData, userData?.id);
@@ -85,7 +162,6 @@ export const CashSessionService = {
      * Cerrar sesión de caja
      */
     async closeSession(sessionId, closingCash, notes = '', closedBy = null) {
-        // Obtener sesión actual
         const currentSession = await CashSessionRepository.getById(sessionId);
         
         if (!currentSession) {
@@ -100,7 +176,6 @@ export const CashSessionService = {
             throw new Error('El monto de cierre es requerido y debe ser mayor o igual a 0');
         }
         
-        // Crear modelo para validar
         const session = new CashSession(currentSession);
         session.close(closingCash, notes, closedBy);
         
@@ -109,7 +184,6 @@ export const CashSessionService = {
             throw new Error(validation.errores.join(', '));
         }
         
-        // Actualizar en Firestore
         const updated = await CashSessionRepository.close(sessionId, closingCash, notes, closedBy);
         
         await CacheService.clearCache(STORES.CASH_SESSIONS || 'cash_sessions');
@@ -182,6 +256,7 @@ export const CashSessionService = {
         const totalSessions = sessions.length;
         const totalOpeningCash = sessions.reduce((sum, s) => sum + (s.openingCash || 0), 0);
         const totalClosingCash = sessions.reduce((sum, s) => sum + (s.closingCash || 0), 0);
+        const totalWithdrawals = sessions.reduce((sum, s) => sum + (s.totalWithdrawn || 0), 0);
         const totalDifference = totalClosingCash - totalOpeningCash;
         
         return {
@@ -189,6 +264,7 @@ export const CashSessionService = {
             totalSessions,
             totalOpeningCash,
             totalClosingCash,
+            totalWithdrawals,
             totalDifference,
             sessions
         };

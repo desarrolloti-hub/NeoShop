@@ -49,25 +49,25 @@ function loadExternalScripts() {
  */
 async function initLayoutControllers(role) {
     console.log('🎮 Inicializando controladores para rol:', role);
-    
+
     const controllersMap = {
         [ROLES.ADMIN]: {
             navbar: () => import('./modules/admin/layout/adminNavbarController.js').then(m => m.initAdminNavbarController?.()),
-            footer: () => import('./modules/admin/layout/footerController.js').then(m => m.initFooterController?.())
+            footer: () => import('./modules/admin/layout/adminFooterController.js').then(m => m.initFooterController?.())
         },
         [ROLES.GUEST]: {
             navbar: () => import('./modules/visitor/layout/navbarController.js').then(m => m.initNavbarController?.()),
             footer: () => import('./modules/visitor/layout/footerController.js').then(m => m.initFooterController?.())
         }
     };
-    
+
     const controllers = controllersMap[role] || controllersMap[ROLES.GUEST];
-    
+
     await Promise.all([
         controllers.navbar(),
         controllers.footer()
     ]);
-    
+
     console.log('✅ Controladores inicializados para rol:', role);
 }
 
@@ -86,7 +86,7 @@ function setupLayoutReadyListener() {
 async function initApp() {
     try {
         console.log('🚀 Inicializando aplicación...');
-        
+
         await loadExternalScripts();
         console.log('✅ Scripts externos cargados');
 
@@ -95,10 +95,10 @@ async function initApp() {
 
         // Cargar layouts HTML (esto dispara el evento 'layout:loaded')
         await loadLayout();
-        
+
         // Watcher para recargar al hacer login/logout
         initLayoutWatcher();
-        
+
         // Router para páginas
         initRouter();
 

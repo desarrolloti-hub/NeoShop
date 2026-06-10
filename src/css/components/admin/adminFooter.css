@@ -1,0 +1,150 @@
+.app-footer {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    background: var(--bg-white);
+    color: var(--color-primary-dark);
+    z-index: 99;
+    transition: all var(--transition-normal);
+    box-shadow: var(--shadow-primary);
+    height: auto;
+    min-height: 40px;
+    width: calc(100% - 240px);
+}
+
+.app-footer-container {
+    margin: 0 auto;
+    padding: 5px 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    height: 100%;
+}
+
+.footer-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.footer-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+}
+
+.footer-logo-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+}
+
+.footer-logo {
+    height: 18px;
+    width: auto;
+    max-width: 80px;
+    object-fit: contain;
+}
+
+.current-datetime {
+    font-size: var(--font-size-sm);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-light);
+    padding: 6px 12px;
+    border-radius: 40px;
+    white-space: nowrap;
+}
+
+/* Estilo específico para el ícono dentro de current-datetime */
+.current-datetime i,
+.current-datetime svg,
+.current-datetime .icon {
+    flex-shrink: 0;
+    /* Evita que el ícono se encoja */
+    order: 1;
+    /* Asegura que esté al inicio */
+}
+
+/* El texto de la fecha */
+.current-datetime span,
+.current-datetime .datetime-text {
+    order: 2;
+    /* El texto va después del ícono */
+}
+
+.copyright-text {
+    font-size: var(--font-size-xs);
+    opacity: 0.9;
+    color: var(--color-primary-dark);
+}
+
+/* Responsive */
+@media (max-width: 850px) {
+    .app-footer {
+        left: 0;
+        width: 100%;
+        height: auto;
+    }
+
+    .app-footer-container {
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 12px 1rem;
+        gap: 0.75rem;
+        width: 100%;
+    }
+
+    .footer-left,
+    .footer-right {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .footer-left {
+        order: 2;
+    }
+
+    .footer-right {
+        order: 1;
+    }
+
+    /* Aseguramos que en responsive el ícono también esté al inicio */
+    .current-datetime {
+        justify-content: flex-start;
+        /* Alinea el contenido a la izquierda */
+    }
+}
+
+@media (max-width: 480px) {
+    .app-footer-container {
+        gap: 0.5rem;
+        padding: 10px 1rem;
+    }
+
+    .copyright-text {
+        font-size: 0.65rem;
+    }
+
+    .current-datetime {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+        white-space: normal;
+        justify-content: flex-start;
+        /* Mantiene ícono a la izquierda */
+    }
+
+    .current-datetime {
+        flex-direction: row;
+        /* Mantiene ícono y texto en la misma línea */
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+}

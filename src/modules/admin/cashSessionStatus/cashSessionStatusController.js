@@ -1,15 +1,62 @@
 /* FILE: cashSessionStatusController.js */
-/* Controller for cash session closing - CON APERTURA */
+/* Controller for cash session - Apertura, Retiros y Cierre */
 
 import { CashSessionService } from '/services/cashSessionService.js';
-import { AuthService } from '/services/authService.js';
 
 let isLoading = false;
 
+// ========== FUNCIONES DE AUTENTICACIÓN DIRECTA ==========
+
+function getCurrentUserFromStorage() {
+    try {
+        const possibleKeys = ['admin_user'];
+        
+        for (const key of possibleKeys) {
+            const data = localStorage.getItem(key);
+            if (data) {
+                try {
+                    const parsed = JSON.parse(data);
+                    if (parsed && (parsed.id || parsed.uid || parsed.email || parsed.userId)) {
+                        console.log(`✅ Usuario encontrado en localStorage con clave: ${key}`, parsed);
+                        return parsed;
+                    }
+                } catch (e) {}
+            }
+        }
+        
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            const value = localStorage.getItem(key);
+            try {
+                const parsed = JSON.parse(value);
+                if (parsed && (parsed.id || parsed.uid || parsed.email || parsed.userId)) {
+                    console.log(`✅ Usuario encontrado en clave inesperada: ${key}`, parsed);
+                    return parsed;
+                }
+            } catch (e) {
+                continue;
+            }
+        }
+        
+        console.warn('⚠️ No se encontró usuario en localStorage');
+        return null;
+    } catch (error) {
+        console.error('Error leyendo localStorage:', error);
+        return null;
+    }
+}
+
+function isAuthenticated() {
+    return getCurrentUserFromStorage() !== null;
+}
+
+// ========== FIN FUNCIONES DE AUTENTICACIÓN ==========
+
 export async function cashSessionStatusController() {
     console.log('💰 Cash session status controller inicializado');
-
-    if (!AuthService.isAuthenticated()) {
+    
+    if (!isAuthenticated()) {
+        console.error('❌ No hay sesión de usuario en localStorage');
         showTemporaryMessage('❌ Debes iniciar sesión', 'error');
         setTimeout(() => window.location.href = '/iniciarSesion', 1500);
         return;
@@ -20,7 +67,8 @@ export async function cashSessionStatusController() {
     initClosingCashInput();
     initCashCloseForm();
     initCancelButton();
-    initOpenSessionForm(); // ✅ Nuevo: para abrir sesión
+    initOpenSessionForm();
+    initWithdrawalsModule(); // ✅ Inicializar módulo de retiros
     await checkActiveSession();
 }
 
@@ -52,27 +100,28 @@ function setLastCloseDate() {
     }
 }
 
-/**
- * Verificar si hay sesión activa
- * Si no hay, mostrar formulario de apertura
- * Si hay, mostrar datos y formulario de cierre
- */
 async function checkActiveSession() {
     try {
-        const user = AuthService.getCurrentUser();
-        const branchId = 'SUC_001'; // TODO: Obtener de la tienda actual
+        const user = getCurrentUserFromStorage();
+        console.log('👤 Usuario obtenido para checkActiveSession:', user);
         
-        // ✅ Solo buscar sesión activa, NO crear automáticamente
+        const branchId = 'SUC_001';
+        
         const activeSession = await CashSessionService.getActiveSession(branchId);
         
         if (!activeSession) {
-            // No hay sesión activa → mostrar formulario de apertura
             showOpenSessionForm();
             return;
         }
         
-        // Hay sesión activa → mostrar datos y formulario de cierre
         showCloseSessionForm(activeSession, user);
+        
+        // ✅ Cargar retiros si existen
+        if (activeSession.withdrawals && activeSession.withdrawals.length > 0) {
+            renderWithdrawalsList(activeSession.withdrawals, activeSession.totalWithdrawn);
+        } else {
+            renderWithdrawalsList([], 0);
+        }
         
     } catch (error) {
         console.error('Error verificando sesión:', error);
@@ -80,17 +129,14 @@ async function checkActiveSession() {
     }
 }
 
-/**
- * Mostrar formulario de apertura de sesión
- */
 function showOpenSessionForm() {
-    // Ocultar sección de cierre, mostrar sección de apertura
     const closeSection = document.querySelector('.closing-form');
     const openSection = document.getElementById('openSessionSection');
+    const withdrawalsPanel = document.getElementById('withdrawalsPanel');
     
     if (closeSection) closeSection.style.display = 'none';
+    if (withdrawalsPanel) withdrawalsPanel.style.display = 'none';
     
-    // Si no existe la sección de apertura, crearla
     if (!openSection) {
         createOpenSessionSection();
     } else {
@@ -98,9 +144,6 @@ function showOpenSessionForm() {
     }
 }
 
-/**
- * Crear sección de apertura de sesión dinámicamente
- */
 function createOpenSessionSection() {
     const form = document.getElementById('cashCloseForm');
     const parent = form.parentNode;
@@ -137,16 +180,12 @@ function createOpenSessionSection() {
     parent.insertBefore(openSection, form);
     form.style.display = 'none';
     
-    // Inicializar botón de apertura
     const openBtn = document.getElementById('openSessionBtn');
     if (openBtn) {
         openBtn.addEventListener('click', openNewSession);
     }
 }
 
-/**
- * Abrir nueva sesión de caja
- */
 async function openNewSession() {
     const openingCash = parseFloat(document.getElementById('openingCashAmount')?.value) || 0;
     
@@ -164,24 +203,30 @@ async function openNewSession() {
     }
     
     try {
-        const user = AuthService.getCurrentUser();
+        const user = getCurrentUserFromStorage();
+        console.log('👤 Usuario para apertura:', user);
+        
         const branchId = 'SUC_001';
+        
+        const userId = user?.id || user?.uid || user?.userId || 'USR_001';
+        const userName = user?.nombreCompleto || user?.displayName || user?.name || user?.email || 'Administrador';
         
         const sessionData = {
             storeSlug: 'mi-tienda',
             branchId: branchId,
             storeName: 'Tienda Principal',
             branchName: 'Sucursal Centro',
-            userId: user?.id || 'USR_001',
-            userName: user?.nombreCompleto || 'Administrador',
+            userId: userId,
+            userName: userName,
             openingCash: openingCash
         };
         
-        await CashSessionService.openSession(sessionData, user?.id);
+        console.log('📝 Abriendo sesión con datos:', sessionData);
+        
+        await CashSessionService.openSession(sessionData, userId);
         
         showTemporaryMessage('✅ Sesión de caja abierta correctamente', 'success');
         
-        // Recargar la página para mostrar el formulario de cierre
         setTimeout(() => {
             window.location.reload();
         }, 1500);
@@ -198,19 +243,16 @@ async function openNewSession() {
     }
 }
 
-/**
- * Mostrar formulario de cierre con los datos de la sesión activa
- */
 function showCloseSessionForm(activeSession, user) {
-    // Ocultar sección de apertura si existe
     const openSection = document.getElementById('openSessionSection');
     if (openSection) openSection.style.display = 'none';
     
-    // Mostrar formulario de cierre
     const form = document.getElementById('cashCloseForm');
     if (form) form.style.display = 'block';
     
-    // Llenar datos de la sesión
+    const withdrawalsPanel = document.getElementById('withdrawalsPanel');
+    if (withdrawalsPanel) withdrawalsPanel.style.display = 'block';
+    
     document.getElementById('sessionId').value = activeSession.id;
     document.getElementById('storeSlug').value = activeSession.storeSlug;
     document.getElementById('branchId').value = activeSession.branchId;
@@ -224,8 +266,210 @@ function showCloseSessionForm(activeSession, user) {
     document.getElementById('cashCloseForm').dataset.sessionId = activeSession.id;
     document.getElementById('cashCloseForm').dataset.openingCash = activeSession.openingCash;
     
+    // ✅ Mostrar nota de efectivo esperado
+    const expectedCashNote = document.getElementById('expectedCashNote');
+    const expectedCashAmount = document.getElementById('expectedCashAmount');
+    if (expectedCashNote && expectedCashAmount) {
+        const totalWithdrawn = activeSession.totalWithdrawn || 0;
+        const expected = activeSession.openingCash - totalWithdrawn;
+        expectedCashAmount.textContent = `$${expected.toFixed(2)}`;
+        expectedCashNote.style.display = 'flex';
+    }
+    
     showTemporaryMessage('Sesión de caja cargada', 'success');
 }
+
+// ========== ✅ MÓDULO DE RETIROS ==========
+
+function initWithdrawalsModule() {
+    const showBtn = document.getElementById('showWithdrawalFormBtn');
+    const confirmBtn = document.getElementById('confirmWithdrawalBtn');
+    const cancelBtn = document.getElementById('cancelWithdrawalBtn');
+    
+    if (showBtn) {
+        showBtn.addEventListener('click', () => {
+            const container = document.getElementById('withdrawalFormContainer');
+            if (container) container.style.display = 'block';
+        });
+    }
+    
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            const container = document.getElementById('withdrawalFormContainer');
+            if (container) container.style.display = 'none';
+            document.getElementById('withdrawalAmount').value = '';
+            document.getElementById('withdrawalReason').value = '';
+            document.getElementById('withdrawalCustomReason').value = '';
+        });
+    }
+    
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', registerWithdrawal);
+    }
+}
+
+async function registerWithdrawal() {
+    const amount = parseFloat(document.getElementById('withdrawalAmount')?.value) || 0;
+    let reason = document.getElementById('withdrawalReason')?.value || '';
+    const customReason = document.getElementById('withdrawalCustomReason')?.value || '';
+    
+    if (amount <= 0) {
+        showTemporaryMessage('❌ Ingresa un monto válido para el retiro', 'error');
+        return;
+    }
+    
+    if (reason === 'Otro') {
+        reason = customReason;
+    }
+    
+    if (!reason || reason.trim() === '') {
+        showTemporaryMessage('❌ Debes especificar un motivo para el retiro', 'error');
+        return;
+    }
+    
+    const sessionId = document.getElementById('sessionId')?.value;
+    if (!sessionId) {
+        showTemporaryMessage('❌ No hay sesión activa', 'error');
+        return;
+    }
+    
+    isLoading = true;
+    const confirmBtn = document.getElementById('confirmWithdrawalBtn');
+    const originalText = confirmBtn?.innerHTML;
+    if (confirmBtn) {
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+        confirmBtn.disabled = true;
+    }
+    
+    try {
+        const user = getCurrentUserFromStorage();
+        const userId = user?.id || user?.uid || user?.userId;
+        const userName = user?.nombreCompleto || user?.displayName || user?.name || user?.email || 'Usuario';
+        
+        const result = await CashSessionService.addWithdrawal(sessionId, amount, reason, userId, userName);
+        
+        // Actualizar la UI con la nueva lista
+        renderWithdrawalsList(result.session.withdrawals, result.session.totalWithdrawn);
+        
+        // Actualizar el efectivo esperado
+        const openingCash = parseFloat(document.getElementById('cashCloseForm').dataset.openingCash) || 0;
+        const expectedCashAmount = document.getElementById('expectedCashAmount');
+        if (expectedCashAmount) {
+            const expected = openingCash - result.session.totalWithdrawn;
+            expectedCashAmount.textContent = `$${expected.toFixed(2)}`;
+        }
+        
+        // Cerrar el formulario
+        const container = document.getElementById('withdrawalFormContainer');
+        if (container) container.style.display = 'none';
+        document.getElementById('withdrawalAmount').value = '';
+        document.getElementById('withdrawalReason').value = '';
+        document.getElementById('withdrawalCustomReason').value = '';
+        
+        showTemporaryMessage(`✅ Retiro de $${amount.toFixed(2)} registrado correctamente`, 'success');
+        
+    } catch (error) {
+        console.error('Error registrando retiro:', error);
+        showTemporaryMessage(`❌ ${error.message}`, 'error');
+    } finally {
+        isLoading = false;
+        if (confirmBtn) {
+            confirmBtn.innerHTML = originalText;
+            confirmBtn.disabled = false;
+        }
+    }
+}
+
+async function deleteWithdrawal(withdrawalId) {
+    const sessionId = document.getElementById('sessionId')?.value;
+    if (!sessionId) {
+        showTemporaryMessage('❌ No hay sesión activa', 'error');
+        return;
+    }
+    
+    if (!confirm('¿Estás seguro de que quieres eliminar este retiro?')) return;
+    
+    isLoading = true;
+    
+    try {
+        const result = await CashSessionService.removeWithdrawal(sessionId, withdrawalId);
+        
+        renderWithdrawalsList(result.withdrawals, result.totalWithdrawn);
+        
+        const openingCash = parseFloat(document.getElementById('cashCloseForm').dataset.openingCash) || 0;
+        const expectedCashAmount = document.getElementById('expectedCashAmount');
+        if (expectedCashAmount) {
+            const expected = openingCash - result.totalWithdrawn;
+            expectedCashAmount.textContent = `$${expected.toFixed(2)}`;
+        }
+        
+        showTemporaryMessage('✅ Retiro eliminado correctamente', 'success');
+        
+    } catch (error) {
+        console.error('Error eliminando retiro:', error);
+        showTemporaryMessage(`❌ ${error.message}`, 'error');
+    } finally {
+        isLoading = false;
+    }
+}
+
+function renderWithdrawalsList(withdrawals, totalWithdrawn) {
+    const container = document.getElementById('withdrawalsList');
+    const totalElement = document.getElementById('totalWithdrawn');
+    
+    if (!container) return;
+    
+    if (totalElement) {
+        totalElement.textContent = `$${totalWithdrawn.toFixed(2)}`;
+    }
+    
+    if (!withdrawals || withdrawals.length === 0) {
+        container.innerHTML = `
+            <div class="empty-withdrawals">
+                <i class="fas fa-info-circle"></i>
+                <p>No hay retiros registrados</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = withdrawals.map(w => `
+        <div class="withdrawal-item" data-id="${w.id}">
+            <div class="withdrawal-info">
+                <span class="withdrawal-amount">$${w.amount.toFixed(2)}</span>
+                <span class="withdrawal-reason">${escapeHtml(w.reason)}</span>
+                <span class="withdrawal-date">${new Date(w.date).toLocaleString('es-MX')}</span>
+                <span class="withdrawal-user">${escapeHtml(w.userName || 'Sistema')}</span>
+            </div>
+            <div class="withdrawal-actions">
+                <button class="btn-delete-withdrawal" onclick="deleteWithdrawal('${w.id}')" title="Eliminar retiro">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+    
+    // Re-asignar eventos porque los onclick en string no funcionan con modules
+    document.querySelectorAll('.btn-delete-withdrawal').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const item = btn.closest('.withdrawal-item');
+            const id = item?.dataset?.id;
+            if (id) deleteWithdrawal(id);
+        });
+    });
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+// ========== FIN MÓDULO DE RETIROS ==========
 
 function initClosingCashInput() {
     const closingCashInput = document.getElementById('closingCash');
@@ -234,7 +478,9 @@ function initClosingCashInput() {
     closingCashInput.addEventListener('input', (e) => {
         const closingCash = parseFloat(e.target.value) || 0;
         const openingCash = parseFloat(document.getElementById('cashCloseForm').dataset.openingCash) || 0;
-        const difference = closingCash - openingCash;
+        const totalWithdrawn = parseFloat(document.getElementById('totalWithdrawn')?.textContent?.replace('$', '') || 0);
+        const expectedCash = openingCash - totalWithdrawn;
+        const difference = closingCash - expectedCash;
         
         const differenceElement = document.getElementById('cashDifference');
         if (differenceElement) {
@@ -276,8 +522,11 @@ function initCashCloseForm() {
         submitBtn.disabled = true;
 
         try {
-            const user = AuthService.getCurrentUser();
-            const closedBy = user?.id || null;
+            const user = getCurrentUserFromStorage();
+            const userId = user?.id || user?.uid || user?.userId;
+            const closedBy = userId || null;
+            
+            console.log('🔒 Cerrando sesión:', { sessionId, closingCash, closedBy });
             
             await CashSessionService.closeSession(sessionId, closingCash, notes, closedBy);
             
@@ -302,7 +551,6 @@ function initCashCloseForm() {
 }
 
 function initOpenSessionForm() {
-    // Esta función se ejecuta por si el HTML ya tiene la sección
     const openBtn = document.getElementById('openSessionBtn');
     if (openBtn) {
         openBtn.addEventListener('click', openNewSession);
@@ -350,3 +598,6 @@ function showTemporaryMessage(message, type = 'info') {
 export function cleanupCashSessionStatus() {
     console.log('🧹 Cash session status controller cleaned up');
 }
+
+// Exponer deleteWithdrawal globalmente para los botones dinámicos
+window.deleteWithdrawal = deleteWithdrawal;
