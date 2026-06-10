@@ -61,12 +61,12 @@
         </div>
 
         <!-- Vista móvil (cards) -->
-        <div id="sessionsCardsContainer" class="sessions-cards-container" style="display: none;">
-            <!-- Las cards se generarán dinámicamente -->
+        <div id="sessionsCardsContainer" class="sessions-cards-container">
+            <!-- Las cards se generan dinámicamente -->
         </div>
 
         <!-- Paginación -->
-        <div class="pagination-container" id="paginationContainer">
+        <div class="pagination-container">
             <button class="pagination-btn" id="prevPageBtn" disabled>
                 <i class="fas fa-chevron-left"></i> Anterior
             </button>
@@ -96,7 +96,7 @@
     </div>
 </div>
 
-<!-- Modal para ver detalles del corte -->
+<!-- Modal para ver detalles del corte (estructura HTML puro, sin JS) -->
 <div id="sessionModal" class="session-modal" style="display: none;">
     <div class="modal-overlay">
         <div class="modal-content">
@@ -104,8 +104,58 @@
                 <h3><i class="fas fa-receipt"></i> Detalles del corte</h3>
                 <button class="modal-close">&times;</button>
             </div>
-            <div class="modal-body" id="sessionModalBody">
-                <!-- Contenido dinámico -->
+            <div class="modal-body">
+                <!-- Información del corte -->
+                <div class="detail-row">
+                    <div class="detail-label">ID Sesión:</div>
+                    <div class="detail-value" id="modalSessionId">--</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Tienda:</div>
+                    <div class="detail-value" id="modalStoreName">--</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Sucursal:</div>
+                    <div class="detail-value" id="modalBranchName">--</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Usuario:</div>
+                    <div class="detail-value" id="modalUserName">--</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Fecha apertura:</div>
+                    <div class="detail-value" id="modalOpeningTime">--</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Fecha cierre:</div>
+                    <div class="detail-value" id="modalClosingTime">--</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Monto apertura:</div>
+                    <div class="detail-value" id="modalOpeningCash">--</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Monto cierre:</div>
+                    <div class="detail-value" id="modalClosingCash">--</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Diferencia:</div>
+                    <div class="detail-value" id="modalDifference">--</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Observaciones:</div>
+                    <div class="detail-value" id="modalNotes">--</div>
+                </div>
+                
+                <!-- Sección de retiros -->
+                <div id="modalWithdrawalsContainer" style="display: none;">
+                    <div class="detail-divider"></div>
+                    <div class="detail-row">
+                        <div class="detail-label">Retiros realizados:</div>
+                        <div class="detail-value" id="modalWithdrawalsCount">0</div>
+                    </div>
+                    <div id="modalWithdrawalsList" class="withdrawals-list-modal"></div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary close-modal-btn">Cerrar</button>

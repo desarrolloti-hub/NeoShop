@@ -4,12 +4,13 @@
    ======================================== */
 
 const DB_NAME = 'TuProyecto_Cache';
-const DB_VERSION = 3; // ✅ Subir versión para agregar CASH_SESSIONS
+const DB_VERSION = 4; // ✅ Subir versión para agregar CASH_SESSIONS
 
 export const STORES = {
     ADMINS: 'admins',
     SUPPLIERS: 'suppliers',
     CASH_SESSIONS: 'cash_sessions', 
+    STORES: 'stores',        // <- Agregar esta linea
     TIENDAS: 'tiendas',
     PRODUCTOS: 'productos'
 };

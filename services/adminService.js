@@ -31,12 +31,13 @@ export const AdminService = {
         if (existing) {
             throw new Error('Ya existe un administrador registrado con este correo');
         }
-        
+                
         const admin = new Admin({
             nombre: adminData.nombre.trim(),
             apellido: adminData.apellido.trim(),
             telefono: adminData.telefono?.trim() || '',
             email: adminData.email.toLowerCase().trim(),
+            storeId: adminData.storeId || null,  // ✅ CAMBIADO: companyId → storeId
             plan: adminData.plan || null,
             tiendas: adminData.tiendas || {},
             activo: true,
@@ -48,10 +49,6 @@ export const AdminService = {
         const result = await AdminRepository.registerWithEmail(admin.email, password, admin);
         
         await CacheService.clearCache(STORES.ADMINS || 'admins');
-        
-        // ELIMINADO: Ya no guarda sesion en registro con email
-        // this._saveSession(result.userData.datosResumidos);
-        // this._dispatchAuthChange(result.userData.datosResumidos);
         
         return result;
     },
@@ -87,13 +84,14 @@ export const AdminService = {
             email: result.userData.email,
             nombreCompleto: `${result.userData.nombre} ${result.userData.apellido}`.trim(),
             iniciales: (result.userData.nombre?.[0] || '') + (result.userData.apellido?.[0] || ''),
+            storeId: result.userData.storeId || null,  // ✅ CAMBIADO: companyId → storeId
             plan: result.userData.plan,
             totalTiendas: Object.keys(result.userData.tiendas || {}).length,
             activo: result.userData.activo,
             userPhoto: result.userData.userPhoto,
             provider: result.userData.provider
         };
-        
+                
         this._saveSession(sessionData);
         this._dispatchAuthChange(sessionData);
         

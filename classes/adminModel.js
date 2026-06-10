@@ -14,6 +14,8 @@ export class Admin {
         this.telefono = data.telefono || '';
         this.email = data.email || '';
         
+        this.storeId = data.storeId || null;  // ✅ CAMBIADO: companyId → storeId
+        
         // Plan y tiendas
         this.plan = data.plan || null;                    // Ej: 'basic', 'premium', 'enterprise'
         this.tiendas = data.tiendas || {};                // { storeId: { nombre: '', activo: true } }
@@ -49,6 +51,11 @@ export class Admin {
         return (primera + segunda).toUpperCase() || 'A';
     }
     
+    // 🆕 Verificar si tiene tienda asignada
+    get tieneTienda() {  // ✅ CAMBIADO: tieneEmpresa → tieneTienda
+        return !!this.storeId;  // ✅ CAMBIADO: companyId → storeId
+    }
+    
     // Lista de IDs de tiendas activas
     get tiendasActivas() {
         if (!this.tiendas) return [];
@@ -76,6 +83,7 @@ export class Admin {
             email: this.email,
             nombreCompleto: this.nombreCompleto,
             iniciales: this.iniciales,
+            storeId: this.storeId,     // ✅ CAMBIADO: companyId → storeId
             plan: this.plan,
             totalTiendas: this.totalTiendas,
             activo: this.activo,
@@ -85,6 +93,20 @@ export class Admin {
     }
     
     // ========== MÉTODOS ==========
+    
+    // 🆕 Asignar tienda al administrador
+    asignarTienda(storeId) {  // ✅ CAMBIADO: asignarEmpresa → asignarTienda
+        this.storeId = storeId;  // ✅ CAMBIADO: companyId → storeId
+        this.updatedAt = new Date().toISOString();
+        return this;
+    }
+    
+    // 🆕 Desvincular tienda
+    desvincularTienda() {  // ✅ CAMBIADO: desvincularEmpresa → desvincularTienda
+        this.storeId = null;  // ✅ CAMBIADO: companyId → storeId
+        this.updatedAt = new Date().toISOString();
+        return this;
+    }
     
     // Agregar una tienda
     agregarTienda(storeId, storeData = {}) {
