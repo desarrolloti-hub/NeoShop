@@ -11,17 +11,6 @@ import { aboutUsController } from '../modules/visitor/aboutUs/aboutUsController.
 import { createAccountController } from '../modules/visitor/createAccount/createAccounController.js';
 import { contactController } from '../modules/visitor/contact/contactController.js';
 import { termsAndConditionsController } from '../modules/visitor/termsAndConditions/termsAndConditionsController.js';
-
-
-
-
-<<<<<<< HEAD
-
-  /* ---------------------- Admin  ---------------------- */
-=======
-/* ---------------------- Admin  ---------------------- */
->>>>>>> 379aaf016361900d83c671110c860223549d6e77
-
    /* ========================================
          ----------- store -----------
    ======================================== */
@@ -149,24 +138,6 @@ export const routes = {
         controller: updateProfileController
     },
 
-<<<<<<< HEAD
-    
-
-    /*settings */
-    "/settings": {
-        view: "/modules/admin/settings/settings.html",
-        controller: settingsController
-    },
-
-     /*store */
-    "/createStore": {
-        view: "/modules/admin/store/create/createStore.html",
-        controller: createStoreController
-    },
-        
-=======
-
->>>>>>> 379aaf016361900d83c671110c860223549d6e77
     /* ========================================
      ----------- cashSessionStatus -----------    
     ======================================== */
