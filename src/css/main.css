@@ -58,6 +58,9 @@
          ----------- admin -----------
    ======================================== */
 
+
+   @import url('./pages/admin/store/create/createStore.css');
+
 /* navbar */
 @import url('./components/admin/adminNavbar.css');   
 
@@ -78,6 +81,9 @@
 /* cash session status */
 @import url('./pages/admin/cashSessionStatus/cashSessionStatus.css');
 @import url('./pages/admin/cashSessionStatus/read/readCashSessions.css');
+
+/*settings */
+@import url('./pages/admin/settings/settings.css');
 
 
 /* Estilos base adicionales */

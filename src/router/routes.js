@@ -15,7 +15,24 @@ import { termsAndConditionsController } from '../modules/visitor/termsAndConditi
 
 
 
+
   /* ---------------------- Admin  ---------------------- */
+
+   /* ========================================
+         ----------- store -----------
+   ======================================== */
+
+import { createStoreController } from '../modules/admin/store/create/createStoreController.js';
+
+
+
+    /* ========================================
+         ----------- settings -----------
+   ======================================== */
+
+   import { settingsController } from '../modules/admin/settings/settingsController.js';
+
+
 
 
     /* ========================================
@@ -128,6 +145,19 @@ export const routes = {
         controller: updateProfileController
     },
 
+    
+
+    /*settings */
+    "/settings": {
+        view: "/modules/admin/settings/settings.html",
+        controller: settingsController
+    },
+
+     /*store */
+    "/createStore": {
+        view: "/modules/admin/store/create/createStore.html",
+        controller: createStoreController
+    },
         
     /* ========================================
      ----------- cashSessionStatus -----------    
