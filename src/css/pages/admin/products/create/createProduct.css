@@ -1,0 +1,358 @@
+/* FILE: createProduct.css */
+/* Product form styles - matching design system */
+
+/* ========================================================
+   CONTENEDOR PRINCIPAL (mismo que readProducts)
+   ======================================================== */
+
+.product-list-container {
+    padding: var(--spacing-xl) 0;
+    min-height: calc(100vh - 200px);
+    width: 100%;
+}
+
+.product-list-card {
+    background: var(--bg-white);
+    border-radius: 0px;
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+    width: 100%;
+    margin: 0;
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* ========================================================
+   PAGE HEADER - mismo estilo que readProducts
+   ======================================================== */
+
+.product-list-card .page-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-direction: row !important;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--border-light);
+}
+
+.product-list-card .page-header .header-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--color-primary-dark);
+    font-size: var(--font-size-2xl);
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.product-list-card .page-header .header-title i {
+    color: var(--color-primary);
+}
+
+.product-list-card .page-header .header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* En móvil, se apilan */
+@media (max-width: 768px) {
+    .product-list-card .page-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+}
+
+/* ========================================================
+   FORMULARIO CON LABELS
+   ======================================================== */
+
+.product-form-wrapper {
+    max-width: 550px;
+    margin: 0 auto;
+}
+
+.product-card {
+    background: var(--bg-white);
+    width: 100%;
+    border-radius: var(--border-radius-md);
+    padding: 2.5rem var(--spacing-xl);
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================================================
+   FORM GROUPS CON LABELS
+   ======================================================== */
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+.form-group label i {
+    color: var(--color-primary);
+    font-size: 14px;
+}
+
+.required {
+    color: #dc2626;
+    font-size: 12px;
+    margin-left: 4px;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-md);
+    font-size: 14px;
+    font-family: inherit;
+    transition: var(--transition-fast);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(69, 109, 162, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+/* Input con icono de moneda */
+.input-with-icon {
+    position: relative;
+    width: 100%;
+}
+
+.input-with-icon .input-prefix {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.input-with-icon input {
+    padding-left: 28px;
+}
+
+/* Field note (texto de ayuda) */
+.field-note {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 6px;
+}
+
+/* Form row para dos campos */
+.form-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 0;
+}
+
+.form-row .form-group {
+    flex: 1;
+    margin-bottom: 20px;
+}
+
+/* Sección divisoria */
+.section-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 24px 0 20px;
+}
+
+.section-divider::before,
+.section-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.section-divider span {
+    padding: 0 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-primary);
+}
+
+/* ========================================================
+   AVATAR / IMAGEN
+   ======================================================== */
+
+.avatar-wrapper {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin: 0 auto var(--spacing-sm);
+    cursor: pointer;
+}
+
+.avatar-circle {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 3px solid var(--color-primary);
+    transition: var(--transition-fast);
+    background: var(--bg-gray);
+}
+
+.avatar-circle i {
+    font-size: var(--font-size-3xl);
+    color: var(--color-primary);
+}
+
+.avatar-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+    border-radius: 50%;
+}
+
+.avatar-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(69, 109, 162, 0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: var(--transition-fast);
+    cursor: pointer;
+}
+
+.avatar-overlay i {
+    color: white;
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+
+.avatar-overlay .avatar-hint {
+    color: white;
+    font-size: 9px;
+    font-weight: 500;
+    text-align: center;
+    padding: 0 8px;
+}
+
+.avatar-wrapper:hover .avatar-overlay {
+    opacity: 1;
+}
+
+.avatar-guide {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.avatar-guide i {
+    font-size: 12px;
+    color: var(--color-primary);
+}
+
+#productImageInput {
+    display: none;
+}
+
+#removeProductImageBtn {
+    display: none;
+    margin: var(--spacing-xs) auto 0;
+    padding: 6px 16px;
+    border: none;
+    border-radius: var(--border-radius-md);
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    transition: var(--transition-normal);
+}
+
+#removeProductImageBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(220, 38, 38, 0.4);
+}
+
+/* Botón principal */
+.product-card .btn-primary {
+    width: 100%;
+    justify-content: center;
+    margin-top: 10px;
+    padding: 14px;
+    font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 550px) {
+    .product-list-container {
+        padding: var(--spacing-md) 0;
+    }
+
+    .product-list-card {
+        padding: var(--spacing-md);
+    }
+
+    .product-card {
+        padding: 1.5rem;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .form-row .form-group {
+        margin-bottom: 20px;
+    }
+
+    .section-divider {
+        margin: 20px 0 16px;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

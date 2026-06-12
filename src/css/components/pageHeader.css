@@ -1,0 +1,90 @@
+/* ============================================
+   PAGE HEADER COMPONENT - neoShop
+   Componente reutilizable para encabezados de página
+   Mismo estilo que list-header de readSupplier/readProducts
+   ============================================ */
+
+/* ========================================================
+   CONTENEDOR PRINCIPAL DEL HEADER
+   ======================================================== */
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--border-light);
+}
+
+/* ========================================================
+   TÍTULO CON ICONO
+   ======================================================== */
+
+.page-header .header-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--color-primary-dark);
+    font-size: var(--font-size-2xl);
+    margin-bottom: 0;
+}
+
+.page-header .header-title i {
+    color: var(--color-primary);
+}
+
+/* ========================================================
+   ACCIONES (BOTONES A LA DERECHA)
+   ======================================================== */
+
+.page-header .header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+/* ========================================================
+   VARIANTE CON SUBTÍTULO
+   ======================================================== */
+
+.page-header.with-subtitle {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.page-header.with-subtitle .header-left {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.page-header.with-subtitle .header-left .header-subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ========================================================
+   RESPONSIVE
+   ======================================================== */
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .page-header .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 550px) {
+    .page-header .header-title {
+        font-size: var(--font-size-xl);
+    }
+}

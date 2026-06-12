@@ -64,9 +64,20 @@ import { updateSupplierController } from '../modules/admin/supplier/update/updat
 import { cashSessionStatusController } from '../modules/admin/cashSessionStatus/cashSessionStatusController.js';
 import { readCashSessionsController } from '../modules/admin/cashSessionStatus/read/readCashSessionsController.js';
 
+
+/* ========================================
+ ----------- productos -----------    
+======================================== */
+
+import { readProductsController } from '../modules/admin/products/read/readProductsController.js';
+import { createProductController } from '../modules/admin/products/create/createProductController.js';
+import { updateProductController } from '../modules/admin/products/update/updateProductController.js';
+
 /* ========================================
                 Rutas HTML 
    ======================================== */
+
+
 
 
 
@@ -136,6 +147,24 @@ export const routes = {
     "/editarPerfil": {
         view: "/modules/admin/profile/updateProfile.html",
         controller: updateProfileController
+    },
+
+    /* ver producto */
+    "/productos": {
+        view: "/modules/admin/products/read/readProducts.html",
+        controller: readProductsController
+    },
+    
+    /* crear producto */
+    "/crearProducto": {
+        view: "/modules/admin/products/create/createProduct.html",
+        controller: createProductController
+    },
+    
+    /* editar producto */
+    "/editarProducto": {
+        view: "/modules/admin/products/update/updateProduct.html",
+        controller: updateProductController
     },
 
     /* ========================================

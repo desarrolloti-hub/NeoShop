@@ -1,7 +1,9 @@
-/* FILE: createProductController.js
+/* FILE: updateProductController.js
    ========================================================
-   CONTROLADOR PARA CREAR PRODUCTOS
+   CONTROLADOR PARA ACTUALIZAR PRODUCTOS
    Dependencias: ProductService, AdminService, SweetAlert2
+   Funcionalidad: Carga los datos de un producto existente,
+                  permite editarlos y guardar los cambios
    ======================================================== */
 
 import { ProductService } from '/services/productService.js';
@@ -9,11 +11,109 @@ import { AdminService } from '/services/adminService.js';
 
 let isLoading = false;
 let currentImageBase64 = '';
+let originalProductData = null;
 
-export async function createProductController() {
+/* ========================================================
+   FUNCION PRINCIPAL - EXPORTADA
+   ======================================================== */
+export async function updateProductController() {
+    await loadProductData();
     animateProductCard();
     initProductImageUpload();
     initProductFormSubmit();
+    initBackButton();
+}
+
+/* ========================================================
+   OBTIENE EL ID DEL PRODUCTO DESDE LA URL
+   ======================================================== */
+function getProductIdFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('id');
+}
+
+/* ========================================================
+   CARGA LOS DATOS DEL PRODUCTO
+   ======================================================== */
+async function loadProductData() {
+    const productId = getProductIdFromUrl();
+    
+    if (!productId) {
+        await Swal.fire({
+            title: 'Error',
+            text: 'ID de producto no especificado',
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#dc2626',
+            customClass: { confirmButton: 'swal2-confirm' }
+        });
+        window.location.href = '/productos';
+        return;
+    }
+
+    try {
+        showToast('Cargando producto...', 'info');
+        
+        const adminSession = AdminService.getSession();
+        const adminId = adminSession?.id;
+        
+        if (!adminId) {
+            throw new Error('No se encontro la sesion del administrador');
+        }
+        
+        const product = await ProductService.getById(productId, adminId);
+        
+        if (!product) {
+            throw new Error('Producto no encontrado');
+        }
+        
+        originalProductData = product;
+        
+        // Poblar formulario (usando nombres del modelo en ingles)
+        document.getElementById('productId').value = product.id;
+        document.getElementById('nombre').value = product.name || '';
+        document.getElementById('sku').value = product.barcode || '';
+        document.getElementById('marca').value = product.brand || '';
+        document.getElementById('descripcion').value = product.description || '';
+        document.getElementById('precio').value = product.price || 0;
+        document.getElementById('costo').value = product.cost || 0;
+        document.getElementById('stock').value = product.stock || 0;
+        document.getElementById('stockMinimo').value = product.minStock || 0;
+        document.getElementById('unidadMedida').value = product.unitOfMeasure || '';
+        
+        // Cargar imagen si existe
+        if (product.imageUrl && product.imageUrl.startsWith('data:image')) {
+            currentImageBase64 = product.imageUrl;
+            const avatarPreview = document.getElementById('productAvatarPreview');
+            const avatarIcon = document.getElementById('productAvatarIcon');
+            const removeBtn = document.getElementById('removeProductImageBtn');
+            
+            if (avatarPreview) {
+                avatarPreview.src = currentImageBase64;
+                avatarPreview.style.display = 'block';
+                avatarPreview.style.width = '100%';
+                avatarPreview.style.height = '100%';
+                avatarPreview.style.objectFit = 'cover';
+                avatarPreview.style.borderRadius = '50%';
+            }
+            if (avatarIcon) avatarIcon.style.display = 'none';
+            if (removeBtn) removeBtn.style.display = 'inline-block';
+        }
+        
+        showToast('Producto cargado correctamente', 'success');
+        
+    } catch (error) {
+        console.error('Error al cargar producto:', error);
+        await Swal.fire({
+            title: 'Error',
+            text: error.message || 'No se pudo cargar el producto',
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#dc2626',
+            customClass: { confirmButton: 'swal2-confirm' }
+        });
+        window.location.href = '/productos';
+    }
 }
 
 /* ========================================================
@@ -41,10 +141,7 @@ function initProductImageUpload() {
     const avatarIcon = document.getElementById('productAvatarIcon');
     const removeBtn = document.getElementById('removeProductImageBtn');
 
-    if (!avatarWrapper || !fileInput) {
-        console.error('Elementos de imagen no encontrados');
-        return;
-    }
+    if (!avatarWrapper || !fileInput) return;
 
     avatarWrapper.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -84,13 +181,8 @@ function initProductImageUpload() {
                 avatarPreview.style.borderRadius = '50%';
             }
             
-            if (avatarIcon) {
-                avatarIcon.style.display = 'none';
-            }
-            
-            if (removeBtn) {
-                removeBtn.style.display = 'inline-block';
-            }
+            if (avatarIcon) avatarIcon.style.display = 'none';
+            if (removeBtn) removeBtn.style.display = 'inline-block';
             
             showSweetAlert('Imagen cargada', 'La imagen se ha cargado correctamente', 'success', 1500);
         };
@@ -115,10 +207,7 @@ function initProductImageUpload() {
                 avatarPreview.style.display = 'none';
             }
             
-            if (avatarIcon) {
-                avatarIcon.style.display = 'block';
-            }
-            
+            if (avatarIcon) avatarIcon.style.display = 'block';
             removeBtn.style.display = 'none';
             currentImageBase64 = '';
             
@@ -132,63 +221,58 @@ function initProductImageUpload() {
    ======================================================== */
 function initProductFormSubmit() {
     const form = document.getElementById('productForm');
-    if (!form) {
-        console.error('Formulario no encontrado');
-        return;
-    }
+    if (!form) return;
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         if (isLoading) return;
 
-        // Obtener valores del formulario
-        const name = document.querySelector('input[name="nombre"]')?.value.trim();
-        const barcode = document.querySelector('input[name="sku"]')?.value.trim();
-        const brand = document.querySelector('input[name="marca"]')?.value.trim();
-        const description = document.querySelector('textarea[name="descripcion"]')?.value.trim();
-        const price = parseFloat(document.querySelector('input[name="precio"]')?.value) || 0;
-        const cost = parseFloat(document.querySelector('input[name="costo"]')?.value) || 0;
-        const stock = parseInt(document.querySelector('input[name="stock"]')?.value) || 0;
-        const minStock = parseInt(document.querySelector('input[name="stockMinimo"]')?.value) || 0;
-        const unitOfMeasure = document.querySelector('input[name="unidadMedida"]')?.value.trim();
+        const productId = document.getElementById('productId')?.value;
+        const name = document.getElementById('nombre')?.value.trim();
+        const barcode = document.getElementById('sku')?.value.trim();
+        const brand = document.getElementById('marca')?.value.trim();
+        const description = document.getElementById('descripcion')?.value.trim();
+        const price = parseFloat(document.getElementById('precio')?.value) || 0;
+        const cost = parseFloat(document.getElementById('costo')?.value) || 0;
+        const stock = parseInt(document.getElementById('stock')?.value) || 0;
+        const minStock = parseInt(document.getElementById('stockMinimo')?.value) || 0;
+        const unitOfMeasure = document.getElementById('unidadMedida')?.value.trim();
 
-        // Validaciones basicas de UI
+        // Validaciones
         if (!name) {
             showSweetAlert('Campo requerido', 'El nombre del producto es obligatorio', 'warning');
-            document.querySelector('input[name="nombre"]')?.focus();
+            document.getElementById('nombre')?.focus();
             return;
         }
         
         if (!barcode) {
             showSweetAlert('Campo requerido', 'El codigo de barras es obligatorio', 'warning');
-            document.querySelector('input[name="sku"]')?.focus();
+            document.getElementById('sku')?.focus();
             return;
         }
         
         if (!brand) {
             showSweetAlert('Campo requerido', 'La marca es obligatoria', 'warning');
-            document.querySelector('input[name="marca"]')?.focus();
+            document.getElementById('marca')?.focus();
             return;
         }
         
         if (price <= 0) {
             showSweetAlert('Precio invalido', 'El precio debe ser mayor a 0', 'error');
-            document.querySelector('input[name="precio"]')?.focus();
+            document.getElementById('precio')?.focus();
             return;
         }
 
-        // Obtener adminId de la sesion
+        // Obtener adminId
         const adminSession = AdminService.getSession();
         const adminId = adminSession?.id;
-
+        
         if (!adminId) {
-            showSweetAlert('Error', 'No se encontro la sesion del administrador', 'error');
-            return;
+            throw new Error('No se encontro la sesion del administrador');
         }
 
-        // Preparar datos para el servicio
-        const productData = {
+        const updateData = {
             name: name,
             barcode: barcode.toUpperCase(),
             brand: brand,
@@ -198,15 +282,22 @@ function initProductFormSubmit() {
             stock: stock,
             minStock: minStock,
             unitOfMeasure: unitOfMeasure || 'pieza',
-            imageUrl: currentImageBase64
+            active: originalProductData?.active !== undefined ? originalProductData.active : true
         };
+        
+        // Solo incluir imagen si hubo cambios
+        if (currentImageBase64 && currentImageBase64 !== originalProductData?.imageUrl) {
+            updateData.imageUrl = currentImageBase64;
+        } else if (currentImageBase64 === '' && originalProductData?.imageUrl) {
+            updateData.imageUrl = '';
+        }
 
         isLoading = true;
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         
         Swal.fire({
-            title: 'Registrando producto...',
+            title: 'Actualizando producto...',
             text: 'Por favor espera un momento',
             allowOutsideClick: false,
             didOpen: () => { Swal.showLoading(); },
@@ -214,16 +305,15 @@ function initProductFormSubmit() {
         });
 
         try {
-            // El service obtiene la tienda del admin y guarda en la coleccion correspondiente
-            const result = await ProductService.create(productData, adminId);
+            const result = await ProductService.update(productId, updateData, adminId);
             
             Swal.close();
             
             await Swal.fire({
-                title: 'Producto registrado',
+                title: 'Producto actualizado',
                 html: `
                     <div style="text-align: left;">
-                        <p><strong>${name}</strong> ha sido registrado exitosamente</p>
+                        <p><strong>${name}</strong> ha sido actualizado exitosamente</p>
                         <p>Codigo: ${barcode.toUpperCase()}</p>
                         <p>Precio: ${formatCurrency(price)}</p>
                         <p>Stock: ${stock} unidades</p>
@@ -235,52 +325,14 @@ function initProductFormSubmit() {
                 customClass: { confirmButton: 'swal2-confirm' }
             });
 
-            form.reset();
-            
-            // Limpiar imagen
-            const avatarPreview = document.getElementById('productAvatarPreview');
-            const avatarIcon = document.getElementById('productAvatarIcon');
-            const removeBtn = document.getElementById('removeProductImageBtn');
-            const fileInput = document.getElementById('productImageInput');
-            
-            if (avatarPreview) {
-                avatarPreview.src = '';
-                avatarPreview.style.display = 'none';
-            }
-            if (avatarIcon) avatarIcon.style.display = 'block';
-            if (removeBtn) removeBtn.style.display = 'none';
-            if (fileInput) fileInput.value = '';
-            
-            currentImageBase64 = '';
-
-            const resultConfirm = await Swal.fire({
-                title: 'Que deseas hacer ahora',
-                text: 'Puedes registrar otro producto o ver el listado',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Ver listado',
-                cancelButtonText: 'Registrar otro',
-                confirmButtonColor: '#456da2',
-                cancelButtonColor: '#64748b',
-                reverseButtons: true,
-                customClass: {
-                    confirmButton: 'swal2-confirm',
-                    cancelButton: 'swal2-cancel'
-                }
-            });
-
-            if (resultConfirm.isConfirmed) {
-                window.location.href = '/productos';
-            } else {
-                document.querySelector('input[name="nombre"]')?.focus();
-            }
+            window.location.href = '/productos';
 
         } catch (error) {
             console.error('Error:', error);
             Swal.close();
             
             await Swal.fire({
-                title: 'Error al registrar',
+                title: 'Error al actualizar',
                 html: `<p>${error.message || 'Intenta nuevamente'}</p>`,
                 icon: 'error',
                 confirmButtonText: 'Entendido',
@@ -293,6 +345,19 @@ function initProductFormSubmit() {
             submitBtn.disabled = false;
         }
     });
+}
+
+/* ========================================================
+   BOTON VOLVER AL LISTADO
+   ======================================================== */
+function initBackButton() {
+    const backBtn = document.getElementById('backToListBtn');
+    if (backBtn) {
+        backBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = '/productos';
+        });
+    }
 }
 
 /* ========================================================
@@ -317,6 +382,34 @@ function showSweetAlert(title, message, type = 'info', timer = null) {
 }
 
 /* ========================================================
+   TOAST NOTIFICATION
+   ======================================================== */
+function showToast(message, type = 'info') {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        },
+        customClass: {
+            popup: 'swal2-popup',
+            timerProgressBar: 'swal2-timer-progress-bar'
+        }
+    });
+    
+    let icon = 'info';
+    if (type === 'success') icon = 'success';
+    if (type === 'error') icon = 'error';
+    if (type === 'warning') icon = 'warning';
+    
+    Toast.fire({ icon: icon, title: message });
+}
+
+/* ========================================================
    FORMATEA MONEDA
    ======================================================== */
 function formatCurrency(value) {
@@ -330,6 +423,6 @@ function formatCurrency(value) {
 /* ========================================================
    LIMPIEZA DEL CONTROLADOR
    ======================================================== */
-export function cleanupCreateProduct() {
+export function cleanupUpdateProduct() {
     // Limpieza si es necesaria
 }
