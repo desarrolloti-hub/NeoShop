@@ -128,6 +128,10 @@ function initRegisterFormSubmit() {
         const lastName = document.getElementById('lastName')?.value.trim();
         const email = document.getElementById('email')?.value.trim();
         const password = document.getElementById('password')?.value;
+        
+        // ✅ NUEVO: Obtener el checkbox de términos
+        const termsCheckbox = document.getElementById('termsCheckbox');
+        const termsWrapper = document.querySelector('.terms-checkbox-wrapper');
 
         if (!firstName || firstName.length < 2) {
             showErrorToast('Escribe tu nombre completo (minimo 2 letras)');
@@ -149,6 +153,21 @@ function initRegisterFormSubmit() {
             return;
         }
 
+        // ✅ NUEVO: Validar términos y condiciones
+        if (!termsCheckbox || !termsCheckbox.checked) {
+            if (termsWrapper) {
+                termsWrapper.classList.add('error');
+                setTimeout(() => termsWrapper.classList.remove('error'), 3000);
+            }
+            showErrorToast('Debes aceptar los términos y condiciones para continuar');
+            return;
+        }
+
+        // Remover clase de error si existe
+        if (termsWrapper) {
+            termsWrapper.classList.remove('error');
+        }
+
         const avatarPreview = document.getElementById('avatarPreview');
         const userPhoto = avatarPreview?.src || '';
 
@@ -160,7 +179,7 @@ function initRegisterFormSubmit() {
             plan: null,
             tiendas: {},
             activo: true,
-            termsAccepted: true,
+            termsAccepted: true,  // ✅ Ya se guarda como true
             userPhoto: userPhoto
         };
 
@@ -180,6 +199,9 @@ function initRegisterFormSubmit() {
             const avatarIconEl = document.getElementById('avatarIcon');
             const removeBtn = document.getElementById('removeImageBtn');
             const profileImageInput = document.getElementById('profileImage');
+            
+            // ✅ Resetear checkbox
+            if (termsCheckbox) termsCheckbox.checked = false;
 
             if (avatarPreviewEl) {
                 avatarPreviewEl.src = '';
@@ -219,6 +241,19 @@ function initGoogleRegister() {
     newGoogleBtn.addEventListener('click', async () => {
         if (isLoading) return;
 
+        // ✅ NUEVO: Validar términos para Google también
+        const termsCheckbox = document.getElementById('termsCheckbox');
+        const termsWrapper = document.querySelector('.terms-checkbox-wrapper');
+
+        if (!termsCheckbox || !termsCheckbox.checked) {
+            if (termsWrapper) {
+                termsWrapper.classList.add('error');
+                setTimeout(() => termsWrapper.classList.remove('error'), 3000);
+            }
+            showErrorToast('Debes aceptar los términos y condiciones para continuar');
+            return;
+        }
+
         isLoading = true;
         const originalText = newGoogleBtn.innerHTML;
         newGoogleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
@@ -228,6 +263,9 @@ function initGoogleRegister() {
             const result = await AdminService.login(null, null, true);
             
             showSuccessToast('Cuenta creada con Google. Redirigiendo...');
+
+            // Resetear checkbox
+            if (termsCheckbox) termsCheckbox.checked = false;
 
             setTimeout(() => {
                 if (typeof window.navigateTo === 'function') {

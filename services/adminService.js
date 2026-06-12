@@ -13,45 +13,49 @@ export const ROLES = {
 };
 
 export const AdminService = {
-    async register(adminData, password) {
-        if (!adminData.nombre || adminData.nombre.trim().length < 2) {
-            throw new Error('El nombre debe tener al menos 2 caracteres');
-        }
-        if (!adminData.apellido || adminData.apellido.trim().length < 2) {
-            throw new Error('El apellido debe tener al menos 2 caracteres');
-        }
-        if (!adminData.email || !this._validateEmail(adminData.email)) {
-            throw new Error('Correo electronico invalido');
-        }
-        if (!password || password.length < 6) {
-            throw new Error('La contrasena debe tener al menos 6 caracteres');
-        }
-        
-        const existing = await AdminRepository.getByEmail(adminData.email.toLowerCase().trim());
-        if (existing) {
-            throw new Error('Ya existe un administrador registrado con este correo');
-        }
-                
-        const admin = new Admin({
-            nombre: adminData.nombre.trim(),
-            apellido: adminData.apellido.trim(),
-            telefono: adminData.telefono?.trim() || '',
-            email: adminData.email.toLowerCase().trim(),
-            storeId: adminData.storeId || null,  // ✅ CAMBIADO: companyId → storeId
-            plan: adminData.plan || null,
-            tiendas: adminData.tiendas || {},
-            activo: true,
-            termsAccepted: adminData.termsAccepted,
-            userPhoto: adminData.userPhoto || '',
-            provider: 'email'
-        });
-        
-        const result = await AdminRepository.registerWithEmail(admin.email, password, admin);
-        
-        await CacheService.clearCache(STORES.ADMINS || 'admins');
-        
-        return result;
-    },
+async register(adminData, password) {
+    if (!adminData.nombre || adminData.nombre.trim().length < 2) {
+        throw new Error('El nombre debe tener al menos 2 caracteres');
+    }
+    if (!adminData.apellido || adminData.apellido.trim().length < 2) {
+        throw new Error('El apellido debe tener al menos 2 caracteres');
+    }
+    if (!adminData.email || !this._validateEmail(adminData.email)) {
+        throw new Error('Correo electronico invalido');
+    }
+    if (!password || password.length < 6) {
+        throw new Error('La contrasena debe tener al menos 6 caracteres');
+    }
+    // ✅ NUEVO: Validar términos y condiciones
+    if (!adminData.termsAccepted) {
+        throw new Error('Debes aceptar los términos y condiciones para continuar');
+    }
+    
+    const existing = await AdminRepository.getByEmail(adminData.email.toLowerCase().trim());
+    if (existing) {
+        throw new Error('Ya existe un administrador registrado con este correo');
+    }
+            
+    const admin = new Admin({
+        nombre: adminData.nombre.trim(),
+        apellido: adminData.apellido.trim(),
+        telefono: adminData.telefono?.trim() || '',
+        email: adminData.email.toLowerCase().trim(),
+        storeId: adminData.storeId || null,
+        plan: adminData.plan || null,
+        tiendas: adminData.tiendas || {},
+        activo: true,
+        termsAccepted: adminData.termsAccepted || false,  // ✅ Ya validado arriba
+        userPhoto: adminData.userPhoto || '',
+        provider: 'email'
+    });
+    
+    const result = await AdminRepository.registerWithEmail(admin.email, password, admin);
+    
+    await CacheService.clearCache(STORES.ADMINS || 'admins');
+    
+    return result;
+},
     
     async login(email, password, isGoogle = false) {
         let result;

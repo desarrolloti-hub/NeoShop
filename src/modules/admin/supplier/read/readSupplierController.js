@@ -419,7 +419,7 @@ async function viewSupplierDetails(id) {
    REDIRIGE AL FORMULARIO DE EDICION DEL PROVEEDOR
    ======================================================== */
 function editSupplier(id) {
-    window.location.href = `/updateSupplier?id=${id}`;
+    window.location.href = `/editarProveedor?id=${id}`;
 }
 
 /* ========================================================
@@ -511,7 +511,7 @@ function initAddSupplierButton() {
     
     addButton.addEventListener('click', (event) => {
         event.preventDefault();
-        window.location.href = '/createSupplier';
+        window.location.href = '/crearProveedor';
     });
 }
 
@@ -557,7 +557,7 @@ function showEmptyState() {
                     <div class="empty-state-content">
                         <i class="fas fa-store-slash"></i>
                         <p>No hay proveedores ${statusText} registrados</p>
-                        <a href="/createSupplier" class="btn btn-primary">Agregar proveedor</a>
+                        <a href="/crearProveedor" class="btn btn-primary">Agregar proveedor</a>
                     </div>
                 </td>
             </tr>
@@ -570,7 +570,7 @@ function showEmptyState() {
             <div class="cards-empty-state">
                 <i class="fas fa-store-slash"></i>
                 <p>No hay proveedores ${statusText} registrados</p>
-                <a href="/createSupplier" class="btn btn-primary">Agregar proveedor</a>
+                <a href="/crearProveedor" class="btn btn-primary">Agregar proveedor</a>
             </div>
         `;
     }

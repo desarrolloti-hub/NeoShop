@@ -19,13 +19,23 @@
         <h2>Crear cuenta</h2>
 
         <form id="registerForm">
-            <!-- CAMPOS SEPARADOS: Nombre y Apellido -->
             <div class="name-row">
                 <input type="text" placeholder="Nombre" id="firstName" required class="name-input">
                 <input type="text" placeholder="Apellido" id="lastName" required class="name-input">
             </div>
             <input type="email" placeholder="Correo electrónico" id="email" required>
             <input type="password" placeholder="Contraseña" id="password" required>
+
+            <!-- ✅ NUEVO: Checkbox de términos y condiciones -->
+            <div class="terms-checkbox-wrapper">
+                <label class="terms-label">
+                    <input type="checkbox" id="termsCheckbox" required>
+                    <span class="checkmark"></span>
+                    <span class="terms-text">
+                        Acepto los <a href="/terminosYCondiciones" target="_blank" id="termsLink">términos y condiciones</a>
+                    </span>
+                </label>
+            </div>
 
             <button type="submit" class="btn btn-primary" id="submitBtn">
                 Crear cuenta <i class="fas fa-arrow-right"></i>

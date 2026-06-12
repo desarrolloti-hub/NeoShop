@@ -150,7 +150,7 @@ async function loadSupplierData() {
                 customClass: { confirmButton: 'swal2-confirm' }
             });
             setTimeout(() => {
-                window.location.href = '/readSupplier';
+                window.location.href = '/proveedores';
             }, 1500);
             return;
         }
@@ -169,7 +169,7 @@ async function loadSupplierData() {
                 confirmButtonColor: '#dc2626',
                 customClass: { confirmButton: 'swal2-confirm' }
             });
-            window.location.href = '/readSupplier';
+            window.location.href = '/proveedores';
             return;
         }
         
@@ -352,7 +352,7 @@ function initSupplierFormSubmit() {
             });
 
             if (resultConfirm.isConfirmed) {
-                window.location.href = '/readSupplier';
+                window.location.href = '/proveedores';
             }
             
         } catch (error) {
@@ -401,7 +401,7 @@ function initCancelButton() {
         });
 
         if (result.isConfirmed) {
-            window.location.href = '/readSupplier';
+            window.location.href = '/proveedores';
         }
     });
 }

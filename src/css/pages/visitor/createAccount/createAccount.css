@@ -221,3 +221,96 @@ input {
     font-size: 18px;
     color: #4285F4;
 }
+
+/* ========================================
+   TÉRMINOS Y CONDICIONES - CHECKBOX
+   ======================================== */
+
+.terms-checkbox-wrapper {
+    margin: 5px 0 20px 0;
+    text-align: left;
+}
+
+.terms-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #4b5563;
+    position: relative;
+    padding-left: 5px;
+}
+
+/* Ocultar checkbox nativo */
+.terms-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Checkbox personalizado */
+.checkmark {
+    width: 18px;
+    height: 18px;
+    background-color: #f3f4f6;
+    border: 2px solid #d1d5db;
+    border-radius: 4px;
+    display: inline-block;
+    position: relative;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+/* Hover del checkbox */
+.terms-label:hover .checkmark {
+    border-color: var(--color-primary, #456da2);
+    background-color: #eef2ff;
+}
+
+/* Checkbox marcado */
+.terms-label input[type="checkbox"]:checked + .checkmark {
+    background-color: var(--color-primary, #456da2);
+    border-color: var(--color-primary, #456da2);
+}
+
+/* Checkmark icon (✓) */
+.terms-label input[type="checkbox"]:checked + .checkmark::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 1px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* Texto de términos */
+.terms-text {
+    line-height: 1.4;
+}
+
+.terms-text a {
+    color: var(--color-primary, #456da2);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.terms-text a:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
+/* Estilo cuando hay error */
+.terms-checkbox-wrapper.error .checkmark {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+}
+
+.terms-checkbox-wrapper.error .terms-text {
+    color: #ef4444;
+}

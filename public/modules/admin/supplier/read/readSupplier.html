@@ -1,53 +1,55 @@
 <!-- FILE: supplierList.html -->
-<div class="supplier-list-container">
-    <div class="supplier-list-card">
-        <div class="list-header">
-            <h2><i class="fas fa-truck"></i> Mis Proveedores</h2>
-            <a href="/createSupplier" class="btn btn-primary" id="addNewSupplierBtn" data-link>
-                <i class="fas fa-plus"></i> Nuevo proveedor
-            </a>
-        </div>
-
-        <!-- Filtros: Buscador + Toggle de estado -->
-        <div class="filters-wrapper">
-            <div class="search-wrapper">
-                <input type="text" id="searchSupplier" class="search-input" placeholder="Buscar por nombre, RFC o correo...">
+<div class="credContainer">
+    <div class="supplier-list-container">
+        <div class="supplier-list-card">
+            <div class="list-header">
+                <h2><i class="fas fa-truck"></i> Mis Proveedores</h2>
+                <a href="/crearProveedor" class="btn btn-primary" id="addNewSupplierBtn" data-link>
+                    <i class="fas fa-plus"></i> Nuevo proveedor
+                </a>
             </div>
-            
-            <!-- Toggle Switch para mostrar activos/inactivos -->
-            <div class="status-toggle-wrapper">
-                <span class="status-label">Inactivos</span>
-                <div class="status-filter-switch" id="statusFilterSwitch">
-                    <div class="status-filter-slider"></div>
+
+            <!-- Filtros: Buscador + Toggle de estado -->
+            <div class="filters-wrapper">
+                <div class="search-wrapper">
+                    <input type="text" id="searchSupplier" class="search-input" placeholder="Buscar por nombre, RFC o correo...">
                 </div>
-                <span class="status-label active">Activos</span>
+                
+                <!-- Toggle Switch para mostrar activos/inactivos -->
+                <div class="status-toggle-wrapper">
+                    <span class="status-label">Inactivos</span>
+                    <div class="status-filter-switch" id="statusFilterSwitch">
+                        <div class="status-filter-slider"></div>
+                    </div>
+                    <span class="status-label active">Activos</span>
+                </div>
             </div>
-        </div>
 
-        <!-- TABLA -->
-        <div class="component-table-wrapper desktop-view">
-            <table class="component-table">
-                <thead>
-                    <tr>
-                        <th>Imagen</th>
-                        <th>Nombre</th>
-                        <th>Razón social</th>
-                        <th>Teléfono</th>
-                        <th>Correo</th>
-                        <th>RFC</th>
-                        <th>Estado</th>
-                        <th>Activar/Desactivar</th>
-                    </tr>
-                </thead>
-                <tbody id="supplierTableBody"></tbody>
-            </table>
-        </div>
+            <!-- TABLA -->
+            <div class="component-table-wrapper desktop-view">
+                <table class="component-table">
+                    <thead>
+                        <tr>
+                            <th>Imagen</th>
+                            <th>Nombre</th>
+                            <th>Razón social</th>
+                            <th>Teléfono</th>
+                            <th>Correo</th>
+                            <th>RFC</th>
+                            <th>Estado</th>
+                            <th>Activar/Desactivar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="supplierTableBody"></tbody>
+                </table>
+            </div>
 
-        <!-- CARDS -->
-        <div id="supplierCardsContainer" class="mobile-view"></div>
+            <!-- CARDS -->
+            <div id="supplierCardsContainer" class="mobile-view"></div>
 
-        <div class="list-footer">
-            <p class="total-count" id="totalSuppliersCount">Total: 0 proveedores</p>
+            <div class="list-footer">
+                <p class="total-count" id="totalSuppliersCount">Total: 0 proveedores</p>
+            </div>
         </div>
     </div>
 </div>

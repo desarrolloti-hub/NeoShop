@@ -275,7 +275,7 @@ function initSupplierFormSubmit() {
             });
 
             if (resultConfirm.isConfirmed) {
-                window.location.href = '/readSupplier';
+                window.location.href = '/proveedores';
             } else {
                 // Limpiar campos y enfocar nombre
                 document.querySelector('input[name="nombre"]')?.focus();
