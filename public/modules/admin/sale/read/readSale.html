@@ -79,23 +79,11 @@
 
     <!-- Toolbar -->
     <div class="sales-toolbar">
-        <div class="filters">
-            <select class="filter-select" id="statusFilter">
-                <option value="">Todos los estados</option>
-                <option value="completed">Completado</option>
-                <option value="pending">Pendiente</option>
-                <option value="cancelled">Cancelado</option>
-                <option value="refunded">Reembolsado</option>
-            </select>
-            <input class="filter-input" type="date" id="startDateFilter" placeholder="Fecha inicio">
-            <input class="filter-input" type="date" id="endDateFilter" placeholder="Fecha fin">
-            <button class="btn-filter" id="applyFiltersBtn">
-                <i class="fas fa-search"></i> Filtrar
+
+        <a href="/nuevaVenta"><button class="btn-primary" id="newSaleBtn">
+                <i class="fas fa-plus"></i> Nueva Venta
             </button>
-        </div>
-        <button class="btn-primary" id="newSaleBtn">
-            <i class="fas fa-plus"></i> Nueva Venta
-        </button>
+        </a>
     </div>
 
     <!-- Tabla de ventas - Desktop -->

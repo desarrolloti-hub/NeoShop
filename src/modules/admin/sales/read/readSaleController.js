@@ -1,10 +1,11 @@
 /* ============================================
    SALES LIST CONTROLLER - Listado de Ventas
-   SIN inyección de HTML - Solo lógica y eventos
+   Adaptado para AdminService y SaleService actualizados
    ============================================ */
 
 import { SaleService } from '../../../../../services/saleService.js';
 import { AdminService } from '../../../../../services/adminService.js';
+import { ProductService } from '../../../../../services/productService.js';
 
 // ========== ESTADO GLOBAL ==========
 let allSales = [];
@@ -13,6 +14,7 @@ let currentPage = 1;
 const pageSize = 10;
 let totalPages = 1;
 let currentAdmin = null;
+let currentStore = null;
 
 let currentFilters = {
     status: '',
@@ -20,7 +22,7 @@ let currentFilters = {
     endDate: ''
 };
 
-// ========== ELEMENTOS DOM (solo referencias) ==========
+// ========== ELEMENTOS DOM ==========
 let elements = {};
 
 // ========== FUNCIONES AUXILIARES ==========
@@ -90,6 +92,25 @@ function loadAdminSession() {
     return true;
 }
 
+/**
+ * Obtener la tienda del admin actual
+ */
+async function loadCurrentStore() {
+    if (!currentAdmin || !currentAdmin.id) {
+        console.warn('⚠️ No hay admin para obtener tienda');
+        return false;
+    }
+
+    try {
+        currentStore = await ProductService.getCurrentStore(currentAdmin.id);
+        console.log('✅ Tienda actual:', currentStore.name);
+        return true;
+    } catch (error) {
+        console.error('❌ Error obteniendo tienda:', error.message);
+        return false;
+    }
+}
+
 // ========== CACHE DE ELEMENTOS ==========
 function cacheElements() {
     elements = {
@@ -108,6 +129,7 @@ function cacheElements() {
         startDateFilter: document.getElementById('startDateFilter'),
         endDateFilter: document.getElementById('endDateFilter'),
         applyFiltersBtn: document.getElementById('applyFiltersBtn'),
+        clearFiltersBtn: document.getElementById('clearFiltersBtn'),
 
         // Paginación
         prevPageBtn: document.getElementById('prevPageBtn'),
@@ -118,7 +140,7 @@ function cacheElements() {
         newSaleBtn: document.getElementById('newSaleBtn'),
         refreshChartBtn: document.getElementById('refreshChartBtn'),
 
-        // Gráfico (elementos existen en HTML)
+        // Gráfico
         chartBars: document.querySelectorAll('.bar-item')
     };
 }
@@ -133,7 +155,6 @@ function updateKPIs() {
     const today = new Date().toISOString().split('T')[0];
     const ventasHoy = completedSales.filter(s => s.date?.startsWith(today)).length;
 
-    // Solo actualizar texto, no crear elementos
     if (elements.totalVentasCount) elements.totalVentasCount.textContent = totalVentas;
     if (elements.totalIngresos) elements.totalIngresos.textContent = formatCurrency(totalIngresos);
     if (elements.ventasHoy) elements.ventasHoy.textContent = ventasHoy;
@@ -166,7 +187,6 @@ function updateWeeklyChart() {
 
     const maxSale = Math.max(...weeklySales, 1);
 
-    // Actualizar SOLO los valores de las barras existentes
     elements.chartBars.forEach((bar, index) => {
         const barDiv = bar.querySelector('.bar');
         const span = bar.querySelector('span');
@@ -210,17 +230,20 @@ function renderSalesTable() {
             <td class="sale-folio">${escapeHtml(sale.folio || 'N/A')}</td>
             <td class="sale-customer">${escapeHtml(sale.customerName || 'Cliente general')}</td>
             <td class="sale-date">${formatDate(sale.date)}</td>
-            <td class="sale-subtotal">${formatCurrency(sale.subtotal || 0)}</td>
-            <td class="sale-discount">${formatCurrency(sale.discount || 0)}</td>
-            <td class="sale-total"><strong>${formatCurrency(sale.total || 0)}</strong></td>
+            <td class="sale-subtotal">${formatCurrency(sale._subtotal || 0)}</td>
+            <td class="sale-discount">${formatCurrency(sale._discount || 0)}</td>
+            <td class="sale-total"><strong>${formatCurrency(sale._total || 0)}</strong></td>
             <td class="sale-payment">${getPaymentMethodText(sale.paymentMethod)}</td>
             <td class="sale-status">
                 <span class="status-badge ${getStatusClass(sale.status)}">${getStatusText(sale.status)}</span>
             </td>
             <td class="action-badge">
+             <a href="/detallesVenta?ID=${sale.id}">
                 <button class="btn-view" data-id="${sale.id}">
                     <i class="fas fa-eye"></i> Ver
                 </button>
+            </a>
+                
             </td>
         </tr>
     `).join('');
@@ -264,19 +287,15 @@ function renderSalesTable() {
         `).join('');
     }
 
-    // Re-adjuntar eventos a los botones
     attachSaleEvents();
 }
 
-// ========== ADJUNTAR EVENTOS A BOTONES DE VENTAS ==========
 function attachSaleEvents() {
-    // Botones Ver en tabla
     document.querySelectorAll('.btn-view').forEach(btn => {
         btn.removeEventListener('click', handleViewClick);
         btn.addEventListener('click', handleViewClick);
     });
 
-    // Cards móvil
     document.querySelectorAll('.customer-card-item').forEach(card => {
         card.removeEventListener('click', handleCardClick);
         card.addEventListener('click', handleCardClick);
@@ -318,14 +337,43 @@ function applyFilters() {
     }
 
     if (currentFilters.startDate) {
-        filtered = filtered.filter(sale => sale.date >= `${currentFilters.startDate}T00:00:00.000Z`);
+        const startDateTime = new Date(currentFilters.startDate);
+        startDateTime.setHours(0, 0, 0, 0);
+        filtered = filtered.filter(sale => {
+            const saleDate = new Date(sale.date);
+            return saleDate >= startDateTime;
+        });
     }
 
     if (currentFilters.endDate) {
-        filtered = filtered.filter(sale => sale.date <= `${currentFilters.endDate}T23:59:59.999Z`);
+        const endDateTime = new Date(currentFilters.endDate);
+        endDateTime.setHours(23, 59, 59, 999);
+        filtered = filtered.filter(sale => {
+            const saleDate = new Date(sale.date);
+            return saleDate <= endDateTime;
+        });
     }
 
     filteredSales = filtered;
+    totalPages = Math.ceil(filteredSales.length / pageSize);
+    currentPage = 1;
+    updatePagination();
+    renderSalesTable();
+}
+
+// ========== LIMPIAR FILTROS ==========
+function clearFilters() {
+    if (elements.statusFilter) elements.statusFilter.value = '';
+    if (elements.startDateFilter) elements.startDateFilter.value = '';
+    if (elements.endDateFilter) elements.endDateFilter.value = '';
+
+    currentFilters = {
+        status: '',
+        startDate: '',
+        endDate: ''
+    };
+
+    filteredSales = [...allSales];
     totalPages = Math.ceil(filteredSales.length / pageSize);
     currentPage = 1;
     updatePagination();
@@ -336,7 +384,6 @@ function applyFilters() {
 async function loadSales() {
     if (!elements.salesTableBody) return;
 
-    // Mostrar estado de carga (el HTML ya tiene la estructura)
     elements.salesTableBody.innerHTML = `
         <tr>
             <td colspan="9" class="empty-state">
@@ -347,11 +394,15 @@ async function loadSales() {
     `;
 
     try {
-        // Obtener storeSlug (pendiente de implementar según tu lógica)
-        const storeSlug = 'default-store'; // TODO: Obtener de la sesión del admin
+        if (!currentStore) {
+            await loadCurrentStore();
+        }
 
-        const sales = await SaleService.getSalesByStore(storeSlug, {
-            limit: 100,
+        const storeSlug = currentStore?.name || 'default-store';
+
+        // Usar el método getAllSales del SaleService
+        const sales = await SaleService.getAllSales(storeSlug, {
+            limit: 500,
             orderBy: 'date',
             orderDirection: 'desc'
         });
@@ -390,35 +441,14 @@ function refreshData() {
     loadSales();
 }
 
-// ========== LIMPIAR FILTROS ==========
-function clearFilters() {
-    if (elements.statusFilter) elements.statusFilter.value = '';
-    if (elements.startDateFilter) elements.startDateFilter.value = '';
-    if (elements.endDateFilter) elements.endDateFilter.value = '';
-
-    currentFilters = {
-        status: '',
-        startDate: '',
-        endDate: ''
-    };
-
-    filteredSales = [...allSales];
-    totalPages = Math.ceil(filteredSales.length / pageSize);
-    currentPage = 1;
-    updatePagination();
-    renderSalesTable();
-}
-
 // ========== EVENTOS ==========
 function bindEvents() {
-    // Botón nueva venta
     if (elements.newSaleBtn) {
         elements.newSaleBtn.addEventListener('click', () => {
             if (window.router) window.router.navigate('/admin/ventas/nueva');
         });
     }
 
-    // Botón aplicar filtros
     if (elements.applyFiltersBtn) {
         elements.applyFiltersBtn.addEventListener('click', () => {
             currentFilters = {
@@ -430,12 +460,14 @@ function bindEvents() {
         });
     }
 
-    // Botón refrescar gráfico
+    if (elements.clearFiltersBtn) {
+        elements.clearFiltersBtn.addEventListener('click', clearFilters);
+    }
+
     if (elements.refreshChartBtn) {
         elements.refreshChartBtn.addEventListener('click', refreshData);
     }
 
-    // Paginación
     if (elements.prevPageBtn) {
         elements.prevPageBtn.addEventListener('click', () => {
             if (currentPage > 1) {
@@ -456,7 +488,6 @@ function bindEvents() {
         });
     }
 
-    // Enter en filtros
     if (elements.statusFilter) {
         elements.statusFilter.addEventListener('change', () => {
             currentFilters.status = elements.statusFilter.value;
@@ -485,16 +516,18 @@ function bindEvents() {
 export async function saleListController() {
     console.log('📊 Sales List Controller - Inicializado');
 
-    // 1. Cargar sesión del administrador
-    loadAdminSession();
+    const sessionLoaded = loadAdminSession();
 
-    // 2. Cachear referencias DOM
+    if (!sessionLoaded) {
+        console.error('❌ No se pudo cargar la sesión');
+        Swal.fire('Error', 'No se pudo cargar la sesión. Por favor inicie sesión nuevamente.', 'error');
+        if (window.router) window.router.navigate('/admin/login');
+        return;
+    }
+
+    await loadCurrentStore();
     cacheElements();
-
-    // 3. Bindear eventos
     bindEvents();
-
-    // 4. Cargar ventas
     await loadSales();
 
     console.log('✅ Sales List Controller - Listo');

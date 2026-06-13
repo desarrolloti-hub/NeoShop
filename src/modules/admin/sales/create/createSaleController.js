@@ -1,22 +1,20 @@
 /* ============================================
-   SALE CREATE CONTROLLER - Nueva Venta con Escáner
-   Adaptado para ProductService y AdminService actualizados
+   SALE CREATE CONTROLLER - Nueva Venta con Escáner SKU
+   Con vista previa de producto, foto, selector de cantidad
    ============================================ */
 
 import { SaleService } from '../../../../../services/saleService.js';
 import { AdminService } from '../../../../../services/adminService.js';
 import { ProductService } from '../../../../../services/productService.js';
 
-// ========== INICIALIZAR SERVICIOS ==========
-// ProductService es un objeto con métodos estáticos, no una clase
-
 // ========== ESTADO GLOBAL ==========
 let cartItems = [];
 let searchTimeout = null;
 let currentAdmin = null;
 let currentStore = null;
+let currentPreviewProduct = null;  // Producto actual en vista previa
 
-// ========== ELEMENTOS DOM (solo referencias) ==========
+// ========== ELEMENTOS DOM ==========
 let elements = {};
 
 // ========== FUNCIONES AUXILIARES ==========
@@ -28,10 +26,6 @@ function formatCurrency(value) {
     }).format(value);
 }
 
-/**
- * Obtener datos del administrador desde AdminService
- * La sesión se guarda en localStorage con clave 'admin_user'
- */
 function loadAdminSession() {
     currentAdmin = AdminService.getSession();
 
@@ -40,19 +34,10 @@ function loadAdminSession() {
         return false;
     }
 
-    console.log('✅ Administrador autenticado:', {
-        nombre: currentAdmin.nombreCompleto,
-        email: currentAdmin.email,
-        plan: currentAdmin.plan,
-        totalTiendas: currentAdmin.totalTiendas
-    });
-
+    console.log('✅ Admin autenticado:', currentAdmin.nombreCompleto);
     return true;
 }
 
-/**
- * Obtener la tienda del admin actual
- */
 async function loadCurrentStore() {
     if (!currentAdmin || !currentAdmin.id) {
         console.warn('⚠️ No hay admin para obtener tienda');
@@ -62,6 +47,10 @@ async function loadCurrentStore() {
     try {
         currentStore = await ProductService.getCurrentStore(currentAdmin.id);
         console.log('✅ Tienda actual:', currentStore.name);
+
+        if (elements.storeName) {
+            elements.storeName.textContent = currentStore.name;
+        }
         return true;
     } catch (error) {
         console.error('❌ Error obteniendo tienda:', error.message);
@@ -69,7 +58,6 @@ async function loadCurrentStore() {
     }
 }
 
-// ========== ACTUALIZAR UI CON DATOS DEL ADMIN ==========
 function updateAdminInfoInUI() {
     if (!currentAdmin) return;
 
@@ -80,13 +68,8 @@ function updateAdminInfoInUI() {
     if (elements.adminInitials) {
         elements.adminInitials.textContent = currentAdmin.iniciales || 'A';
     }
-
-    if (elements.adminEmail) {
-        elements.adminEmail.textContent = currentAdmin.email;
-    }
 }
 
-// ========== CACHE DE ELEMENTOS ==========
 function cacheElements() {
     elements = {
         // Botones y navegación
@@ -104,6 +87,7 @@ function cacheElements() {
         // Vista previa del producto
         previewSection: document.getElementById('previewSection'),
         previewImage: document.getElementById('previewImage'),
+        previewNoImage: document.getElementById('previewNoImage'),
         previewName: document.getElementById('previewName'),
         previewBrand: document.getElementById('previewBrand'),
         previewPrice: document.getElementById('previewPrice'),
@@ -111,9 +95,13 @@ function cacheElements() {
         previewBarcode: document.getElementById('previewBarcode'),
         addToCartBtn: document.getElementById('addToCartBtn'),
         quantityInput: document.getElementById('quantityInput'),
+        previewQuantityMinus: document.getElementById('previewQuantityMinus'),
+        previewQuantityPlus: document.getElementById('previewQuantityPlus'),
+        closePreviewBtn: document.getElementById('closePreviewBtn'),
 
         // Carrito
         cartItemsList: document.getElementById('cartItemsList'),
+        cartCount: document.getElementById('cartCount'),
 
         // Resumen de venta
         discount: document.getElementById('discount'),
@@ -129,15 +117,58 @@ function cacheElements() {
         adminName: document.getElementById('adminName'),
         adminInitials: document.getElementById('adminInitials'),
         adminEmail: document.getElementById('adminEmail'),
+        storeName: document.getElementById('storeName'),
 
         // Método de pago
         paymentRadios: document.querySelectorAll('input[name="paymentMethod"]')
     };
 }
 
+// ========== FUNCIONES PARA LOS BOTONES DE CANTIDAD ==========
+function updateQuantityInput(change) {
+    if (!elements.quantityInput) return;
+
+    let currentValue = parseInt(elements.quantityInput.value);
+    if (isNaN(currentValue)) currentValue = 1;
+
+    let newValue = currentValue + change;
+
+    // Obtener stock máximo del producto actual
+    let maxStock = 999;
+    if (currentPreviewProduct) {
+        maxStock = currentPreviewProduct.stock;
+    }
+
+    // Validar límites
+    if (newValue < 1) newValue = 1;
+    if (newValue > maxStock) newValue = maxStock;
+
+    elements.quantityInput.value = newValue;
+}
+
+function validateQuantityInput() {
+    if (!elements.quantityInput) return;
+
+    let value = parseInt(elements.quantityInput.value);
+    if (isNaN(value) || value < 1) value = 1;
+
+    // Obtener stock máximo del producto actual
+    let maxStock = 999;
+    if (currentPreviewProduct) {
+        maxStock = currentPreviewProduct.stock;
+    }
+
+    if (value > maxStock) value = maxStock;
+
+    elements.quantityInput.value = value;
+}
+
 // ========== MOSTRAR VISTA PREVIA DEL PRODUCTO ==========
 function showProductPreview(product) {
     if (!elements.previewSection) return;
+
+    // Guardar referencia del producto actual
+    currentPreviewProduct = product;
 
     // Mostrar la sección de preview
     elements.previewSection.style.display = 'block';
@@ -173,28 +204,28 @@ function showProductPreview(product) {
         elements.previewBarcode.textContent = product.barcode;
     }
 
-    if (elements.previewImage && product.imageUrl) {
-        elements.previewImage.src = product.imageUrl;
-        elements.previewImage.style.display = 'block';
-    } else if (elements.previewImage) {
-        elements.previewImage.src = '';
-        elements.previewImage.style.display = 'none';
+    // Manejo de imagen
+    if (elements.previewImage && elements.previewNoImage) {
+        if (product.imageUrl && product.imageUrl.startsWith('data:image')) {
+            elements.previewImage.src = product.imageUrl;
+            elements.previewImage.style.display = 'block';
+            elements.previewNoImage.style.display = 'none';
+        } else {
+            elements.previewImage.style.display = 'none';
+            elements.previewNoImage.style.display = 'flex';
+        }
     }
 
     // Configurar cantidad máxima
     if (elements.quantityInput) {
         elements.quantityInput.max = product.stock;
         elements.quantityInput.value = 1;
-
-        // Deshabilitar si no hay stock
         elements.quantityInput.disabled = product.stock <= 0;
     }
 
     // Configurar botón de agregar
     if (elements.addToCartBtn) {
         elements.addToCartBtn.disabled = product.stock <= 0;
-
-        // Guardar producto actual en el botón para usarlo al agregar
         elements.addToCartBtn.dataset.productId = product.id;
     }
 }
@@ -202,12 +233,18 @@ function showProductPreview(product) {
 function hideProductPreview() {
     if (elements.previewSection) {
         elements.previewSection.style.display = 'none';
+        currentPreviewProduct = null;
     }
 }
 
 // ========== RENDERIZAR CARRITO ==========
 function renderCart() {
     if (!elements.cartItemsList) return;
+
+    // Actualizar contador
+    if (elements.cartCount) {
+        elements.cartCount.textContent = cartItems.length;
+    }
 
     if (cartItems.length === 0) {
         elements.cartItemsList.innerHTML = `
@@ -226,7 +263,7 @@ function renderCart() {
             <div class="cart-item-info">
                 <span class="cart-item-name">${escapeHtml(item.name)}</span>
                 <span class="cart-item-brand">${escapeHtml(item.brand || '')}</span>
-                <span class="cart-item-barcode">Código: ${escapeHtml(item.barcode)}</span>
+                <span class="cart-item-barcode">SKU: ${escapeHtml(item.barcode)}</span>
             </div>
             <div class="cart-item-quantity">
                 <button type="button" class="quantity-btn" data-index="${index}" data-change="-1">-</button>
@@ -272,10 +309,9 @@ function handleRemoveClick(e) {
 
 // ========== AGREGAR PRODUCTO AL CARRITO ==========
 async function addToCart(product, quantity = 1) {
-    // Verificar stock nuevamente (por si acaso)
     if (product.stock < quantity) {
         showSkuStatus(`❌ Stock insuficiente. Disponible: ${product.stock}`, 'error');
-        return;
+        return false;
     }
 
     const existingIndex = cartItems.findIndex(item => item.id === product.id);
@@ -284,7 +320,7 @@ async function addToCart(product, quantity = 1) {
         const newQuantity = cartItems[existingIndex].quantity + quantity;
         if (product.stock < newQuantity) {
             showSkuStatus(`❌ Stock insuficiente. Disponible: ${product.stock}`, 'error');
-            return;
+            return false;
         }
         cartItems[existingIndex].quantity = newQuantity;
     } else {
@@ -303,24 +339,23 @@ async function addToCart(product, quantity = 1) {
     showSkuStatus(`✅ ${product.name} agregado al carrito`, 'success');
     clearSkuInput();
     hideProductPreview();
+    return true;
 }
 
-// Evento para el botón de agregar desde preview
 async function handleAddFromPreview() {
-    if (!elements.addToCartBtn || !elements.addToCartBtn.dataset.productId) return;
+    if (!currentPreviewProduct) {
+        showSkuStatus('❌ No hay producto seleccionado', 'error');
+        return;
+    }
 
-    const productId = elements.addToCartBtn.dataset.productId;
     const quantity = parseInt(elements.quantityInput?.value) || 1;
 
-    try {
-        const product = await ProductService.getById(productId, currentAdmin.id);
-        if (product) {
-            await addToCart(product, quantity);
-        }
-    } catch (error) {
-        console.error('Error agregando producto:', error);
-        showSkuStatus(`❌ ${error.message}`, 'error');
+    if (currentPreviewProduct.stock < quantity) {
+        showSkuStatus(`❌ Stock insuficiente. Disponible: ${currentPreviewProduct.stock}`, 'error');
+        return;
     }
+
+    await addToCart(currentPreviewProduct, quantity);
 }
 
 function updateQuantity(index, change) {
@@ -376,7 +411,7 @@ function clearSkuInput() {
     }
 }
 
-// ========== BUSCAR PRODUCTO POR SKU (CÓDIGO DE BARRAS) ==========
+// ========== BUSCAR PRODUCTO POR SKU ==========
 async function searchProductBySku() {
     const sku = elements.skuInput?.value.trim();
 
@@ -394,7 +429,6 @@ async function searchProductBySku() {
     hideProductPreview();
 
     try {
-        // Usar ProductService.getByBarcode que ahora requiere adminId
         const product = await ProductService.getByBarcode(sku, currentAdmin.id);
 
         if (!product) {
@@ -413,7 +447,6 @@ async function searchProductBySku() {
             showSkuStatus(`⚠️ Producto "${product.name}" sin stock disponible`, 'warning');
         }
 
-        // Mostrar vista previa del producto
         showProductPreview(product);
 
     } catch (error) {
@@ -438,7 +471,6 @@ async function searchProductsByName() {
     if (!currentAdmin) return;
 
     try {
-        // Usar ProductService.search que requiere adminId
         const products = await ProductService.search(searchTerm, currentAdmin.id, 10);
 
         if (!elements.searchResults) return;
@@ -465,7 +497,6 @@ async function searchProductsByName() {
 
         elements.searchResults.style.display = 'block';
 
-        // Eventos para resultados de búsqueda
         document.querySelectorAll('.search-result-item').forEach(item => {
             item.addEventListener('click', async () => {
                 const productId = item.dataset.id;
@@ -501,7 +532,6 @@ async function createSale() {
             return;
         }
 
-        // Obtener método de pago seleccionado
         let paymentMethod = '';
         if (elements.paymentRadios) {
             elements.paymentRadios.forEach(radio => {
@@ -554,7 +584,6 @@ async function createSale() {
 
         const result = await SaleService.createSale(saleData, currentAdmin.id);
 
-        // Actualizar stock de productos (usando ProductService.updateStock)
         for (const item of cartItems) {
             try {
                 await ProductService.updateStock(item.id, -item.quantity, currentAdmin.id);
@@ -576,7 +605,6 @@ async function createSale() {
             }
         });
 
-        // Resetear estado después de venta exitosa
         cartItems = [];
         if (elements.customerName) elements.customerName.value = '';
         if (elements.customerId) elements.customerId.value = '';
@@ -590,7 +618,6 @@ async function createSale() {
     }
 }
 
-// ========== ESCAPE HTML ==========
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -627,12 +654,34 @@ function bindEvents() {
         });
     }
 
+    // Botones de cantidad en preview
+    if (elements.previewQuantityMinus) {
+        elements.previewQuantityMinus.addEventListener('click', () => {
+            updateQuantityInput(-1);
+        });
+    }
+
+    if (elements.previewQuantityPlus) {
+        elements.previewQuantityPlus.addEventListener('click', () => {
+            updateQuantityInput(1);
+        });
+    }
+
+    if (elements.quantityInput) {
+        elements.quantityInput.addEventListener('change', validateQuantityInput);
+        elements.quantityInput.addEventListener('input', validateQuantityInput);
+    }
+
     // Botón agregar desde preview
     if (elements.addToCartBtn) {
         elements.addToCartBtn.addEventListener('click', handleAddFromPreview);
     }
 
-    // Búsqueda manual por nombre
+    if (elements.closePreviewBtn) {
+        elements.closePreviewBtn.addEventListener('click', hideProductPreview);
+    }
+
+    // Búsqueda manual
     if (elements.productSearchInput) {
         elements.productSearchInput.addEventListener('input', () => {
             clearTimeout(searchTimeout);
@@ -666,39 +715,22 @@ function bindEvents() {
 export async function saleCreateController() {
     console.log('➕ Sale Create Controller - Inicializado');
 
-    // 1. Cargar sesión del administrador
     const sessionLoaded = loadAdminSession();
 
     if (!sessionLoaded) {
-        console.error('❌ No se pudo cargar la sesión del administrador');
+        console.error('❌ No se pudo cargar la sesión');
         Swal.fire('Error', 'No se pudo cargar la sesión. Por favor inicie sesión nuevamente.', 'error');
         if (window.router) window.router.navigate('/admin/login');
         return;
     }
 
-    // 2. Cargar tienda del admin
-    const storeLoaded = await loadCurrentStore();
-
-    if (!storeLoaded) {
-        console.warn('⚠️ No se pudo cargar la tienda');
-    }
-
-    // 3. Cachear referencias DOM
+    await loadCurrentStore();
     cacheElements();
-
-    // 4. Actualizar UI con datos del admin
     updateAdminInfoInUI();
-
-    // 5. Bindear eventos
     bindEvents();
-
-    // 6. Renderizar carrito vacío
     renderCart();
-
-    // 7. Ocultar preview inicialmente
     hideProductPreview();
 
-    // 8. Enfocar input de SKU
     if (elements.skuInput) {
         elements.skuInput.focus();
     }

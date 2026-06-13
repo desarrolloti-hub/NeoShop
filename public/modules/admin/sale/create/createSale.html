@@ -1,27 +1,31 @@
 <div class="credContainer">
 
-    <!-- Encabezado con botón de volver -->
+    <!-- Encabezado -->
     <div class="page-header">
         <div class="header-actions">
-            <button id="backToListBtn" class="btn-secondary">
-                <i class="fas fa-arrow-left"></i> Volver a ventas
-            </button>
+            <a href="/ventas"><button id="backToListBtn" class="btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver a ventas
+                </button></a>
         </div>
         <h2><i class="fas fa-cart-plus"></i> Nueva Venta</h2>
-        <p>Registra una nueva transacción escaneando productos.</p>
+        <p>Escanea un código SKU o busca el producto por nombre</p>
     </div>
 
-    <!-- Información del administrador (opcional) -->
+    <!-- Info Admin y Tienda -->
     <div class="admin-info-bar">
         <div class="admin-info">
             <div class="admin-avatar" id="adminInitials">A</div>
             <span id="adminName">Cargando...</span>
         </div>
+        <div class="store-info">
+            <i class="fas fa-store"></i>
+            <span id="storeName">Cargando tienda...</span>
+        </div>
     </div>
 
     <div class="create-sale-container">
 
-        <!-- Sección Cliente -->
+        <!-- Cliente -->
         <div class="form-card-section">
             <h3><i class="fas fa-user"></i> Información del Cliente</h3>
             <div class="form-row">
@@ -36,22 +40,73 @@
             </div>
         </div>
 
-        <!-- Sección Escáner -->
+        <!-- Escáner SKU -->
         <div class="form-card-section scanner-section">
-            <h3><i class="fas fa-barcode"></i> Escanear Producto</h3>
+            <h3><i class="fas fa-barcode"></i> Escanear Producto (SKU)</h3>
             <div class="scanner-container">
-                <div class="input-group-barcode">
+                <div class="input-group-sku">
                     <i class="fas fa-qrcode"></i>
-                    <input type="text" id="barcodeInput" placeholder="Escanear o escribir código de barras" autofocus
+                    <input type="text" id="skuInput" placeholder="Escanear o escribir código SKU" autofocus
                         autocomplete="off">
-                    <button type="button" id="searchBarcodeBtn" class="btn-primary">
+                    <button type="button" id="searchSkuBtn" class="btn-primary">
                         <i class="fas fa-search"></i> Buscar
                     </button>
                 </div>
-                <div class="barcode-status" id="barcodeStatus"></div>
+                <div class="sku-status" id="skuStatus"></div>
             </div>
 
-            <!-- Búsqueda manual -->
+            <!-- VISTA PREVIA DEL PRODUCTO -->
+            <div id="previewSection" class="product-preview" style="display: none;">
+                <div class="preview-header">
+                    <h4><i class="fas fa-tag"></i> Producto encontrado</h4>
+                    <button type="button" id="closePreviewBtn" class="close-preview">&times;</button>
+                </div>
+                <div class="preview-content">
+                    <div class="preview-image-container">
+                        <img id="previewImage" src="" alt="Producto" class="preview-image" style="display: none;">
+                        <div id="previewNoImage" class="preview-no-image" style="display: flex;">
+                            <i class="fas fa-image"></i>
+                            <span>Sin imagen</span>
+                        </div>
+                    </div>
+                    <div class="preview-details">
+                        <h3 id="previewName" class="preview-name">-</h3>
+                        <div class="preview-brand">
+                            <i class="fas fa-trademark"></i>
+                            <span id="previewBrand">-</span>
+                        </div>
+                        <div class="preview-barcode">
+                            <i class="fas fa-barcode"></i>
+                            <span id="previewBarcode">-</span>
+                        </div>
+                        <div class="preview-price">
+                            <i class="fas fa-dollar-sign"></i>
+                            <span id="previewPrice">$0.00</span>
+                        </div>
+                        <div class="preview-stock">
+                            <i class="fas fa-boxes"></i>
+                            <span id="previewStock" class="stock-value">0</span>
+                            <span class="stock-unit">unidades disponibles</span>
+                        </div>
+
+                        <!-- SELECTOR DE CANTIDAD CON BOTONES + y - -->
+                        <div class="preview-quantity">
+                            <label>Cantidad:</label>
+                            <div class="quantity-selector">
+                                <button type="button" id="previewQuantityMinus" class="qty-btn">-</button>
+                                <input type="number" id="quantityInput" value="1" min="1" max="999">
+                                <button type="button" id="previewQuantityPlus" class="qty-btn">+</button>
+                            </div>
+                        </div>
+
+                        <button type="button" id="addToCartBtn" class="btn-add-to-cart">
+                            <i class="fas fa-cart-plus"></i> Agregar al carrito
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Búsqueda manual por nombre -->
             <div class="manual-search-container">
                 <div class="input-group-search">
                     <i class="fas fa-search"></i>
@@ -63,19 +118,24 @@
         </div>
 
         <!-- Sección Carrito -->
-        <div class="form-card-section">
-            <h3><i class="fas fa-boxes"></i> Productos en venta</h3>
+        <div class="form-card-section cart-section">
+            <h3><i class="fas fa-shopping-cart"></i> Productos en venta
+                <span id="cartCount" class="cart-count">0</span>
+            </h3>
             <div class="cart-products-container">
                 <div class="cart-header">
-                    <div>Producto</div>
-                    <div>Categoría</div>
-                    <div>Cant.</div>
-                    <div>Precio</div>
-                    <div>Subtotal</div>
-                    <div></div>
+                    <div class="col-product">Producto</div>
+                    <div class="col-quantity">Cant.</div>
+                    <div class="col-price">Precio</div>
+                    <div class="col-subtotal">Subtotal</div>
+                    <div class="col-actions"></div>
                 </div>
                 <div id="cartItemsList" class="cart-items-list">
-                    <!-- El controller llenará esto con los items del carrito -->
+                    <div class="empty-cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <p>No hay productos agregados</p>
+                        <p class="empty-hint">Escanee un producto o búsquelo para comenzar</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -88,9 +148,12 @@
                     <label>Subtotal</label>
                     <span id="summarySubtotal" class="summary-value">$0.00</span>
                 </div>
-                <div class="summary-item">
+                <div class="summary-item discount-item">
                     <label>Descuento</label>
-                    <input type="number" id="discount" value="0" step="0.01" min="0" style="width: 120px;">
+                    <div class="discount-input-wrapper">
+                        <span class="currency-symbol">$</span>
+                        <input type="number" id="discount" value="0" step="0.01" min="0">
+                    </div>
                 </div>
                 <div class="summary-item">
                     <label>IVA (16%)</label>
