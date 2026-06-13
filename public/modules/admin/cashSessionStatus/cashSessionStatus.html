@@ -1,13 +1,13 @@
 <!-- FILE: cashSessionStatus.html -->
-<!-- Cash session closing view - professional cash register interface -->
+<!-- Cash session management - Clean interface with modals/sections -->
 <div class="auth-container">
     <div class="cash-session-card">
         <div class="card-header">
             <div class="header-icon">
                 <i class="fas fa-cash-register"></i>
             </div>
-            <h2>Cierre de Sesión de Caja</h2>
-            <p class="header-subtitle">Registre el corte de caja actual</p>
+            <h2>Control de Caja</h2>
+            <p class="header-subtitle">Gestión de efectivo</p>
         </div>
 
         <!-- Date information row -->
@@ -28,7 +28,21 @@
             </div>
         </div>
 
-        <!-- Session information panel -->
+        <!-- SALDO ACTUAL - Card style consistente con tus componentes -->
+        <div class="balance-card">
+            <div class="balance-card-header">
+                <i class="fas fa-chart-line"></i>
+                <span>Saldo actual en caja</span>
+            </div>
+            <div class="balance-card-body">
+                <div class="balance-amount" id="currentBalance">
+                    $0.00
+                </div>
+                <small class="balance-note">El saldo se actualiza automáticamente con las ventas</small>
+            </div>
+        </div>
+
+        <!-- Session information panel - usando tu estilo de info-panel -->
         <div class="info-panel">
             <div class="panel-title">
                 <i class="fas fa-store"></i>
@@ -52,69 +66,158 @@
                 <div class="info-item">
                     <span class="info-icon"><i class="fas fa-clock"></i></span>
                     <div class="info-content">
-                        <small>Hora de apertura</small>
+                        <small>Inicio de jornada</small>
                         <p id="openingTime">--:--</p>
                     </div>
                 </div>
                 <div class="info-item highlight">
-                    <span class="info-icon"><i class="fas fa-money-bill-wave"></i></span>
+                    <span class="info-icon"><i class="fas fa-chart-simple"></i></span>
                     <div class="info-content">
-                        <small>Monto de apertura</small>
-                        <p class="amount" id="openingCash">$0.00</p>
+                        <small>Total ventas del día</small>
+                        <p class="amount" id="totalSalesToday">$0.00</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Closing form -->
-        <form id="cashCloseForm" class="closing-form">
-            <!-- Hidden fields -->
-            <input type="hidden" id="sessionId">
-            <input type="hidden" id="storeSlug">
-            <input type="hidden" id="branchId">
-            <input type="hidden" id="userId">
+        <!-- ========== BOTONES DE ACCIÓN - Estilo consistente ========== -->
+        <div class="action-buttons-container">
+            <button type="button" id="showWithdrawalsBtn" class="btn-action btn-withdraw">
+                <i class="fas fa-hand-holding-usd"></i>
+                <span>Retiros</span>
+                <span class="action-badge" id="withdrawalsCount">0</span>
+            </button>
+            <button type="button" id="showCloseCashBtn" class="btn-action btn-withdraw">
+                <i class="fas fa-lock"></i>
+                <span>Corte de caja</span>
+            </button>
+        </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="closingCash">
-                        <i class="fas fa-coins"></i> Efectivo en caja (cierre)
-                    </label>
-                    <div class="input-with-icon">
-                        <span class="input-prefix">$</span>
-                        <input type="number" id="closingCash" name="closingCash" 
-                               placeholder="0.00" step="0.01" class="money-input" required>
+        <!-- ========== SECCIÓN DE RETIROS (oculta por defecto) ========== -->
+        <div id="withdrawalsSection" class="action-section" style="display: none;">
+            <div class="section-header">
+                <h3><i class="fas fa-hand-holding-usd"></i> Retiros de caja</h3>
+                <button type="button" class="btn-close-section" id="closeWithdrawalsBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Formulario de retiro -->
+            <div class="withdrawal-form">
+                <div class="info-note">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Los retiros disminuyen el saldo disponible en caja</span>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-dollar-sign"></i> Monto a retirar</label>
+                        <div class="input-with-icon">
+                            <span class="input-prefix">$</span>
+                            <input type="number" id="withdrawalAmount" class="form-control" placeholder="0.00" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-tag"></i> Motivo</label>
+                        <select id="withdrawalReason" class="form-control">
+                            <option value="">Seleccionar motivo</option>
+                            <option value="Gastos operativos">Gastos operativos</option>
+                            <option value="Pago a proveedor">Pago a proveedor</option>
+                            <option value="Renta">Renta</option>
+                            <option value="Servicios">Servicios (luz, agua, internet)</option>
+                            <option value="Nómina">Nómina</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group full-width" id="customReasonGroup" style="display: none;">
+                    <label><i class="fas fa-pen"></i> Especificar motivo</label>
+                    <input type="text" id="withdrawalCustomReason" class="form-control" placeholder="Ej: Compra de suministros">
+                </div>
+                <button type="button" id="confirmWithdrawalBtn" class="btn btn-primary btn-block">
+                    <i class="fas fa-check"></i> Registrar retiro
+                </button>
+            </div>
+
+            <!-- Lista de retiros recientes -->
+            <div class="withdrawals-history">
+                <div class="section-subtitle">
+                    <i class="fas fa-history"></i> Retiros recientes
+                </div>
+                <div id="withdrawalsList" class="withdrawals-list">
+                    <div class="empty-withdrawals">
+                        <i class="fas fa-info-circle"></i>
+                        <p>No hay retiros registrados</p>
+                    </div>
+                </div>
+                <div class="withdrawals-total">
+                    <span><i class="fas fa-chart-line"></i> Total retirado hoy:</span>
+                    <strong id="totalWithdrawn">$0.00</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== SECCIÓN DE CIERRE (oculta por defecto) ========== -->
+        <div id="closeCashSection" class="action-section" style="display: none;">
+            <div class="section-header">
+                <h3><i class="fas fa-lock"></i> Corte de caja</h3>
+                <button type="button" class="btn-close-section" id="closeCashSectionBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="cashCloseForm" class="close-form">
+                <input type="hidden" id="sessionId">
+                <input type="hidden" id="storeSlug">
+                <input type="hidden" id="branchId">
+                <input type="hidden" id="userId">
+
+                <div class="info-note warning-note" id="expectedCashNote">
+                    <i class="fas fa-calculator"></i>
+                    <span>Efectivo esperado en caja: <strong id="expectedCashAmount">$0.00</strong></span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="closingCash">
+                            <i class="fas fa-coins"></i> Efectivo contado
+                        </label>
+                        <div class="input-with-icon">
+                            <span class="input-prefix">$</span>
+                            <input type="number" id="closingCash" name="closingCash" 
+                                   placeholder="0.00" step="0.01" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cashDifference">
+                            <i class="fas fa-calculator"></i> Diferencia
+                        </label>
+                        <div class="input-with-icon readonly">
+                            <span class="input-prefix">$</span>
+                            <input type="text" id="cashDifference" readonly 
+                                   placeholder="0.00">
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="cashDifference">
-                        <i class="fas fa-calculator"></i> Diferencia
+                <div class="form-group full-width">
+                    <label for="closeNotes">
+                        <i class="fas fa-pen-alt"></i> Observaciones
                     </label>
-                    <div class="input-with-icon readonly">
-                        <span class="input-prefix">$</span>
-                        <input type="text" id="cashDifference" readonly 
-                               placeholder="0.00" class="difference-input">
-                    </div>
+                    <textarea id="closeNotes" rows="3" 
+                              placeholder="Registrar incidencias o notas importantes..."></textarea>
                 </div>
-            </div>
 
-            <div class="form-group full-width">
-                <label for="closeNotes">
-                    <i class="fas fa-pen-alt"></i> Observaciones del cierre
-                </label>
-                <textarea id="closeNotes" rows="3" 
-                          placeholder="Registrar retiros parciales, incidencias o notas importantes..."></textarea>
-            </div>
-
-            <div class="action-buttons">
-                <button type="submit" class="btn btn-primary btn-lg">
-                    <i class="fas fa-check-circle"></i> Confirmar cierre de caja
-                </button>
-                <button type="button" id="cancelCloseBtn" class="btn btn-outline">
-                    <i class="fas fa-times"></i> Cancelar
-                </button>
-            </div>
-        </form>
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-check-circle"></i> Confirmar corte
+                    </button>
+                    <button type="button" id="cancelCloseBtn" class="btn-outline">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
 
         <div class="card-footer">
             <a href="readcashSessionStatus" class="footer-link">

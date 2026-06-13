@@ -515,3 +515,56 @@
         transform: translateY(0);
     }
 }
+/* ========================================
+   ESTILOS ADICIONALES PARA EL MODAL
+   ======================================== */
+
+.detail-divider {
+    height: 1px;
+    background: var(--border-light);
+    margin: var(--spacing-md) 0;
+}
+
+.withdrawals-list-modal {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: var(--spacing-sm);
+}
+
+.modal-withdrawal-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-light);
+    font-size: var(--font-size-sm);
+}
+
+.modal-withdrawal-amount {
+    font-weight: 700;
+    color: #dc2626;
+    min-width: 80px;
+}
+
+.modal-withdrawal-reason {
+    flex: 1;
+    color: var(--text-gray);
+    margin: 0 var(--spacing-md);
+}
+
+.modal-withdrawal-date {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+@media (max-width: 550px) {
+    .modal-withdrawal-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+    }
+    
+    .modal-withdrawal-reason {
+        margin: var(--spacing-xs) 0;
+    }
+}

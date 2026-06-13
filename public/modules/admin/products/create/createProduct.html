@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <div class="credContainer">
     <div class="page-header">
         <div class="header-actions">
@@ -137,5 +138,144 @@
                 </button>
             </div>
         </form>
+=======
+<!-- FILE: createProduct.html -->
+<div class="credContainer">
+    <div class="product-list-container">
+        <div class="product-list-card">
+            <!-- HEADER USANDO COMPONENTE page-header -->
+            <div class="page-header">
+                <h2 class="header-title">
+                    <i class="fas fa-box"></i> Registrar Producto
+                </h2>
+                <div class="header-actions">
+                    <a href="/productos" class="btn btn-primary" id="backToListBtn" data-link>
+                        <i class="fas fa-arrow-left"></i> Volver al listado
+                    </a>
+                </div>
+            </div>
+
+            <!-- Formulario -->
+            <div class="product-form-wrapper">
+                <div class="product-card">
+                    <!-- Contenedor para imagen del producto -->
+                    <div class="avatar-wrapper" id="productImageWrapper" style="cursor: pointer;">
+                        <div class="avatar-circle" id="productAvatarCircle">
+                            <i class="fas fa-box" id="productAvatarIcon"></i>
+                            <img id="productAvatarPreview" alt="Imagen del producto" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        </div>
+                        <div class="avatar-overlay">
+                            <i class="fas fa-camera"></i>
+                            <span class="avatar-hint">Haz clic para subir imagen</span>
+                        </div>
+                    </div>
+                    
+                    <p class="avatar-guide">
+                        <i class="fas fa-info-circle"></i> Sube una imagen del producto (opcional)
+                    </p>
+
+                    <input type="file" id="productImageInput" accept="image/*" style="display: none;">
+                    
+                    <button type="button" id="removeProductImageBtn" style="display: none;">
+                        <i class="fas fa-trash"></i> Eliminar imagen
+                    </button>
+
+                    <form id="productForm">
+                        <!-- Información básica -->
+                        <div class="form-group">
+                            <label for="nombre">
+                                <i class="fas fa-tag"></i> Nombre del producto <span class="required">*</span>
+                            </label>
+                            <input type="text" id="nombre" name="nombre" placeholder="Ej: Camisa Oxford" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="sku">
+                                    <i class="fas fa-barcode"></i> SKU <span class="required">*</span>
+                                </label>
+                                <input type="text" id="sku" name="sku" placeholder="Código único">
+                            </div>
+                            <div class="form-group">
+                                <label for="marca">
+                                    <i class="fas fa-building"></i> Marca <span class="required">*</span>
+                                </label>
+                                <input type="text" id="marca" name="marca" placeholder="Ej: Nike, Adidas">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="descripcion">
+                                <i class="fas fa-align-left"></i> Descripción
+                            </label>
+                            <textarea id="descripcion" name="descripcion" rows="3" placeholder="Descripción detallada del producto..."></textarea>
+                        </div>
+
+                        <!-- Precios -->
+                        <div class="section-divider">
+                            <span>Precios</span>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="precio">
+                                    <i class="fas fa-dollar-sign"></i> Precio de venta <span class="required">*</span>
+                                </label>
+                                <div class="input-with-icon">
+                                    <span class="input-prefix">$</span>
+                                    <input type="number" id="precio" name="precio" placeholder="0.00" step="0.01" required>
+                                </div>
+                                <small class="field-note">Precio que verá el cliente</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="costo">
+                                    <i class="fas fa-chart-line"></i> Costo de compra
+                                </label>
+                                <div class="input-with-icon">
+                                    <span class="input-prefix">$</span>
+                                    <input type="number" id="costo" name="costo" placeholder="0.00" step="0.01">
+                                </div>
+                                <small class="field-note">Tu costo de adquisición</small>
+                            </div>
+                        </div>
+
+                        <!-- Inventario -->
+                        <div class="section-divider">
+                            <span>Inventario</span>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="stock">
+                                    <i class="fas fa-boxes"></i> Stock inicial
+                                </label>
+                                <input type="number" id="stock" name="stock" placeholder="0" value="0">
+                                <small class="field-note">Cantidad disponible en inventario</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="stockMinimo">
+                                    <i class="fas fa-exclamation-triangle"></i> Stock mínimo
+                                </label>
+                                <input type="number" id="stockMinimo" name="stockMinimo" placeholder="0" value="0">
+                                <small class="field-note">Alerta cuando el stock baje de este número</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="unidadMedida">
+                                <i class="fas fa-ruler"></i> Unidad de medida
+                            </label>
+                            <input type="text" id="unidadMedida" name="unidadMedida" placeholder="Ej: pieza, kg, litro, par">
+                            <small class="field-note">Ej: pieza, kilogramo, litro, par</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Registrar producto
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+>>>>>>> 75395177d38ef80b00ba152b081bc83efc8e69d0
     </div>
 </div>

@@ -1,0 +1,177 @@
+<!-- FILE: createStore.html -->
+<!-- Configurar datos de la empresa - Administrador -->
+<div class="store-container">
+    <div class="store-card">
+        <!-- Header - IGUAL que cashSessionStatus -->
+        <div class="card-header">
+            <div class="header-icon">
+                <i class="fas fa-store"></i>
+            </div>
+            <h2>Configurar tienda</h2>
+            <p class="header-subtitle">Registra los datos de tu negocio</p>
+        </div>
+
+        <!-- Wizard steps (solo 2 pasos) - IGUAL estilo -->
+        <div class="wizard-steps">
+            <div class="step-item active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">Datos del negocio</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-item" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">Ubicación</div>
+            </div>
+        </div>
+
+        <!-- Navegación superior - IGUAL que cashSessionStatus -->
+        <div class="carousel-navigation">
+            <button type="button" class="btn-nav" id="prevBtn" disabled>
+                <i class="fas fa-arrow-left"></i> Anterior
+            </button>
+            <button type="button" class="btn-nav btn-nav-next" id="nextBtn">
+                Siguiente <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- Carrusel de paneles -->
+        <div class="carousel-container">
+            
+            <!-- PASO 1: Datos del negocio -->
+            <div class="carousel-panel active" data-panel="1">
+                <!-- Info panel - IGUAL estilo que cashSessionStatus -->
+                <div class="info-panel">
+                    <div class="panel-title">
+                        <i class="fas fa-building"></i>
+                        <span>Información del negocio</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item full-width">
+                            <span class="info-icon"><i class="fas fa-store"></i></span>
+                            <div class="info-content">
+                                <small>Nombre del negocio *</small>
+                                <input type="text" id="businessName" placeholder="Ej: Mi Tienda NeoShop" class="store-input">
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon"><i class="fas fa-id-card"></i></span>
+                            <div class="info-content">
+                                <small>RFC *</small>
+                                <input type="text" id="rfc" placeholder="XAXX010101XXX" class="store-input">
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon"><i class="fas fa-phone"></i></span>
+                            <div class="info-content">
+                                <small>Teléfono *</small>
+                                <input type="tel" id="businessPhone" placeholder="55 1234 5678" class="store-input">
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon"><i class="fas fa-envelope"></i></span>
+                            <div class="info-content">
+                                <small>Correo de facturación</small>
+                                <input type="email" id="billingEmail" placeholder="facturacion@tutienda.com" class="store-input">
+                                <small class="field-note">Si es diferente al correo de la cuenta</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Balance card para logotipo - IGUAL estilo -->
+                <div class="balance-card">
+                    <div class="balance-card-header">
+                        <i class="fas fa-image"></i>
+                        <span>Logotipo del negocio</span>
+                    </div>
+                    <div class="balance-card-body logo-body">
+                        <div class="logo-upload-area" id="logoUploadArea">
+                            <input type="file" id="logoInput" accept="image/*" style="display: none;">
+                            <div class="logo-placeholder" id="logoPlaceholder">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Haz clic para subir el logotipo</p>
+                                <small>Formatos: JPG, PNG (max 2MB)</small>
+                            </div>
+                            <div class="logo-preview" id="logoPreview" style="display: none;">
+                                <img id="logoPreviewImg" alt="Logotipo">
+                                <button type="button" class="remove-logo" id="removeLogoBtn">✕</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PASO 2: Ubicación -->
+            <div class="carousel-panel" data-panel="2">
+                <div class="info-panel">
+                    <div class="panel-title">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Ubicación del negocio</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item full-width">
+                            <span class="info-icon"><i class="fas fa-road"></i></span>
+                            <div class="info-content">
+                                <small>Calle *</small>
+                                <input type="text" id="street" placeholder="Calle y número" class="store-input">
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon"><i class="fas fa-city"></i></span>
+                            <div class="info-content">
+                                <small>Colonia</small>
+                                <input type="text" id="neighborhood" placeholder="Colonia" class="store-input">
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon"><i class="fas fa-mail-bulk"></i></span>
+                            <div class="info-content">
+                                <small>Código postal *</small>
+                                <input type="text" id="postalCode" placeholder="Código postal" class="store-input">
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon"><i class="fas fa-building"></i></span>
+                            <div class="info-content">
+                                <small>Ciudad</small>
+                                <input type="text" id="city" placeholder="Ciudad" class="store-input">
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon"><i class="fas fa-landmark"></i></span>
+                            <div class="info-content">
+                                <small>Estado</small>
+                                <input type="text" id="state" placeholder="Estado" class="store-input">
+                            </div>
+                        </div>
+                        <div class="info-item full-width">
+                            <span class="info-icon"><i class="fas fa-pen-alt"></i></span>
+                            <div class="info-content">
+                                <small>Referencias adicionales</small>
+                                <textarea id="locationRefs" rows="2" placeholder="Ej: Entre calles, cerca del metro..." class="store-textarea"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción - IGUAL que cashSessionStatus -->
+        <div class="action-buttons-container">
+            <button type="button" id="completeBtn" class="btn-action btn-primary-action">
+                <i class="fas fa-save"></i>
+                <span>Guardar configuración</span>
+            </button>
+            <button type="button" id="skipBtn" class="btn-action btn-secondary-action">
+                <i class="fas fa-times"></i>
+                <span>Omitir</span>
+            </button>
+        </div>
+
+        <div class="card-footer">
+            <a href="/homeAdmin" class="footer-link" data-link>
+                <i class="fas fa-arrow-left"></i> Volver al dashboard
+            </a>
+        </div>
+    </div>
+</div>

@@ -1,30 +1,27 @@
-/* FILE: readSupplierController.js
+/* FILE: readProductsController.js
    ========================================================
-   CONTROLADOR PARA LISTADO DE PROVEEDORES
-   Dependencias: SupplierService, SweetAlert2
-   Funcionalidad: Muestra listado de proveedores en tabla y cards,
-                  permite buscar, ver detalles, editar y cambiar estado
-                  mediante toggle switch individual (apagador)
+   CONTROLADOR PARA LISTADO DE PRODUCTOS
+   Dependencias: ProductService, AdminService, SweetAlert2
    ======================================================== */
 
-import { SupplierService } from '/services/supplierService.js';
-
+import { ProductService } from '/services/productService.js';
+import { AdminService } from '/services/adminService.js';
 
 let rowTemplate = null;
 let cardTemplate = null;
-let allSuppliers = [];
-let currentFilter = 'active'; // 'active' o 'inactive'
+let allProducts = [];
+let currentFilter = 'active';
 
 /* ========================================================
    FUNCION PRINCIPAL - EXPORTADA
    ======================================================== */
-export async function readSupplierController() {
-    rowTemplate = document.getElementById('supplierRowTemplate');
-    cardTemplate = document.getElementById('supplierCardTemplate');
+export async function readProductsController() {
+    rowTemplate = document.getElementById('productRowTemplate');
+    cardTemplate = document.getElementById('productCardTemplate');
     
-    await loadSuppliers();
+    await loadProducts();
     
-    initAddSupplierButton();
+    initAddProductButton();
     initModalClose();
     initOutsideModalClose();
     initSearchFilter();
@@ -32,20 +29,29 @@ export async function readSupplierController() {
 }
 
 /* ========================================================
-   CARGA LOS PROVEEDORES DESDE EL SERVICIO
+   CARGA LOS PRODUCTOS DESDE EL SERVICIO
    ======================================================== */
-async function loadSuppliers() {
+async function loadProducts() {
     try {
-        showToast('Cargando proveedores...', 'info');
+        showToast('Cargando productos...', 'info');
         
-        const suppliers = await SupplierService.getAll({}, false);
-        allSuppliers = suppliers;
+        const adminSession = AdminService.getSession();
+        const adminId = adminSession?.id;
+        
+        if (!adminId) {
+            showToast('No se encontro la sesion del administrador', 'error');
+            return;
+        }
+        
+        // Obtener productos usando el adminId (el service obtiene la tienda)
+        const products = await ProductService.getAll(adminId, {}, false);
+        allProducts = products;
         
         applyFilterAndRender();
         
     } catch (error) {
-        console.error('Error al cargar proveedores:', error);
-        showToast('Error al cargar proveedores', 'error');
+        console.error('Error al cargar productos:', error);
+        showToast('Error al cargar productos', 'error');
         showEmptyState();
     }
 }
@@ -54,95 +60,95 @@ async function loadSuppliers() {
    APLICA EL FILTRO ACTUAL Y RENDERIZA
    ======================================================== */
 function applyFilterAndRender() {
-    const filteredSuppliers = allSuppliers.filter(supplier => {
+    const filteredProducts = allProducts.filter(product => {
         if (currentFilter === 'active') {
-            return supplier.activo === true;
+            return product.active === true;
         } else {
-            return supplier.activo === false;
+            return product.active === false;
         }
     });
     
-    if (filteredSuppliers.length === 0) {
+    if (filteredProducts.length === 0) {
         showEmptyState();
     } else {
-        renderSuppliersTable(filteredSuppliers);
-        renderSuppliersCards(filteredSuppliers);
+        renderProductsTable(filteredProducts);
+        renderProductsCards(filteredProducts);
     }
     
-    updateTotalCount(filteredSuppliers.length);
+    updateTotalCount(filteredProducts.length);
 }
 
 /* ========================================================
-   RENDERIZA LA TABLA DE PROVEEDORES (VISTA ESCRITORIO)
+   RENDERIZA LA TABLA DE PRODUCTOS (VISTA ESCRITORIO)
    ======================================================== */
-function renderSuppliersTable(suppliers) {
-    const tbody = document.getElementById('supplierTableBody');
+function renderProductsTable(products) {
+    const tbody = document.getElementById('productTableBody');
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    suppliers.forEach(supplier => {
+    products.forEach(product => {
         const row = rowTemplate.content.cloneNode(true);
         const rowElement = row.querySelector('tr');
         
-        // Configurar imagen del proveedor
-        const imgContainer = row.querySelector('.supplier-img-container');
+        // Configurar imagen del producto
+        const imgContainer = row.querySelector('.product-img-container');
         if (imgContainer) {
-            const hasImage = supplier.imagen && supplier.imagen.startsWith('data:image');
+            const hasImage = product.imageUrl && product.imageUrl.startsWith('data:image');
             if (hasImage) {
                 const img = document.createElement('img');
-                img.src = supplier.imagen;
-                img.className = 'supplier-table-img';
+                img.src = product.imageUrl;
+                img.className = 'product-table-img';
                 imgContainer.innerHTML = '';
                 imgContainer.appendChild(img);
             } else {
                 const icon = document.createElement('i');
-                icon.className = 'fas fa-store supplier-table-icon';
+                icon.className = 'fas fa-box product-table-icon';
                 imgContainer.innerHTML = '';
                 imgContainer.appendChild(icon);
             }
         }
         
-        // Asignar valores a las celdas
-        const nameCell = row.querySelector('.supplier-name');
-        const businessCell = row.querySelector('.supplier-business-name');
-        const phoneCell = row.querySelector('.supplier-phone');
-        const emailCell = row.querySelector('.supplier-email');
-        const rfcCell = row.querySelector('.supplier-rfc');
-        const statusSpan = row.querySelector('.supplier-status');
+        // Asignar valores a las celdas (usando nombres del modelo en ingles)
+        const skuCell = row.querySelector('.product-sku');
+        const nameCell = row.querySelector('.product-name');
+        const brandCell = row.querySelector('.product-brand');
+        const priceCell = row.querySelector('.product-price');
+        const stockCell = row.querySelector('.product-stock');
+        const statusSpan = row.querySelector('.product-status');
         
-        if (nameCell) nameCell.textContent = supplier.nombre || 'N/A';
-        if (businessCell) businessCell.textContent = supplier.razonSocial || 'N/A';
-        if (phoneCell) phoneCell.textContent = supplier.telefono || 'N/A';
-        if (emailCell) emailCell.textContent = supplier.correo || 'N/A';
-        if (rfcCell) rfcCell.textContent = supplier.rfc || 'N/A';
+        if (skuCell) skuCell.textContent = product.barcode || 'N/A';
+        if (nameCell) nameCell.textContent = product.name || 'N/A';
+        if (brandCell) brandCell.textContent = product.brand || 'N/A';
+        if (priceCell) priceCell.textContent = formatCurrency(product.price || 0);
+        if (stockCell) stockCell.textContent = product.stock || 0;
         
         if (statusSpan) {
-            statusSpan.textContent = supplier.activo ? 'Activo' : 'Inactivo';
-            const statusClass = supplier.activo ? 'status-active' : 'status-inactive';
-            statusSpan.className = `supplier-status ${statusClass}`;
+            statusSpan.textContent = product.active ? 'Activo' : 'Inactivo';
+            const statusClass = product.active ? 'status-active' : 'status-inactive';
+            statusSpan.className = `product-status ${statusClass}`;
         }
         
-        rowElement.dataset.id = supplier.id;
+        rowElement.dataset.id = product.id;
         
         // Configurar eventos de los botones
         const viewBtn = rowElement.querySelector('.btn-view');
         const editBtn = rowElement.querySelector('.btn-edit');
         
-        if (viewBtn) viewBtn.addEventListener('click', () => viewSupplierDetails(supplier.id));
-        if (editBtn) editBtn.addEventListener('click', () => editSupplier(supplier.id));
+        if (viewBtn) viewBtn.addEventListener('click', () => viewProductDetails(product.id));
+        if (editBtn) editBtn.addEventListener('click', () => editProduct(product.id));
         
         // Configurar toggle switch individual
         const toggleSwitch = row.querySelector('.status-row-switch');
         if (toggleSwitch) {
-            toggleSwitch.setAttribute('data-supplier-id', supplier.id);
-            if (supplier.activo) {
+            toggleSwitch.setAttribute('data-product-id', product.id);
+            if (product.active) {
                 toggleSwitch.classList.add('active');
             } else {
                 toggleSwitch.classList.remove('active');
             }
             toggleSwitch.addEventListener('click', (e) => {
                 e.stopPropagation();
-                handleToggleSwitch(supplier.id, supplier.nombre, supplier.activo, toggleSwitch);
+                handleToggleSwitch(product.id, product.name, product.active, toggleSwitch);
             });
         }
         
@@ -151,81 +157,81 @@ function renderSuppliersTable(suppliers) {
 }
 
 /* ========================================================
-   RENDERIZA LAS TARJETAS DE PROVEEDORES (VISTA MOVIL)
+   RENDERIZA LAS TARJETAS DE PRODUCTOS (VISTA MOVIL)
    ======================================================== */
-function renderSuppliersCards(suppliers) {
-    const container = document.getElementById('supplierCardsContainer');
+function renderProductsCards(products) {
+    const container = document.getElementById('productCardsContainer');
     if (!container) return;
     container.innerHTML = '';
 
-    suppliers.forEach(supplier => {
+    products.forEach(product => {
         const card = cardTemplate.content.cloneNode(true);
-        const cardDiv = card.querySelector('.supplier-card-item');
+        const cardDiv = card.querySelector('.product-card-item');
         
-        // Configurar avatar del proveedor
-        const avatarDiv = card.querySelector('.supplier-card-avatar');
+        // Configurar avatar del producto
+        const avatarDiv = card.querySelector('.product-card-avatar');
         if (avatarDiv) {
-            const hasImage = supplier.imagen && supplier.imagen.startsWith('data:image');
+            const hasImage = product.imageUrl && product.imageUrl.startsWith('data:image');
             if (hasImage) {
                 const img = document.createElement('img');
-                img.src = supplier.imagen;
-                img.className = 'supplier-card-img';
+                img.src = product.imageUrl;
+                img.className = 'product-card-img';
                 avatarDiv.innerHTML = '';
                 avatarDiv.appendChild(img);
             } else {
                 const icon = document.createElement('i');
-                icon.className = 'fas fa-store';
+                icon.className = 'fas fa-box';
                 avatarDiv.innerHTML = '';
                 avatarDiv.appendChild(icon);
             }
         }
         
-        // Asignar valores a la tarjeta
+        // Asignar valores a la tarjeta (usando nombres del modelo en ingles)
         const nameEl = card.querySelector('.card-name');
-        const businessEl = card.querySelector('.card-business-name');
-        const phoneEl = card.querySelector('.card-phone');
-        const emailEl = card.querySelector('.card-email');
-        const rfcEl = card.querySelector('.card-rfc');
+        const skuEl = card.querySelector('.card-sku');
+        const brandEl = card.querySelector('.card-brand');
+        const priceEl = card.querySelector('.card-price');
+        const stockEl = card.querySelector('.card-stock');
         const statusSpan = card.querySelector('.card-status');
         
-        if (nameEl) nameEl.textContent = supplier.nombre || 'N/A';
-        if (businessEl) businessEl.textContent = supplier.razonSocial || 'N/A';
-        if (phoneEl) phoneEl.textContent = supplier.telefono || 'N/A';
-        if (emailEl) emailEl.textContent = supplier.correo || 'N/A';
-        if (rfcEl) rfcEl.textContent = supplier.rfc || 'N/A';
+        if (nameEl) nameEl.textContent = product.name || 'N/A';
+        if (skuEl) skuEl.textContent = `Codigo: ${product.barcode || 'N/A'}`;
+        if (brandEl) brandEl.textContent = product.brand || 'N/A';
+        if (priceEl) priceEl.textContent = formatCurrency(product.price || 0);
+        if (stockEl) stockEl.textContent = `Stock: ${product.stock || 0}`;
         
         if (statusSpan) {
-            statusSpan.textContent = supplier.activo ? 'Activo' : 'Inactivo';
-            const statusClass = supplier.activo ? 'status-active' : 'status-inactive';
+            statusSpan.textContent = product.active ? 'Activo' : 'Inactivo';
+            const statusClass = product.active ? 'status-active' : 'status-inactive';
             statusSpan.className = `card-status ${statusClass}`;
         }
         
         // Agregar clase especial para inactivos
-        if (!supplier.activo) {
+        if (!product.active) {
             cardDiv.classList.add('status-inactive-card');
         }
         
-        cardDiv.dataset.id = supplier.id;
+        cardDiv.dataset.id = product.id;
         
         // Configurar eventos de los botones
         const viewBtn = cardDiv.querySelector('.btn-view');
         const editBtn = cardDiv.querySelector('.btn-edit');
         
-        if (viewBtn) viewBtn.addEventListener('click', () => viewSupplierDetails(supplier.id));
-        if (editBtn) editBtn.addEventListener('click', () => editSupplier(supplier.id));
+        if (viewBtn) viewBtn.addEventListener('click', () => viewProductDetails(product.id));
+        if (editBtn) editBtn.addEventListener('click', () => editProduct(product.id));
         
         // Configurar toggle switch individual
         const toggleSwitch = card.querySelector('.status-row-switch');
         if (toggleSwitch) {
-            toggleSwitch.setAttribute('data-supplier-id', supplier.id);
-            if (supplier.activo) {
+            toggleSwitch.setAttribute('data-product-id', product.id);
+            if (product.active) {
                 toggleSwitch.classList.add('active');
             } else {
                 toggleSwitch.classList.remove('active');
             }
             toggleSwitch.addEventListener('click', (e) => {
                 e.stopPropagation();
-                handleToggleSwitch(supplier.id, supplier.nombre, supplier.activo, toggleSwitch);
+                handleToggleSwitch(product.id, product.name, product.active, toggleSwitch);
             });
         }
         
@@ -236,15 +242,15 @@ function renderSuppliersCards(suppliers) {
 /* ========================================================
    MANEJA EL CLICK EN EL TOGGLE SWITCH INDIVIDUAL
    ======================================================== */
-async function handleToggleSwitch(id, nombre, isCurrentlyActive, toggleElement) {
+async function handleToggleSwitch(id, name, isCurrentlyActive, toggleElement) {
     const action = isCurrentlyActive ? 'deshabilitar' : 'habilitar';
     const actionText = isCurrentlyActive ? 'deshabilitado' : 'habilitado';
     const confirmText = isCurrentlyActive ? 'Si, deshabilitar' : 'Si, habilitar';
     const iconColor = isCurrentlyActive ? '#dc2626' : '#22c55e';
     
     const result = await Swal.fire({
-        title: `${isCurrentlyActive ? 'Deshabilitar' : 'Habilitar'} proveedor`,
-        html: `Estas a punto de ${action} a <strong>${nombre}</strong>.<br>El proveedor quedara ${actionText} en el sistema.`,
+        title: `${isCurrentlyActive ? 'Deshabilitar' : 'Habilitar'} producto`,
+        html: `Estas a punto de ${action} <strong>${name}</strong>.<br>El producto quedara ${actionText} en el sistema.`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: iconColor,
@@ -261,7 +267,6 @@ async function handleToggleSwitch(id, nombre, isCurrentlyActive, toggleElement) 
     if (!result.isConfirmed) return;
     
     try {
-        // Cambiar visualmente el toggle switch inmediatamente para feedback
         if (toggleElement) {
             if (!isCurrentlyActive) {
                 toggleElement.classList.add('active');
@@ -278,27 +283,32 @@ async function handleToggleSwitch(id, nombre, isCurrentlyActive, toggleElement) 
             customClass: { popup: 'swal2-popup' }
         });
         
-        const updateData = { activo: !isCurrentlyActive };
-        await SupplierService.update(id, updateData);
+        const adminSession = AdminService.getSession();
+        const adminId = adminSession?.id;
+        
+        if (!adminId) {
+            throw new Error('No se encontro la sesion del administrador');
+        }
+        
+        // Usar el servicio para cambiar el estado
+        await ProductService.toggleStatus(id, !isCurrentlyActive, adminId);
         Swal.close();
         
         await Swal.fire({
-            title: `Proveedor ${actionText}`,
-            text: `${nombre} ha sido ${actionText} correctamente`,
+            title: `Producto ${actionText}`,
+            text: `${name} ha sido ${actionText} correctamente`,
             icon: 'success',
             confirmButtonText: 'Aceptar',
             confirmButtonColor: '#22c55e',
             customClass: { confirmButton: 'swal2-confirm' }
         });
         
-        // Recargar los datos
-        await loadSuppliers();
+        await loadProducts();
         
     } catch (error) {
-        console.error(`Error al ${action} proveedor:`, error);
+        console.error(`Error al ${action} producto:`, error);
         Swal.close();
         
-        // Revertir el toggle visualmente
         if (toggleElement) {
             if (isCurrentlyActive) {
                 toggleElement.classList.add('active');
@@ -309,7 +319,7 @@ async function handleToggleSwitch(id, nombre, isCurrentlyActive, toggleElement) 
         
         await Swal.fire({
             title: 'Error',
-            text: error.message || `No se pudo ${action} el proveedor`,
+            text: error.message || `No se pudo ${action} el producto`,
             icon: 'error',
             confirmButtonText: 'Aceptar',
             confirmButtonColor: '#dc2626',
@@ -328,7 +338,6 @@ function initStatusFilterToggle() {
     
     if (!toggleSwitch) return;
     
-    // Estado inicial: mostrar activos (switch en posicion "activos")
     toggleSwitch.classList.add('active');
     
     toggleSwitch.addEventListener('click', () => {
@@ -351,16 +360,23 @@ function initStatusFilterToggle() {
 }
 
 /* ========================================================
-   MUESTRA LOS DETALLES DEL PROVEEDOR EN UN MODAL
+   MUESTRA LOS DETALLES DEL PRODUCTO EN UN MODAL
    ======================================================== */
-async function viewSupplierDetails(id) {
+async function viewProductDetails(id) {
     try {
-        const supplier = await SupplierService.getById(id, true);
+        const adminSession = AdminService.getSession();
+        const adminId = adminSession?.id;
         
-        if (!supplier) {
+        if (!adminId) {
+            throw new Error('No se encontro la sesion del administrador');
+        }
+        
+        const product = await ProductService.getById(id, adminId);
+        
+        if (!product) {
             await Swal.fire({
                 title: 'Error',
-                text: 'Proveedor no encontrado',
+                text: 'Producto no encontrado',
                 icon: 'error',
                 confirmButtonText: 'Aceptar',
                 confirmButtonColor: '#dc2626',
@@ -372,8 +388,8 @@ async function viewSupplierDetails(id) {
         const modalAvatar = document.getElementById('modalAvatar');
         const modalAvatarIcon = document.getElementById('modalAvatarIcon');
         
-        if (modalAvatar && supplier.imagen) {
-            modalAvatar.src = supplier.imagen;
+        if (modalAvatar && product.imageUrl) {
+            modalAvatar.src = product.imageUrl;
             modalAvatar.style.display = 'block';
             if (modalAvatarIcon) modalAvatarIcon.style.display = 'none';
         } else if (modalAvatar) {
@@ -382,31 +398,29 @@ async function viewSupplierDetails(id) {
         }
         
         const titleEl = document.getElementById('modalTitle');
+        const skuEl = document.getElementById('modalSku');
         const nombreEl = document.getElementById('modalNombre');
-        const razonSocialEl = document.getElementById('modalRazonSocial');
-        const telefonoEl = document.getElementById('modalTelefono');
-        const telefonoAlternoEl = document.getElementById('modalTelefonoAlterno');
-        const direccionEl = document.getElementById('modalDireccion');
-        const correoEl = document.getElementById('modalCorreo');
-        const rfcEl = document.getElementById('modalRfc');
+        const marcaEl = document.getElementById('modalMarca');
+        const precioEl = document.getElementById('modalPrecio');
+        const stockEl = document.getElementById('modalStock');
+        const descripcionEl = document.getElementById('modalDescripcion');
         
-        if (titleEl) titleEl.textContent = `Detalles: ${supplier.nombre}`;
-        if (nombreEl) nombreEl.textContent = supplier.nombre || 'N/A';
-        if (razonSocialEl) razonSocialEl.textContent = supplier.razonSocial || 'N/A';
-        if (telefonoEl) telefonoEl.textContent = supplier.telefono || 'N/A';
-        if (telefonoAlternoEl) telefonoAlternoEl.textContent = supplier.telefonoAlterno || 'No especificado';
-        if (direccionEl) direccionEl.textContent = supplier.direccionFiscal || 'N/A';
-        if (correoEl) correoEl.textContent = supplier.correo || 'N/A';
-        if (rfcEl) rfcEl.textContent = supplier.rfc || 'N/A';
+        if (titleEl) titleEl.textContent = `Detalles: ${product.name}`;
+        if (skuEl) skuEl.textContent = product.barcode || 'N/A';
+        if (nombreEl) nombreEl.textContent = product.name || 'N/A';
+        if (marcaEl) marcaEl.textContent = product.brand || 'N/A';
+        if (precioEl) precioEl.textContent = formatCurrency(product.price || 0);
+        if (stockEl) stockEl.textContent = product.stock || 0;
+        if (descripcionEl) descripcionEl.textContent = product.description || 'Sin descripcion';
         
-        const modal = document.getElementById('supplierModal');
+        const modal = document.getElementById('productModal');
         if (modal) modal.style.display = 'block';
         
     } catch (error) {
         console.error('Error al cargar detalles:', error);
         await Swal.fire({
             title: 'Error',
-            text: 'Error al cargar los detalles del proveedor',
+            text: 'Error al cargar los detalles del producto',
             icon: 'error',
             confirmButtonText: 'Aceptar',
             confirmButtonColor: '#dc2626',
@@ -416,47 +430,47 @@ async function viewSupplierDetails(id) {
 }
 
 /* ========================================================
-   REDIRIGE AL FORMULARIO DE EDICION DEL PROVEEDOR
+   REDIRIGE AL FORMULARIO DE EDICION DEL PRODUCTO
    ======================================================== */
-function editSupplier(id) {
-    window.location.href = `/editarProveedor?id=${id}`;
+function editProduct(id) {
+    window.location.href = `/editarProducto?id=${id}`;
 }
 
 /* ========================================================
-   FILTRO DE BUSQUEDA POR NOMBRE, RFC O CORREO
+   FILTRO DE BUSQUEDA POR NOMBRE, CODIGO O MARCA
    ======================================================== */
 function initSearchFilter() {
-    const searchInput = document.getElementById('searchSupplier');
+    const searchInput = document.getElementById('searchProduct');
     if (!searchInput) return;
     
     searchInput.addEventListener('input', (event) => {
         const searchTerm = event.target.value.toLowerCase();
         
-        let filteredByStatus = allSuppliers.filter(supplier => {
+        let filteredByStatus = allProducts.filter(product => {
             if (currentFilter === 'active') {
-                return supplier.activo === true;
+                return product.active === true;
             } else {
-                return supplier.activo === false;
+                return product.active === false;
             }
         });
         
-        const filteredSuppliers = filteredByStatus.filter(supplier => {
-            const matchesName = supplier.nombre && supplier.nombre.toLowerCase().includes(searchTerm);
-            const matchesRfc = supplier.rfc && supplier.rfc.toLowerCase().includes(searchTerm);
-            const matchesEmail = supplier.correo && supplier.correo.toLowerCase().includes(searchTerm);
-            return matchesName || matchesRfc || matchesEmail;
+        const filteredProducts = filteredByStatus.filter(product => {
+            const matchesName = product.name && product.name.toLowerCase().includes(searchTerm);
+            const matchesBarcode = product.barcode && product.barcode.toLowerCase().includes(searchTerm);
+            const matchesBrand = product.brand && product.brand.toLowerCase().includes(searchTerm);
+            return matchesName || matchesBarcode || matchesBrand;
         });
         
-        if (filteredSuppliers.length === 0 && searchTerm !== '') {
+        if (filteredProducts.length === 0 && searchTerm !== '') {
             showEmptySearchState();
-        } else if (filteredSuppliers.length === 0) {
+        } else if (filteredProducts.length === 0) {
             showEmptyState();
         } else {
-            renderSuppliersTable(filteredSuppliers);
-            renderSuppliersCards(filteredSuppliers);
+            renderProductsTable(filteredProducts);
+            renderProductsCards(filteredProducts);
         }
         
-        updateTotalCount(filteredSuppliers.length);
+        updateTotalCount(filteredProducts.length);
     });
 }
 
@@ -464,14 +478,14 @@ function initSearchFilter() {
    MUESTRA ESTADO VACIO DE BUSQUEDA
    ======================================================== */
 function showEmptySearchState() {
-    const tableBody = document.getElementById('supplierTableBody');
+    const tableBody = document.getElementById('productTableBody');
     if (tableBody) {
         tableBody.innerHTML = `
             <tr class="empty-row">
                 <td colspan="8" class="empty-state-cell">
                     <div class="empty-state-content">
                         <i class="fas fa-search"></i>
-                        <p>No se encontraron proveedores</p>
+                        <p>No se encontraron productos</p>
                         <p style="font-size: 0.8rem;">Prueba con otros terminos de busqueda</p>
                     </div>
                 </td>
@@ -479,12 +493,12 @@ function showEmptySearchState() {
         `;
     }
     
-    const cardsContainer = document.getElementById('supplierCardsContainer');
+    const cardsContainer = document.getElementById('productCardsContainer');
     if (cardsContainer) {
         cardsContainer.innerHTML = `
             <div class="cards-empty-state">
                 <i class="fas fa-search"></i>
-                <p>No se encontraron proveedores</p>
+                <p>No se encontraron productos</p>
                 <p style="font-size: 0.8rem;">Prueba con otros terminos de busqueda</p>
             </div>
         `;
@@ -492,26 +506,26 @@ function showEmptySearchState() {
 }
 
 /* ========================================================
-   ACTUALIZA EL CONTADOR TOTAL DE PROVEEDORES
+   ACTUALIZA EL CONTADOR TOTAL DE PRODUCTOS
    ======================================================== */
 function updateTotalCount(count) {
-    const totalSpan = document.getElementById('totalSuppliersCount');
+    const totalSpan = document.getElementById('totalProductsCount');
     if (totalSpan) {
         const statusText = currentFilter === 'active' ? 'activos' : 'inactivos';
-        totalSpan.textContent = `Total: ${count} proveedores ${statusText}`;
+        totalSpan.textContent = `Total: ${count} productos ${statusText}`;
     }
 }
 
 /* ========================================================
-   INICIALIZA EL BOTON PARA AGREGAR NUEVO PROVEEDOR
+   INICIALIZA EL BOTON PARA AGREGAR NUEVO PRODUCTO
    ======================================================== */
-function initAddSupplierButton() {
-    const addButton = document.getElementById('addNewSupplierBtn');
+function initAddProductButton() {
+    const addButton = document.getElementById('addNewProductBtn');
     if (!addButton) return;
     
     addButton.addEventListener('click', (event) => {
         event.preventDefault();
-        window.location.href = '/crearProveedor';
+        window.location.href = '/crearProducto';
     });
 }
 
@@ -521,7 +535,7 @@ function initAddSupplierButton() {
 function initModalClose() {
     const closeButton = document.querySelector('.modal-close');
     const closeModalButton = document.getElementById('closeModalBtn');
-    const modal = document.getElementById('supplierModal');
+    const modal = document.getElementById('productModal');
     
     if (!modal) return;
     
@@ -533,7 +547,7 @@ function initModalClose() {
    CIERRA EL MODAL AL HACER CLICK FUERA DE EL
    ======================================================== */
 function initOutsideModalClose() {
-    const modal = document.getElementById('supplierModal');
+    const modal = document.getElementById('productModal');
     if (!modal) return;
     
     modal.onclick = (event) => {
@@ -544,36 +558,47 @@ function initOutsideModalClose() {
 }
 
 /* ========================================================
-   MUESTRA EL ESTADO VACIO CUANDO NO HAY PROVEEDORES
+   MUESTRA EL ESTADO VACIO CUANDO NO HAY PRODUCTOS
    ======================================================== */
 function showEmptyState() {
     const statusText = currentFilter === 'active' ? 'activos' : 'inactivos';
     
-    const tableBody = document.getElementById('supplierTableBody');
+    const tableBody = document.getElementById('productTableBody');
     if (tableBody) {
         tableBody.innerHTML = `
             <tr class="empty-row">
                 <td colspan="8" class="empty-state-cell">
                     <div class="empty-state-content">
-                        <i class="fas fa-store-slash"></i>
-                        <p>No hay proveedores ${statusText} registrados</p>
-                        <a href="/crearProveedor" class="btn btn-primary">Agregar proveedor</a>
+                        <i class="fas fa-box-open"></i>
+                        <p>No hay productos ${statusText} registrados</p>
+                        <a href="/crearProducto" class="btn btn-primary">Agregar producto</a>
                     </div>
                 </td>
             </tr>
         `;
     }
     
-    const cardsContainer = document.getElementById('supplierCardsContainer');
+    const cardsContainer = document.getElementById('productCardsContainer');
     if (cardsContainer) {
         cardsContainer.innerHTML = `
             <div class="cards-empty-state">
-                <i class="fas fa-store-slash"></i>
-                <p>No hay proveedores ${statusText} registrados</p>
-                <a href="/crearProveedor" class="btn btn-primary">Agregar proveedor</a>
+                <i class="fas fa-box-open"></i>
+                <p>No hay productos ${statusText} registrados</p>
+                <a href="/crearProducto" class="btn btn-primary">Agregar producto</a>
             </div>
         `;
     }
+}
+
+/* ========================================================
+   FORMATEA MONEDA
+   ======================================================== */
+function formatCurrency(value) {
+    return new Intl.NumberFormat('es-MX', {
+        style: 'currency',
+        currency: 'MXN',
+        minimumFractionDigits: 2
+    }).format(value);
 }
 
 /* ========================================================
@@ -607,8 +632,8 @@ function showToast(message, type = 'info') {
 /* ========================================================
    LIMPIEZA DEL CONTROLADOR
    ======================================================== */
-export function cleanupSupplierList() {
-    const modal = document.getElementById('supplierModal');
+export function cleanupProductsList() {
+    const modal = document.getElementById('productModal');
     if (modal && modal.style.display === 'block') {
         modal.style.display = 'none';
     }

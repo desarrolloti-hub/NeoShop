@@ -1,18 +1,23 @@
-<!-- FILE: supplierList.html -->
+<!-- FILE: readProducts.html -->
 <div class="credContainer">
-    <div class="supplier-list-container">
-        <div class="supplier-list-card">
-            <div class="list-header">
-                <h2><i class="fas fa-truck"></i> Mis Proveedores</h2>
-                <a href="/crearProveedor" class="btn btn-primary" id="addNewSupplierBtn" data-link>
-                    <i class="fas fa-plus"></i> Nuevo proveedor
-                </a>
+    <div class="product-list-container">
+        <div class="product-list-card">
+            <!-- HEADER USANDO COMPONENTE page-header CORRECTAMENTE -->
+            <div class="page-header">
+                <h2 class="header-title">
+                    <i class="fas fa-boxes"></i> Mis Productos
+                </h2>
+                <div class="header-actions">
+                    <a href="/crearProducto" class="btn btn-primary" id="addNewProductBtn" data-link>
+                        <i class="fas fa-plus"></i> Nuevo producto
+                    </a>
+                </div>
             </div>
 
             <!-- Filtros: Buscador + Toggle de estado -->
             <div class="filters-wrapper">
                 <div class="search-wrapper">
-                    <input type="text" id="searchSupplier" class="search-input" placeholder="Buscar por nombre, RFC o correo...">
+                    <input type="text" id="searchProduct" class="search-input" placeholder="Buscar por nombre, SKU o marca...">
                 </div>
                 
                 <!-- Toggle Switch para mostrar activos/inactivos -->
@@ -31,45 +36,45 @@
                     <thead>
                         <tr>
                             <th>Imagen</th>
+                            <th>SKU</th>
                             <th>Nombre</th>
-                            <th>Razón social</th>
-                            <th>Teléfono</th>
-                            <th>Correo</th>
-                            <th>RFC</th>
+                            <th>Marca</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
                             <th>Estado</th>
                             <th>Activar/Desactivar</th>
                         </tr>
                     </thead>
-                    <tbody id="supplierTableBody"></tbody>
+                    <tbody id="productTableBody"></tbody>
                 </table>
             </div>
 
             <!-- CARDS -->
-            <div id="supplierCardsContainer" class="mobile-view"></div>
+            <div id="productCardsContainer" class="mobile-view"></div>
 
             <div class="list-footer">
-                <p class="total-count" id="totalSuppliersCount">Total: 0 proveedores</p>
+                <p class="total-count" id="totalProductsCount">Total: 0 productos</p>
             </div>
         </div>
     </div>
 </div>
 
 <!-- TEMPLATE TABLA -->
-<template id="supplierRowTemplate">
+<template id="productRowTemplate">
     <tr>
-        <td class="supplier-img-container"></td>
-        <td><div class="middle-block"><span class="supplier-name"></span></div></td>
-        <td><div class="middle-block"><span class="supplier-business-name"></span></div></td>
-        <td><div class="middle-block"><span class="supplier-phone"></span></div></td>
-        <td><div class="middle-block"><span class="supplier-email"></span></div></td>
-        <td><div class="middle-block"><span class="supplier-rfc"></span></div></td>
-        <td><span class="supplier-status"></span></td>
+        <td class="product-img-container"></td>
+        <td><div class="middle-block"><span class="product-sku"></span></div></td>
+        <td><div class="middle-block"><span class="product-name"></span></div></td>
+        <td><div class="middle-block"><span class="product-brand"></span></div></td>
+        <td><div class="middle-block"><span class="product-price"></span></div></td>
+        <td><div class="middle-block"><span class="product-stock"></span></div></td>
+        <td><span class="product-status"></span></td>
         <td>
             <div class="action-badge">
                 <button class="btn-view" title="Ver detalles"><i class="fas fa-eye"></i></button>
                 <button class="btn-edit" title="Editar"><i class="fas fa-edit"></i></button>
                 <div class="status-switch-wrapper">
-                    <div class="status-row-switch" data-supplier-id="">
+                    <div class="status-row-switch" data-product-id="">
                         <div class="status-row-slider"></div>
                     </div>
                 </div>
@@ -79,28 +84,28 @@
 </template>
 
 <!-- TEMPLATE CARDS -->
-<template id="supplierCardTemplate">
-    <div class="supplier-card-item">
-        <div class="supplier-card-header">
-            <div class="supplier-card-avatar"></div>
-            <div class="supplier-card-title">
+<template id="productCardTemplate">
+    <div class="product-card-item">
+        <div class="product-card-header">
+            <div class="product-card-avatar"></div>
+            <div class="product-card-title">
                 <h4 class="card-name"></h4>
-                <small class="card-business-name"></small>
+                <small class="card-sku"></small>
             </div>
         </div>
-        <div class="supplier-card-info">
-            <p><i class="fas fa-phone"></i> <span class="card-phone"></span></p>
-            <p><i class="fas fa-envelope"></i> <span class="card-email"></span></p>
-            <p><i class="fas fa-id-card"></i> <span class="card-rfc"></span></p>
+        <div class="product-card-info">
+            <p><i class="fas fa-tag"></i> <span class="card-brand"></span></p>
+            <p><i class="fas fa-dollar-sign"></i> <span class="card-price"></span></p>
+            <p><i class="fas fa-box"></i> <span class="card-stock"></span></p>
         </div>
-        <div class="supplier-card-status">
+        <div class="product-card-status">
             <span class="card-status"></span>
         </div>
-        <div class="supplier-card-actions">
+        <div class="product-card-actions">
             <button class="card-action-icon btn-view" title="Ver detalles"><i class="fas fa-eye"></i> Ver</button>
             <button class="card-action-icon btn-edit" title="Editar"><i class="fas fa-edit"></i> Editar</button>
             <div class="status-switch-wrapper">
-                <div class="status-row-switch" data-supplier-id="">
+                <div class="status-row-switch" data-product-id="">
                     <div class="status-row-slider"></div>
                 </div>
             </div>
@@ -109,26 +114,25 @@
 </template>
 
 <!-- MODAL -->
-<div id="supplierModal" class="modal-container" style="display: none;">
+<div id="productModal" class="modal-container" style="display: none;">
     <div class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Detalles del proveedor</h3>
+                <h3 id="modalTitle">Detalles del producto</h3>
                 <span class="modal-close">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="modal-avatar">
                     <img id="modalAvatar" src="" alt="Avatar" style="display: none;">
-                    <i id="modalAvatarIcon" class="fas fa-store"></i>
+                    <i id="modalAvatarIcon" class="fas fa-box"></i>
                 </div>
                 <div class="modal-info">
+                    <p><strong>SKU:</strong> <span id="modalSku"></span></p>
                     <p><strong>Nombre:</strong> <span id="modalNombre"></span></p>
-                    <p><strong>Razón social:</strong> <span id="modalRazonSocial"></span></p>
-                    <p><strong>Teléfono:</strong> <span id="modalTelefono"></span></p>
-                    <p><strong>Teléfono alterno:</strong> <span id="modalTelefonoAlterno"></span></p>
-                    <p><strong>Dirección fiscal:</strong> <span id="modalDireccion"></span></p>
-                    <p><strong>Correo:</strong> <span id="modalCorreo"></span></p>
-                    <p><strong>RFC:</strong> <span id="modalRfc"></span></p>
+                    <p><strong>Marca:</strong> <span id="modalMarca"></span></p>
+                    <p><strong>Precio:</strong> <span id="modalPrecio"></span></p>
+                    <p><strong>Stock:</strong> <span id="modalStock"></span></p>
+                    <p><strong>Descripción:</strong> <span id="modalDescripcion"></span></p>
                 </div>
             </div>
             <div class="modal-footer">

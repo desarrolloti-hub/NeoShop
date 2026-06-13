@@ -1,86 +1,8 @@
-<<<<<<< HEAD
-/* ============================================
-   PRODUCT CREATE CSS - Estilos para crear producto
-   ============================================ */
-
-.header-actions {
-    margin-bottom: var(--spacing-md);
-}
-
-.create-product-container {
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-xl);
-}
-
-.form-column {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xl);
-}
-
-.form-card-section {
-    background: var(--bg-white);
-    border-radius: var(--border-radius-xl);
-    padding: var(--spacing-xl);
-    border: 1px solid var(--border-light);
-    box-shadow: var(--shadow-sm);
-}
-
-.form-card-section h3 {
-    font-size: var(--font-size-lg);
-    color: var(--color-primary);
-    margin-bottom: var(--spacing-lg);
-    padding-bottom: var(--spacing-sm);
-    border-bottom: 2px solid var(--color-primary-extraligth);
-}
-
-.form-card-section h3 i {
-    margin-right: var(--spacing-sm);
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-md);
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: var(--spacing-md);
-}
-
-.form-group label {
-    font-weight: 600;
-    font-size: var(--font-size-sm);
-    color: var(--text-dark);
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    padding: 10px 12px;
-    border: 1px solid var(--border-light);
-    border-radius: var(--border-radius-md);
-    font-family: var(--font-family);
-    font-size: var(--font-size-sm);
-}
-
-.form-group input:focus,
-.form-group select:focus,
-=======
-/* FILE: createProduct.css */
-/* Product form styles - matching design system */
+/* FILE: updateProduct.css */
+/* Product update form styles - matching createProduct.css design system */
 
 /* ========================================================
-   CONTENEDOR PRINCIPAL (mismo que readProducts)
+   CONTENEDOR PRINCIPAL
    ======================================================== */
 
 .product-list-container {
@@ -100,7 +22,7 @@
 }
 
 /* ========================================================
-   PAGE HEADER - mismo estilo que readProducts
+   PAGE HEADER
    ======================================================== */
 
 .product-list-card .page-header {
@@ -145,7 +67,270 @@
 }
 
 /* ========================================================
-   FORMULARIO CON LABELS
+   FORMULARIO
+   ======================================================== */
+
+.product-form-wrapper {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.product-card {
+    background: var(--bg-white);
+    width: 100%;
+    border-radius: var(--border-radius-md);
+    padding: 2.5rem var(--spacing-xl);
+    text-align: center;
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+}
+
+/* Form row para dos campos en línea */
+.form-row {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: 15px;
+}
+
+.form-row input {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* Avatar / image wrapper */
+.avatar-wrapper {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin: 0 auto var(--spacing-sm);
+    cursor: pointer;
+}
+
+.avatar-circle {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 3px solid var(--color-primary);
+    transition: var(--transition-fast);
+    background: var(--bg-gray);
+}
+
+.avatar-circle i {
+    font-size: var(--font-size-3xl);
+    color: var(--color-primary);
+}
+
+.avatar-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+    border-radius: 50%;
+}
+
+.avatar-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(69, 109, 162, 0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: var(--transition-fast);
+    cursor: pointer;
+}
+
+.avatar-overlay i {
+    color: white;
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+
+.avatar-overlay .avatar-hint {
+    color: white;
+    font-size: 9px;
+    font-weight: 500;
+    text-align: center;
+    padding: 0 8px;
+}
+
+.avatar-wrapper:hover .avatar-overlay {
+    opacity: 1;
+}
+
+/* Texto guía debajo del avatar */
+.avatar-guide {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.avatar-guide i {
+    font-size: 12px;
+    color: var(--color-primary);
+}
+
+#productImageInput {
+    display: none;
+}
+
+/* Remove image button */
+#removeProductImageBtn {
+    display: none;
+    margin: var(--spacing-xs) auto 0;
+    padding: 6px 16px;
+    border: none;
+    border-radius: var(--border-radius-md);
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    transition: var(--transition-normal);
+}
+
+#removeProductImageBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(220, 38, 38, 0.4);
+}
+
+/* Form inputs spacing */
+.product-card input,
+.product-card textarea {
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.product-card textarea {
+    resize: vertical;
+    font-family: inherit;
+}
+
+/* Button extends from global buttons.css */
+.product-card .btn-primary {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 550px) {
+    .product-list-container {
+        padding: var(--spacing-md) 0;
+    }
+
+    .product-list-card {
+        padding: var(--spacing-md);
+    }
+
+    .product-card {
+        padding: 2rem var(--spacing-lg);
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .form-row input {
+        margin-bottom: 15px;
+    }
+    
+    .form-row input:last-child {
+        margin-bottom: 0;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* FILE: updateProduct.css */
+/* Product update form styles - con labels y mejor organización */
+
+/* ========================================================
+   CONTENEDOR PRINCIPAL
+   ======================================================== */
+
+.product-list-container {
+    padding: var(--spacing-xl) 0;
+    min-height: calc(100vh - 200px);
+    width: 100%;
+}
+
+.product-list-card {
+    background: var(--bg-white);
+    border-radius: 0px;
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+    width: 100%;
+    margin: 0;
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* ========================================================
+   PAGE HEADER
+   ======================================================== */
+
+.product-list-card .page-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-direction: row !important;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--border-light);
+}
+
+.product-list-card .page-header .header-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--color-primary-dark);
+    font-size: var(--font-size-2xl);
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.product-list-card .page-header .header-title i {
+    color: var(--color-primary);
+}
+
+.product-list-card .page-header .header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* En móvil, se apilan */
+@media (max-width: 768px) {
+    .product-list-card .page-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+}
+
+/* ========================================================
+   FORMULARIO
    ======================================================== */
 
 .product-form-wrapper {
@@ -203,120 +388,12 @@
 }
 
 .form-group input:focus,
->>>>>>> 75395177d38ef80b00ba152b081bc83efc8e69d0
 .form-group textarea:focus {
     outline: none;
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(69, 109, 162, 0.1);
 }
 
-<<<<<<< HEAD
-.form-hint {
-    font-size: var(--font-size-xs);
-    color: var(--text-muted);
-}
-
-/* Image Upload */
-.image-upload-area {
-    border: 2px dashed var(--border-light);
-    border-radius: var(--border-radius-lg);
-    padding: var(--spacing-lg);
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.image-upload-area:hover {
-    border-color: var(--color-primary);
-    background: var(--bg-blue-light);
-}
-
-.image-preview {
-    position: relative;
-    display: inline-block;
-}
-
-.image-preview img {
-    max-width: 200px;
-    max-height: 200px;
-    border-radius: var(--border-radius-md);
-}
-
-.remove-image-btn {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    width: 28px;
-    height: 28px;
-    background: #dc2626;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.2s;
-}
-
-.remove-image-btn:hover {
-    background: #b91c1c;
-    transform: scale(1.05);
-}
-
-.image-placeholder i {
-    font-size: 48px;
-    color: var(--color-primary-light);
-    margin-bottom: var(--spacing-sm);
-}
-
-.image-placeholder p {
-    margin: 0;
-    color: var(--text-muted);
-}
-
-.image-placeholder small {
-    color: var(--text-muted);
-}
-
-/* Form Actions */
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--spacing-md);
-    margin-top: var(--spacing-xl);
-    padding-top: var(--spacing-lg);
-    border-top: 1px solid var(--border-light);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .form-grid {
-        grid-template-columns: 1fr;
-        gap: var(--spacing-md);
-    }
-
-    .form-row {
-        grid-template-columns: 1fr;
-        gap: var(--spacing-sm);
-    }
-
-    .form-actions {
-        flex-direction: column;
-    }
-
-    .form-actions button {
-        width: 100%;
-    }
-}
-
-@media (max-width: 550px) {
-    .form-card-section {
-        padding: var(--spacing-md);
-    }
-
-    .image-preview img {
-        max-width: 150px;
-        max-height: 150px;
-=======
 .form-group textarea {
     resize: vertical;
 }
@@ -386,7 +463,7 @@
 }
 
 /* ========================================================
-   AVATAR / IMAGEN
+   AVATAR
    ======================================================== */
 
 .avatar-wrapper {
@@ -540,6 +617,5 @@
     to {
         opacity: 1;
         transform: translateY(0);
->>>>>>> 75395177d38ef80b00ba152b081bc83efc8e69d0
     }
 }

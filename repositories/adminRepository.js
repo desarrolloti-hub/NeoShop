@@ -54,6 +54,7 @@ export const AdminRepository = {
             apellido: adminData.apellido || '',
             telefono: adminData.telefono || '',
             email: firebaseUser.email,
+            storeId: adminData.storeId || null,  // ✅ CAMBIADO: companyId → storeId
             plan: adminData.plan || null,
             tiendas: adminData.tiendas || {},
             activo: true,
@@ -92,6 +93,7 @@ export const AdminRepository = {
                 apellido: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
                 telefono: '',
                 email: firebaseUser.email,
+                storeId: null,  // ✅ CAMBIADO: companyId → storeId
                 plan: null,
                 tiendas: {},
                 activo: true,

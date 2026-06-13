@@ -19,9 +19,9 @@ function initBackButton() {
         e.preventDefault();
         
         if (typeof window.navigateTo === 'function') {
-            window.navigateTo('/');
+            window.navigateTo('/crearCuenta');
         } else {
-            window.location.href = '/';
+            window.location.href = '/crearCuenta';
         }
     });
 }
