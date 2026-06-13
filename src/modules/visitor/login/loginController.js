@@ -39,7 +39,7 @@ function redirectByRole() {
         window.location.href = redirectUrl;
         return;
     }
-    window.location.href = '/adminHome';
+    window.location.href = '/inicioAdmin';
 }
 
 function initLoginForm() {
@@ -108,7 +108,7 @@ function initGoogleLogin() {
 
 function getFriendlyErrorMessage(error) {
     const errorCode = error?.code || error?.message || '';
-    
+
     const errorMap = {
         'auth/invalid-login-credentials': 'Correo electronico o contrasena incorrectos. Por favor, verifica tus datos.',
         'auth/wrong-password': 'Contrasena incorrecta. Intenta de nuevo.',
@@ -122,13 +122,13 @@ function getFriendlyErrorMessage(error) {
         'auth/cancelled-popup-request': 'El inicio de sesion con Google fue cancelado.',
         'auth/popup-blocked': 'El navegador bloqueo la ventana emergente de Google. Permite ventanas emergentes para este sitio.'
     };
-    
+
     for (const [code, message] of Object.entries(errorMap)) {
         if (errorCode.includes(code)) {
             return message;
         }
     }
-    
+
     console.error('Error no mapeado:', error);
     return 'Ocurrio un problema al iniciar sesion. Por favor, intenta de nuevo mas tarde.';
 }
@@ -160,7 +160,7 @@ function showSuccessToast(message) {
             toast.addEventListener('mouseleave', Swal.resumeTimer);
         }
     });
-    
+
     Toast.fire({
         icon: 'success',
         title: message
