@@ -1,0 +1,505 @@
+/* ============================================
+   SALE CREATE CSS - Estilos para nueva venta con escáner
+   ============================================ */
+
+.header-actions {
+    margin-bottom: var(--spacing-md);
+}
+
+.create-sale-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.form-card-section {
+    background: var(--bg-white);
+    border-radius: var(--border-radius-xl);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+}
+
+.form-card-section h3 {
+    font-size: var(--font-size-lg);
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--color-primary-extraligth);
+}
+
+.form-card-section h3 i {
+    margin-right: var(--spacing-sm);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: var(--spacing-md);
+}
+
+.form-group label {
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    color: var(--text-dark);
+}
+
+.form-group input,
+.form-group select {
+    padding: 10px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-md);
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(69, 109, 162, 0.1);
+}
+
+/* ========== ESCÁNER ========== */
+.scanner-section {
+    background: linear-gradient(135deg, var(--bg-white) 0%, var(--bg-blue-light) 100%);
+}
+
+.scanner-container {
+    margin-bottom: var(--spacing-lg);
+}
+
+.input-group-barcode {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+    background: var(--bg-white);
+    border: 2px solid var(--border-light);
+    border-radius: var(--border-radius-lg);
+    padding: 0 var(--spacing-md);
+    transition: all 0.2s;
+}
+
+.input-group-barcode:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(69, 109, 162, 0.2);
+}
+
+.input-group-barcode i {
+    color: var(--color-primary);
+    font-size: 1.2rem;
+}
+
+.input-group-barcode input {
+    flex: 1;
+    border: none;
+    padding: 14px 0;
+    font-size: 1rem;
+    font-family: var(--font-family);
+    background: transparent;
+}
+
+.input-group-barcode input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.barcode-status {
+    margin-top: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    min-height: 30px;
+}
+
+.barcode-status.success {
+    color: #10b981;
+}
+
+.barcode-status.error {
+    color: #dc2626;
+}
+
+.barcode-status.loading {
+    color: var(--color-primary);
+}
+
+/* ========== BÚSQUEDA MANUAL ========== */
+.manual-search-container {
+    margin-top: var(--spacing-lg);
+    position: relative;
+}
+
+.input-group-search {
+    display: flex;
+    align-items: center;
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-md);
+    padding: 0 var(--spacing-md);
+}
+
+.input-group-search i {
+    color: var(--text-muted);
+}
+
+.input-group-search input {
+    flex: 1;
+    border: none;
+    padding: 10px 0 10px var(--spacing-sm);
+    font-family: var(--font-family);
+    background: transparent;
+}
+
+.input-group-search input:focus {
+    outline: none;
+}
+
+.search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-md);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: var(--shadow-md);
+}
+
+.search-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    cursor: pointer;
+    transition: background 0.2s;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.search-result-item:hover {
+    background: var(--bg-blue-light);
+}
+
+.search-result-info {
+    flex: 1;
+}
+
+.search-result-name {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.search-result-category {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+
+.search-result-price {
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+/* ========== CARRITO DE COMPRAS ========== */
+.cart-products-container {
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+}
+
+.cart-header {
+    display: grid;
+    grid-template-columns: 3fr 1.5fr 0.8fr 1fr 1fr 0.5fr;
+    background: var(--bg-light);
+    padding: var(--spacing-md);
+    font-weight: 600;
+    color: var(--text-dark);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.cart-items-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.cart-item {
+    display: grid;
+    grid-template-columns: 3fr 1.5fr 0.8fr 1fr 1fr 0.5fr;
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--border-light);
+    align-items: center;
+}
+
+.cart-item:hover {
+    background: var(--bg-light);
+}
+
+.cart-item-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-item-name {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.cart-item-category {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+
+.cart-item-quantity {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.quantity-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border-light);
+    background: var(--bg-white);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.quantity-btn:hover {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+.quantity-value {
+    width: 40px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.cart-item-price,
+.cart-item-subtotal {
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.remove-item-btn {
+    background: none;
+    border: none;
+    color: #dc2626;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.2s;
+}
+
+.remove-item-btn:hover {
+    color: #b91c1c;
+    transform: scale(1.1);
+}
+
+.empty-cart {
+    text-align: center;
+    padding: var(--spacing-2xl);
+    color: var(--text-muted);
+}
+
+.empty-cart i {
+    font-size: 48px;
+    margin-bottom: var(--spacing-md);
+    color: var(--border-light);
+}
+
+.empty-hint {
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-sm);
+}
+
+/* ========== RESUMEN ========== */
+.summary-section {
+    background: var(--bg-light);
+}
+
+.summary-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: flex-end;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 300px;
+}
+
+.summary-item label {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.summary-value {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-primary-dark);
+}
+
+.total-item {
+    margin-top: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
+    border-top: 2px solid var(--border-light);
+}
+
+.total-value {
+    font-size: var(--font-size-xl);
+    font-weight: 800;
+    color: var(--color-primary);
+}
+
+/* ========== MÉTODOS DE PAGO ========== */
+.payment-methods {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+.payment-option {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.payment-option:hover {
+    border-color: var(--color-primary);
+    background: var(--bg-blue-light);
+}
+
+.payment-option input[type="radio"] {
+    width: auto;
+    margin: 0;
+}
+
+.payment-option i {
+    color: var(--color-primary);
+    font-size: 1.2rem;
+}
+
+/* ========== BOTONES ========== */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--border-light);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+
+    .cart-header {
+        display: none;
+    }
+
+    .cart-item {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md);
+    }
+
+    .cart-item-info {
+        width: 100%;
+    }
+
+    .cart-item-quantity {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .cart-item-price,
+    .cart-item-subtotal {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .cart-item-price::before {
+        content: "Precio: ";
+        font-weight: normal;
+        color: var(--text-muted);
+    }
+
+    .cart-item-subtotal::before {
+        content: "Subtotal: ";
+        font-weight: normal;
+        color: var(--text-muted);
+    }
+
+    .remove-item-btn {
+        align-self: flex-end;
+    }
+
+    .summary-grid {
+        align-items: stretch;
+    }
+
+    .summary-item {
+        max-width: 100%;
+    }
+
+    .payment-methods {
+        gap: var(--spacing-sm);
+    }
+
+    .payment-option {
+        padding: var(--spacing-xs) var(--spacing-md);
+        font-size: var(--font-size-sm);
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 550px) {
+    .input-group-barcode {
+        flex-direction: column;
+        padding: var(--spacing-sm);
+    }
+
+    .input-group-barcode button {
+        width: 100%;
+    }
+
+    .input-group-barcode input {
+        width: 100%;
+        text-align: center;
+    }
+
+    .form-card-section {
+        padding: var(--spacing-md);
+    }
+}

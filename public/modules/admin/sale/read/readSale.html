@@ -1,0 +1,143 @@
+<div class="credContainer">
+
+    <!-- Encabezado -->
+    <div class="page-header">
+        <h2><i class="fas fa-chart-line"></i> Gestión de Ventas</h2>
+        <p>Visualiza y administra todas las transacciones de tu tienda.</p>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-title">Total ventas</div>
+            <div class="kpi-value" id="totalVentasCount">0</div>
+            <div class="kpi-trend"><i class="fas fa-chart-line"></i> Histórico</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">Ingresos totales</div>
+            <div class="kpi-value" id="totalIngresos">$0</div>
+            <div class="kpi-trend"><i class="fas fa-arrow-up"></i> Este mes</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">Ventas hoy</div>
+            <div class="kpi-value" id="ventasHoy">0</div>
+            <div class="kpi-trend" style="color:#ed6c02;"><i class="fas fa-calendar-day"></i> Hoy</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">Ticket promedio</div>
+            <div class="kpi-value" id="ticketPromedio">$0</div>
+            <div class="kpi-trend"><i class="fas fa-receipt"></i> Por venta</div>
+        </div>
+    </div>
+
+    <!-- Gráfico de ventas diarias -->
+    <div class="chart-container">
+        <div class="chart-header">
+            <span><i class="fas fa-calendar-alt"></i> Ventas diarias (últimos 7 días)</span>
+            <button class="btn-refresh" id="refreshChartBtn">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+        <div class="chart-bars" id="weeklyChartBars">
+            <div class="bar-item">
+                <div class="bar" style="height: 0px;"></div>
+                <div class="bar-label">Lun</div>
+                <span>$0</span>
+            </div>
+            <div class="bar-item">
+                <div class="bar" style="height: 0px;"></div>
+                <div class="bar-label">Mar</div>
+                <span>$0</span>
+            </div>
+            <div class="bar-item">
+                <div class="bar" style="height: 0px;"></div>
+                <div class="bar-label">Mié</div>
+                <span>$0</span>
+            </div>
+            <div class="bar-item">
+                <div class="bar" style="height: 0px;"></div>
+                <div class="bar-label">Jue</div>
+                <span>$0</span>
+            </div>
+            <div class="bar-item">
+                <div class="bar" style="height: 0px;"></div>
+                <div class="bar-label">Vie</div>
+                <span>$0</span>
+            </div>
+            <div class="bar-item">
+                <div class="bar" style="height: 0px;"></div>
+                <div class="bar-label">Sáb</div>
+                <span>$0</span>
+            </div>
+            <div class="bar-item">
+                <div class="bar" style="height: 0px;"></div>
+                <div class="bar-label">Dom</div>
+                <span>$0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="sales-toolbar">
+        <div class="filters">
+            <select class="filter-select" id="statusFilter">
+                <option value="">Todos los estados</option>
+                <option value="completed">Completado</option>
+                <option value="pending">Pendiente</option>
+                <option value="cancelled">Cancelado</option>
+                <option value="refunded">Reembolsado</option>
+            </select>
+            <input class="filter-input" type="date" id="startDateFilter" placeholder="Fecha inicio">
+            <input class="filter-input" type="date" id="endDateFilter" placeholder="Fecha fin">
+            <button class="btn-filter" id="applyFiltersBtn">
+                <i class="fas fa-search"></i> Filtrar
+            </button>
+        </div>
+        <button class="btn-primary" id="newSaleBtn">
+            <i class="fas fa-plus"></i> Nueva Venta
+        </button>
+    </div>
+
+    <!-- Tabla de ventas - Desktop -->
+    <div class="component-table-wrapper desktop-view">
+        <table class="component-table">
+            <thead>
+                <tr>
+                    <th>Folio</th>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
+                    <th>Subtotal</th>
+                    <th>Descuento</th>
+                    <th>Total</th>
+                    <th>Método</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="salesTableBody">
+                <tr>
+                    <td colspan="9" class="empty-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Cargando ventas...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Vista móvil - Cards -->
+    <div class="mobile-view" id="salesMobileCards">
+        <div class="cards-empty-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            Cargando ventas...
+        </div>
+    </div>
+
+    <!-- Paginación -->
+    <div class="pagination" id="pagination">
+        <button class="page-item" id="prevPageBtn" disabled>Anterior</button>
+        <span class="page-info" id="pageInfo">Página 1</span>
+        <button class="page-item" id="nextPageBtn">Siguiente</button>
+    </div>
+
+</div>

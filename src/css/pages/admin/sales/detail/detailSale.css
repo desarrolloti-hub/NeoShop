@@ -1,0 +1,203 @@
+/* ============================================
+   SALE DETAIL CSS - Estilos para detalle de venta
+   ============================================ */
+
+.header-actions {
+    margin-bottom: var(--spacing-md);
+}
+
+#saleFolio {
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-xs);
+}
+
+.sale-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.sale-detail-card {
+    background: var(--bg-white);
+    border-radius: var(--border-radius-xl);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+}
+
+.sale-detail-card h3 {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--color-primary-extraligth);
+    color: var(--color-primary);
+}
+
+.sale-detail-card h3 i {
+    margin-right: var(--spacing-sm);
+}
+
+.sale-detail-card.full-width {
+    grid-column: 1 / -1;
+}
+
+.detail-field {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.detail-field:last-child {
+    border-bottom: none;
+}
+
+.detail-field strong {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.detail-field span {
+    color: var(--text-gray);
+}
+
+.detail-field.total-field {
+    font-weight: 700;
+    font-size: var(--font-size-lg);
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 2px solid var(--border-light);
+    border-bottom: none;
+}
+
+.detail-field.total-field span {
+    color: var(--color-primary);
+    font-weight: 800;
+}
+
+/* Products Table inside detail */
+.component-table-wrapper {
+    overflow-x: auto;
+}
+
+.component-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-family);
+}
+
+.component-table thead th {
+    background-color: var(--color-primary);
+    color: white;
+    font-weight: 600;
+    padding: var(--spacing-md);
+    text-align: left;
+}
+
+.component-table tbody td {
+    padding: var(--spacing-md);
+    text-align: left;
+    border-bottom: 1px solid var(--border-light);
+    background-color: var(--bg-white);
+}
+
+.component-table tbody tr:hover td {
+    background-color: var(--bg-light);
+}
+
+/* Sale Detail Actions */
+.sale-detail-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: flex-end;
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--border-light);
+}
+
+.btn-danger {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: var(--border-radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 30px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+}
+
+.status-completed {
+    background: #e0f2e9;
+    color: #2e7d32;
+}
+
+.status-pending {
+    background: #fff3e0;
+    color: #ed6c02;
+}
+
+.status-cancelled {
+    background: #ffe6e5;
+    color: #c62828;
+}
+
+.status-refunded {
+    background: #e8eaf6;
+    color: #3949ab;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sale-detail-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+
+    .sale-detail-actions {
+        flex-direction: column;
+    }
+
+    .sale-detail-actions button {
+        width: 100%;
+    }
+
+    .detail-field {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+
+    .detail-field strong {
+        font-size: var(--font-size-sm);
+    }
+}
+
+@media (max-width: 550px) {
+    .sale-detail-card {
+        padding: var(--spacing-md);
+    }
+
+    .component-table thead th,
+    .component-table tbody td {
+        padding: var(--spacing-sm);
+        font-size: var(--font-size-xs);
+    }
+}

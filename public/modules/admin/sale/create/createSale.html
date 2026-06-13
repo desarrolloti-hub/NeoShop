@@ -1,0 +1,138 @@
+<div class="credContainer">
+
+    <!-- Encabezado con botón de volver -->
+    <div class="page-header">
+        <div class="header-actions">
+            <button id="backToListBtn" class="btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a ventas
+            </button>
+        </div>
+        <h2><i class="fas fa-cart-plus"></i> Nueva Venta</h2>
+        <p>Registra una nueva transacción escaneando productos.</p>
+    </div>
+
+    <!-- Información del administrador (opcional) -->
+    <div class="admin-info-bar">
+        <div class="admin-info">
+            <div class="admin-avatar" id="adminInitials">A</div>
+            <span id="adminName">Cargando...</span>
+        </div>
+    </div>
+
+    <div class="create-sale-container">
+
+        <!-- Sección Cliente -->
+        <div class="form-card-section">
+            <h3><i class="fas fa-user"></i> Información del Cliente</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nombre del cliente</label>
+                    <input type="text" id="customerName" placeholder="Nombre completo o email">
+                </div>
+                <div class="form-group">
+                    <label>ID del cliente (opcional)</label>
+                    <input type="text" id="customerId" placeholder="Si es cliente registrado">
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección Escáner -->
+        <div class="form-card-section scanner-section">
+            <h3><i class="fas fa-barcode"></i> Escanear Producto</h3>
+            <div class="scanner-container">
+                <div class="input-group-barcode">
+                    <i class="fas fa-qrcode"></i>
+                    <input type="text" id="barcodeInput" placeholder="Escanear o escribir código de barras" autofocus
+                        autocomplete="off">
+                    <button type="button" id="searchBarcodeBtn" class="btn-primary">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                </div>
+                <div class="barcode-status" id="barcodeStatus"></div>
+            </div>
+
+            <!-- Búsqueda manual -->
+            <div class="manual-search-container">
+                <div class="input-group-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="productSearchInput" placeholder="O buscar por nombre del producto..."
+                        autocomplete="off">
+                </div>
+                <div id="searchResults" class="search-results" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Sección Carrito -->
+        <div class="form-card-section">
+            <h3><i class="fas fa-boxes"></i> Productos en venta</h3>
+            <div class="cart-products-container">
+                <div class="cart-header">
+                    <div>Producto</div>
+                    <div>Categoría</div>
+                    <div>Cant.</div>
+                    <div>Precio</div>
+                    <div>Subtotal</div>
+                    <div></div>
+                </div>
+                <div id="cartItemsList" class="cart-items-list">
+                    <!-- El controller llenará esto con los items del carrito -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección Resumen -->
+        <div class="form-card-section summary-section">
+            <h3><i class="fas fa-calculator"></i> Resumen de Venta</h3>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <label>Subtotal</label>
+                    <span id="summarySubtotal" class="summary-value">$0.00</span>
+                </div>
+                <div class="summary-item">
+                    <label>Descuento</label>
+                    <input type="number" id="discount" value="0" step="0.01" min="0" style="width: 120px;">
+                </div>
+                <div class="summary-item">
+                    <label>IVA (16%)</label>
+                    <span id="summaryTax" class="summary-value">$0.00</span>
+                </div>
+                <div class="summary-item total-item">
+                    <label>Total</label>
+                    <span id="summaryTotal" class="summary-value total-value">$0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección Método de Pago -->
+        <div class="form-card-section">
+            <h3><i class="fas fa-credit-card"></i> Método de Pago</h3>
+            <div class="payment-methods">
+                <label class="payment-option">
+                    <input type="radio" name="paymentMethod" value="cash" checked>
+                    <i class="fas fa-money-bill"></i> Efectivo
+                </label>
+                <label class="payment-option">
+                    <input type="radio" name="paymentMethod" value="card">
+                    <i class="fas fa-credit-card"></i> Tarjeta
+                </label>
+                <label class="payment-option">
+                    <input type="radio" name="paymentMethod" value="transfer">
+                    <i class="fas fa-exchange-alt"></i> Transferencia
+                </label>
+                <label class="payment-option">
+                    <input type="radio" name="paymentMethod" value="credit">
+                    <i class="fas fa-hand-holding-usd"></i> Crédito
+                </label>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="form-actions">
+            <button type="button" id="cancelSaleBtn" class="btn-secondary">Cancelar</button>
+            <button type="submit" id="submitSaleBtn" class="btn-primary">
+                <i class="fas fa-check-circle"></i> Registrar Venta
+            </button>
+        </div>
+
+    </div>
+</div>

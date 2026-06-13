@@ -1,0 +1,90 @@
+<div class="credContainer">
+    <div class="page-header">
+        <div class="header-actions">
+            <button id="backToListBtn" class="btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a ventas
+            </button>
+        </div>
+        <h2><i class="fas fa-receipt"></i> Detalle de Venta</h2>
+        <p id="saleFolio">Folio: ---</p>
+    </div>
+
+    <div class="sale-detail-grid">
+        <!-- Información General -->
+        <div class="sale-detail-card">
+            <h3><i class="fas fa-info-circle"></i> Información General</h3>
+            <div class="detail-field">
+                <strong>Folio:</strong> <span id="detailFolio">---</span>
+            </div>
+            <div class="detail-field">
+                <strong>Fecha:</strong> <span id="detailDate">---</span>
+            </div>
+            <div class="detail-field">
+                <strong>Estado:</strong> <span id="detailStatus" class="status-badge">---</span>
+            </div>
+            <div class="detail-field">
+                <strong>Método de pago:</strong> <span id="detailPaymentMethod">---</span>
+            </div>
+        </div>
+
+        <!-- Información del Cliente -->
+        <div class="sale-detail-card">
+            <h3><i class="fas fa-user"></i> Cliente</h3>
+            <div class="detail-field">
+                <strong>ID Cliente:</strong> <span id="detailCustomerId">---</span>
+            </div>
+            <div class="detail-field">
+                <strong>Nombre:</strong> <span id="detailCustomerName">---</span>
+            </div>
+        </div>
+
+        <!-- Resumen de Venta -->
+        <div class="sale-detail-card">
+            <h3><i class="fas fa-chart-line"></i> Resumen de Venta</h3>
+            <div class="detail-field">
+                <strong>Subtotal:</strong> <span id="detailSubtotal">$0</span>
+            </div>
+            <div class="detail-field">
+                <strong>Descuento:</strong> <span id="detailDiscount">$0</span>
+            </div>
+            <div class="detail-field">
+                <strong>Impuesto (IVA):</strong> <span id="detailTax">$0</span>
+            </div>
+            <div class="detail-field total-field">
+                <strong>Total:</strong> <span id="detailTotal">$0</span>
+            </div>
+        </div>
+
+        <!-- Productos -->
+        <div class="sale-detail-card full-width">
+            <h3><i class="fas fa-boxes"></i> Productos</h3>
+            <div class="component-table-wrapper">
+                <table class="component-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unitario</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailProductsBody">
+                        <tr>
+                            <td colspan="4" class="empty-state">No hay productos registrados</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones (solo visible para ventas pendientes) -->
+    <div class="sale-detail-actions" id="saleActions">
+        <button id="printSaleBtn" class="btn-secondary">
+            <i class="fas fa-print"></i> Imprimir
+        </button>
+        <button id="cancelSaleFromDetailBtn" class="btn-danger" style="display: none;">
+            <i class="fas fa-times-circle"></i> Cancelar Venta
+        </button>
+    </div>
+</div>
