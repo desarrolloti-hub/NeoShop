@@ -12,13 +12,7 @@ let isTransitioning = false;
 let storeLogoBase64 = '';
 
 export async function createStoreController() {
-    if (!AdminService.isAuthenticated()) {
-        showToast('Debes iniciar sesion', 'error');
-        setTimeout(() => {
-            window.location.href = '/iniciarSesion';
-        }, 1500);
-        return;
-    }
+
 
     initWizard();
     initLogoUpload();
@@ -244,24 +238,24 @@ function initCompleteButton() {
             // 1. Crear la tienda en Firestore (coleccion 'stores')
             // El ID se genera automaticamente como camelCase del nombre
             const newStore = await StoreService.create(storeData, adminId, adminSession);
-            
+
             console.log('✅ Tienda creada con ID:', newStore.id);
-            
+
             // 2. Actualizar el admin en Firestore con el storeId
             await AdminRepository.update(adminId, { storeId: newStore.id });
-            
+
             console.log('✅ Admin actualizado con storeId:', newStore.id);
-            
+
             // 3. Actualizar la sesion en localStorage con el storeId
             const updatedSession = {
                 ...adminSession,
                 storeId: newStore.id
             };
             localStorage.setItem('admin_user', JSON.stringify(updatedSession));
-            
+
             // 4. Disparar evento de cambio de autenticacion para que otros componentes se actualicen
             window.dispatchEvent(new CustomEvent('auth:stateChanged', { detail: updatedSession }));
-            
+
             console.log('✅ Sesion local actualizada');
 
             await Swal.fire({
@@ -318,12 +312,12 @@ async function loadExistingData() {
     try {
         const adminSession = AdminService.getSession();
         const adminId = adminSession?.id;
-        
+
         if (!adminId) return;
-        
+
         // Verificar si el admin ya tiene una tienda
         const existingStore = await StoreService.getByAdminId(adminId);
-        
+
         if (existingStore) {
             // Si ya tiene tienda, redirigir al dashboard
             Swal.fire({
@@ -337,10 +331,10 @@ async function loadExistingData() {
             });
             return;
         }
-        
+
         // Si no tiene tienda, cargar datos existentes del admin (si los hay)
         const adminData = await AdminRepository.getById(adminId);
-        
+
         if (adminData) {
             const businessNameInput = document.getElementById('businessName');
             const rfcInput = document.getElementById('rfc');

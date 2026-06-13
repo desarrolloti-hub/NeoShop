@@ -1,19 +1,20 @@
 /* ============================================
    SALE CREATE CONTROLLER - Nueva Venta con Escáner
-   SIN inyección de HTML - Solo lógica y eventos
+   Adaptado para ProductService y AdminService actualizados
    ============================================ */
 
 import { SaleService } from '../../../../../services/saleService.js';
 import { AdminService } from '../../../../../services/adminService.js';
-import ProductService from '../../../../../services/productService.js';
+import { ProductService } from '../../../../../services/productService.js';
 
 // ========== INICIALIZAR SERVICIOS ==========
-const productService = new ProductService();
+// ProductService es un objeto con métodos estáticos, no una clase
 
 // ========== ESTADO GLOBAL ==========
 let cartItems = [];
 let searchTimeout = null;
 let currentAdmin = null;
+let currentStore = null;
 
 // ========== ELEMENTOS DOM (solo referencias) ==========
 let elements = {};
@@ -30,20 +31,6 @@ function formatCurrency(value) {
 /**
  * Obtener datos del administrador desde AdminService
  * La sesión se guarda en localStorage con clave 'admin_user'
- * Estructura según adminService.js _saveSession:
- * {
- *   id: string,
- *   nombre: string,
- *   apellido: string,
- *   email: string,
- *   nombreCompleto: string,
- *   iniciales: string,
- *   plan: string,
- *   totalTiendas: number,
- *   activo: boolean,
- *   userPhoto: string,
- *   provider: string
- * }
  */
 function loadAdminSession() {
     currentAdmin = AdminService.getSession();
@@ -63,11 +50,29 @@ function loadAdminSession() {
     return true;
 }
 
+/**
+ * Obtener la tienda del admin actual
+ */
+async function loadCurrentStore() {
+    if (!currentAdmin || !currentAdmin.id) {
+        console.warn('⚠️ No hay admin para obtener tienda');
+        return false;
+    }
+
+    try {
+        currentStore = await ProductService.getCurrentStore(currentAdmin.id);
+        console.log('✅ Tienda actual:', currentStore.name);
+        return true;
+    } catch (error) {
+        console.error('❌ Error obteniendo tienda:', error.message);
+        return false;
+    }
+}
+
 // ========== ACTUALIZAR UI CON DATOS DEL ADMIN ==========
 function updateAdminInfoInUI() {
     if (!currentAdmin) return;
 
-    // Actualizar elementos que ya existen en el HTML
     if (elements.adminName) {
         elements.adminName.textContent = currentAdmin.nombreCompleto || currentAdmin.email;
     }
@@ -90,13 +95,24 @@ function cacheElements() {
         submitSaleBtn: document.getElementById('submitSaleBtn'),
 
         // Escáner y búsqueda
-        barcodeInput: document.getElementById('barcodeInput'),
-        searchBarcodeBtn: document.getElementById('searchBarcodeBtn'),
-        barcodeStatus: document.getElementById('barcodeStatus'),
+        skuInput: document.getElementById('skuInput'),
+        searchSkuBtn: document.getElementById('searchSkuBtn'),
+        skuStatus: document.getElementById('skuStatus'),
         productSearchInput: document.getElementById('productSearchInput'),
         searchResults: document.getElementById('searchResults'),
 
-        // Carrito - SOLO el contenedor, la estructura ya existe en HTML
+        // Vista previa del producto
+        previewSection: document.getElementById('previewSection'),
+        previewImage: document.getElementById('previewImage'),
+        previewName: document.getElementById('previewName'),
+        previewBrand: document.getElementById('previewBrand'),
+        previewPrice: document.getElementById('previewPrice'),
+        previewStock: document.getElementById('previewStock'),
+        previewBarcode: document.getElementById('previewBarcode'),
+        addToCartBtn: document.getElementById('addToCartBtn'),
+        quantityInput: document.getElementById('quantityInput'),
+
+        // Carrito
         cartItemsList: document.getElementById('cartItemsList'),
 
         // Resumen de venta
@@ -109,42 +125,108 @@ function cacheElements() {
         customerName: document.getElementById('customerName'),
         customerId: document.getElementById('customerId'),
 
-        // Información del admin (opcional - si existe en HTML)
+        // Información del admin
         adminName: document.getElementById('adminName'),
         adminInitials: document.getElementById('adminInitials'),
         adminEmail: document.getElementById('adminEmail'),
 
-        // Método de pago (los radios ya existen en HTML)
+        // Método de pago
         paymentRadios: document.querySelectorAll('input[name="paymentMethod"]')
     };
 }
 
-// ========== RENDERIZAR CARRITO (solo actualiza datos, no estructura) ==========
+// ========== MOSTRAR VISTA PREVIA DEL PRODUCTO ==========
+function showProductPreview(product) {
+    if (!elements.previewSection) return;
+
+    // Mostrar la sección de preview
+    elements.previewSection.style.display = 'block';
+
+    // Actualizar datos del producto
+    if (elements.previewName) {
+        elements.previewName.textContent = product.name;
+    }
+
+    if (elements.previewBrand) {
+        elements.previewBrand.textContent = product.brand || 'Sin marca';
+    }
+
+    if (elements.previewPrice) {
+        elements.previewPrice.textContent = formatCurrency(product.price);
+    }
+
+    if (elements.previewStock) {
+        const stockElement = elements.previewStock;
+        stockElement.textContent = product.stock;
+
+        // Cambiar color según stock
+        if (product.stock <= 0) {
+            stockElement.className = 'stock-value out-of-stock';
+        } else if (product.isLowStock) {
+            stockElement.className = 'stock-value low-stock';
+        } else {
+            stockElement.className = 'stock-value';
+        }
+    }
+
+    if (elements.previewBarcode) {
+        elements.previewBarcode.textContent = product.barcode;
+    }
+
+    if (elements.previewImage && product.imageUrl) {
+        elements.previewImage.src = product.imageUrl;
+        elements.previewImage.style.display = 'block';
+    } else if (elements.previewImage) {
+        elements.previewImage.src = '';
+        elements.previewImage.style.display = 'none';
+    }
+
+    // Configurar cantidad máxima
+    if (elements.quantityInput) {
+        elements.quantityInput.max = product.stock;
+        elements.quantityInput.value = 1;
+
+        // Deshabilitar si no hay stock
+        elements.quantityInput.disabled = product.stock <= 0;
+    }
+
+    // Configurar botón de agregar
+    if (elements.addToCartBtn) {
+        elements.addToCartBtn.disabled = product.stock <= 0;
+
+        // Guardar producto actual en el botón para usarlo al agregar
+        elements.addToCartBtn.dataset.productId = product.id;
+    }
+}
+
+function hideProductPreview() {
+    if (elements.previewSection) {
+        elements.previewSection.style.display = 'none';
+    }
+}
+
+// ========== RENDERIZAR CARRITO ==========
 function renderCart() {
     if (!elements.cartItemsList) return;
 
-    // Si no hay items, mostrar mensaje de carrito vacío (el HTML ya tiene la estructura)
     if (cartItems.length === 0) {
         elements.cartItemsList.innerHTML = `
             <div class="empty-cart">
                 <i class="fas fa-shopping-cart"></i>
                 <p>No hay productos agregados</p>
-                <p class="empty-hint">Escanee un producto para comenzar</p>
+                <p class="empty-hint">Escanee un producto o búsquelo para comenzar</p>
             </div>
         `;
         calculateTotals();
         return;
     }
 
-    // Generar SOLO los items del carrito (la estructura del cart-item ya existe en HTML como referencia)
     elements.cartItemsList.innerHTML = cartItems.map((item, index) => `
         <div class="cart-item" data-index="${index}">
             <div class="cart-item-info">
                 <span class="cart-item-name">${escapeHtml(item.name)}</span>
-                <span class="cart-item-category">${escapeHtml(item.category || 'Sin categoría')}</span>
-            </div>
-            <div class="cart-item-category-display">
-                ${escapeHtml(item.subcategory || '')}
+                <span class="cart-item-brand">${escapeHtml(item.brand || '')}</span>
+                <span class="cart-item-barcode">Código: ${escapeHtml(item.barcode)}</span>
             </div>
             <div class="cart-item-quantity">
                 <button type="button" class="quantity-btn" data-index="${index}" data-change="-1">-</button>
@@ -159,12 +241,10 @@ function renderCart() {
         </div>
     `).join('');
 
-    // Re-asignar eventos a los botones dinámicos
     attachCartEvents();
     calculateTotals();
 }
 
-// ========== ADJUNTAR EVENTOS DEL CARRITO ==========
 function attachCartEvents() {
     document.querySelectorAll('.quantity-btn').forEach(btn => {
         btn.removeEventListener('click', handleQuantityClick);
@@ -191,9 +271,10 @@ function handleRemoveClick(e) {
 }
 
 // ========== AGREGAR PRODUCTO AL CARRITO ==========
-function addToCart(product, quantity = 1) {
+async function addToCart(product, quantity = 1) {
+    // Verificar stock nuevamente (por si acaso)
     if (product.stock < quantity) {
-        showBarcodeStatus(`❌ Stock insuficiente. Disponible: ${product.stock}`, 'error');
+        showSkuStatus(`❌ Stock insuficiente. Disponible: ${product.stock}`, 'error');
         return;
     }
 
@@ -202,7 +283,7 @@ function addToCart(product, quantity = 1) {
     if (existingIndex !== -1) {
         const newQuantity = cartItems[existingIndex].quantity + quantity;
         if (product.stock < newQuantity) {
-            showBarcodeStatus(`❌ Stock insuficiente. Disponible: ${product.stock}`, 'error');
+            showSkuStatus(`❌ Stock insuficiente. Disponible: ${product.stock}`, 'error');
             return;
         }
         cartItems[existingIndex].quantity = newQuantity;
@@ -210,18 +291,36 @@ function addToCart(product, quantity = 1) {
         cartItems.push({
             id: product.id,
             name: product.name,
-            category: product.category,
-            subcategory: product.subcategory || '',
+            brand: product.brand || '',
+            barcode: product.barcode,
             price: product.price,
             quantity: quantity,
-            stock: product.stock,
-            barcode: product.barcode
+            stock: product.stock
         });
     }
 
     renderCart();
-    showBarcodeStatus(`✅ ${product.name} agregado`, 'success');
-    clearBarcodeInput();
+    showSkuStatus(`✅ ${product.name} agregado al carrito`, 'success');
+    clearSkuInput();
+    hideProductPreview();
+}
+
+// Evento para el botón de agregar desde preview
+async function handleAddFromPreview() {
+    if (!elements.addToCartBtn || !elements.addToCartBtn.dataset.productId) return;
+
+    const productId = elements.addToCartBtn.dataset.productId;
+    const quantity = parseInt(elements.quantityInput?.value) || 1;
+
+    try {
+        const product = await ProductService.getById(productId, currentAdmin.id);
+        if (product) {
+            await addToCart(product, quantity);
+        }
+    } catch (error) {
+        console.error('Error agregando producto:', error);
+        showSkuStatus(`❌ ${error.message}`, 'error');
+    }
 }
 
 function updateQuantity(index, change) {
@@ -233,7 +332,7 @@ function updateQuantity(index, change) {
         cartItems[index].quantity = newQuantity;
         renderCart();
     } else {
-        showBarcodeStatus(`❌ Stock máximo: ${cartItems[index].stock}`, 'error');
+        showSkuStatus(`❌ Stock máximo: ${cartItems[index].stock}`, 'error');
     }
 }
 
@@ -242,78 +341,89 @@ function removeFromCart(index) {
     renderCart();
 }
 
-// ========== CALCULAR TOTALES (actualiza valores en elementos existentes) ==========
+// ========== CALCULAR TOTALES ==========
 function calculateTotals() {
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const discount = parseFloat(elements.discount?.value) || 0;
     const tax = subtotal * 0.16;
     const total = subtotal - discount + tax;
 
-    // Solo actualizar el texto, no crear elementos nuevos
     if (elements.summarySubtotal) elements.summarySubtotal.textContent = formatCurrency(subtotal);
     if (elements.summaryTax) elements.summaryTax.textContent = formatCurrency(tax);
     if (elements.summaryTotal) elements.summaryTotal.textContent = formatCurrency(total);
 }
 
-// ========== MOSTRAR ESTADO DEL CÓDIGO DE BARRAS ==========
-function showBarcodeStatus(message, type = 'info') {
-    if (!elements.barcodeStatus) return;
-    elements.barcodeStatus.textContent = message;
-    elements.barcodeStatus.className = `barcode-status ${type}`;
+// ========== MOSTRAR ESTADO DEL SKU ==========
+function showSkuStatus(message, type = 'info') {
+    if (!elements.skuStatus) return;
+    elements.skuStatus.textContent = message;
+    elements.skuStatus.className = `sku-status ${type}`;
 
     if (type !== 'loading') {
         setTimeout(() => {
-            if (elements.barcodeStatus) {
-                elements.barcodeStatus.textContent = '';
-                elements.barcodeStatus.className = 'barcode-status';
+            if (elements.skuStatus) {
+                elements.skuStatus.textContent = '';
+                elements.skuStatus.className = 'sku-status';
             }
         }, 3000);
     }
 }
 
-function clearBarcodeInput() {
-    if (elements.barcodeInput) {
-        elements.barcodeInput.value = '';
-        elements.barcodeInput.focus();
+function clearSkuInput() {
+    if (elements.skuInput) {
+        elements.skuInput.value = '';
+        elements.skuInput.focus();
     }
 }
 
-// ========== BUSCAR PRODUCTO POR CÓDIGO DE BARRAS ==========
-async function searchProductByBarcode() {
-    const barcode = elements.barcodeInput?.value.trim();
+// ========== BUSCAR PRODUCTO POR SKU (CÓDIGO DE BARRAS) ==========
+async function searchProductBySku() {
+    const sku = elements.skuInput?.value.trim();
 
-    if (!barcode) {
-        showBarcodeStatus('⚠️ Ingrese un código de barras', 'error');
+    if (!sku) {
+        showSkuStatus('⚠️ Ingrese un código SKU', 'error');
         return;
     }
 
-    showBarcodeStatus('🔍 Buscando producto...', 'loading');
+    if (!currentAdmin) {
+        showSkuStatus('❌ Sesión no válida', 'error');
+        return;
+    }
+
+    showSkuStatus('🔍 Buscando producto...', 'loading');
+    hideProductPreview();
 
     try {
-        const product = await productService.getProductByBarcode(barcode);
+        // Usar ProductService.getByBarcode que ahora requiere adminId
+        const product = await ProductService.getByBarcode(sku, currentAdmin.id);
 
         if (!product) {
-            showBarcodeStatus('❌ Producto no encontrado', 'error');
-            clearBarcodeInput();
+            showSkuStatus('❌ Producto no encontrado', 'error');
+            clearSkuInput();
+            return;
+        }
+
+        if (!product.active) {
+            showSkuStatus(`❌ Producto "${product.name}" está desactivado`, 'error');
+            clearSkuInput();
             return;
         }
 
         if (product.stock <= 0) {
-            showBarcodeStatus(`❌ Producto "${product.name}" sin stock disponible`, 'error');
-            clearBarcodeInput();
-            return;
+            showSkuStatus(`⚠️ Producto "${product.name}" sin stock disponible`, 'warning');
         }
 
-        addToCart(product);
+        // Mostrar vista previa del producto
+        showProductPreview(product);
 
     } catch (error) {
         console.error('Error buscando producto:', error);
-        showBarcodeStatus(`❌ ${error.message}`, 'error');
-        clearBarcodeInput();
+        showSkuStatus(`❌ ${error.message}`, 'error');
+        clearSkuInput();
     }
 }
 
-// ========== BUSCAR PRODUCTOS POR NOMBRE (AUTOCOMPLETADO) ==========
+// ========== BUSCAR PRODUCTOS POR NOMBRE ==========
 async function searchProductsByName() {
     const searchTerm = elements.productSearchInput?.value.trim();
 
@@ -325,8 +435,11 @@ async function searchProductsByName() {
         return;
     }
 
+    if (!currentAdmin) return;
+
     try {
-        const products = await productService.searchProducts(searchTerm);
+        // Usar ProductService.search que requiere adminId
+        const products = await ProductService.search(searchTerm, currentAdmin.id, 10);
 
         if (!elements.searchResults) return;
 
@@ -340,9 +453,13 @@ async function searchProductsByName() {
             <div class="search-result-item" data-id="${product.id}">
                 <div class="search-result-info">
                     <div class="search-result-name">${escapeHtml(product.name)}</div>
-                    <div class="search-result-category">${escapeHtml(product.category || 'Sin categoría')}</div>
+                    <div class="search-result-brand">${escapeHtml(product.brand || 'Sin marca')}</div>
+                    <div class="search-result-barcode">SKU: ${escapeHtml(product.barcode)}</div>
                 </div>
                 <div class="search-result-price">${formatCurrency(product.price)}</div>
+                <div class="search-result-stock ${product.stock <= 0 ? 'out-of-stock' : (product.isLowStock ? 'low-stock' : '')}">
+                    Stock: ${product.stock}
+                </div>
             </div>
         `).join('');
 
@@ -353,15 +470,15 @@ async function searchProductsByName() {
             item.addEventListener('click', async () => {
                 const productId = item.dataset.id;
                 try {
-                    const product = await productService.getProductById(productId);
+                    const product = await ProductService.getById(productId, currentAdmin.id);
                     if (product) {
-                        addToCart(product);
+                        showProductPreview(product);
                         if (elements.productSearchInput) elements.productSearchInput.value = '';
                         if (elements.searchResults) elements.searchResults.style.display = 'none';
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    showBarcodeStatus(`❌ ${error.message}`, 'error');
+                    showSkuStatus(`❌ ${error.message}`, 'error');
                 }
             });
         });
@@ -384,7 +501,7 @@ async function createSale() {
             return;
         }
 
-        // Obtener método de pago seleccionado (los radios ya existen en HTML)
+        // Obtener método de pago seleccionado
         let paymentMethod = '';
         if (elements.paymentRadios) {
             elements.paymentRadios.forEach(radio => {
@@ -412,33 +529,20 @@ async function createSale() {
         }));
 
         const saleData = {
-            // Datos del cliente
             customerId: elements.customerId?.value || null,
             customerName: elements.customerName?.value?.trim() || 'Cliente general',
-
-            // Productos
             productos: productos,
-
-            // Valores
             subtotal: subtotal,
             discount: discount,
             tax: tax,
             total: total,
-
-            // Pago
             paymentMethod: paymentMethod,
             date: new Date().toISOString(),
-
-            // Datos del administrador (desde AdminService)
             userId: currentAdmin.id,
             userName: currentAdmin.nombreCompleto,
             userEmail: currentAdmin.email,
-
-            // Nota: storeSlug y branchId se obtienen del contexto de la tienda
-            // Si el admin tiene tiendas, se pueden obtener de currentAdmin.tiendas
-            // Por ahora se usan valores por defecto o se obtienen de otro servicio
-            storeSlug: 'default-store',
-            branchId: 'default-branch'
+            storeSlug: currentStore?.name || 'default-store',
+            branchId: currentStore?.id || 'default-branch'
         };
 
         Swal.fire({
@@ -449,6 +553,15 @@ async function createSale() {
         });
 
         const result = await SaleService.createSale(saleData, currentAdmin.id);
+
+        // Actualizar stock de productos (usando ProductService.updateStock)
+        for (const item of cartItems) {
+            try {
+                await ProductService.updateStock(item.id, -item.quantity, currentAdmin.id);
+            } catch (error) {
+                console.error(`Error actualizando stock de ${item.name}:`, error);
+            }
+        }
 
         Swal.fire({
             title: '¡Venta registrada!',
@@ -469,6 +582,7 @@ async function createSale() {
         if (elements.customerId) elements.customerId.value = '';
         if (elements.discount) elements.discount.value = '0';
         renderCart();
+        hideProductPreview();
 
     } catch (error) {
         console.error('Error creando venta:', error);
@@ -499,28 +613,32 @@ function bindEvents() {
         });
     }
 
-    // Escáner
-    if (elements.searchBarcodeBtn) {
-        elements.searchBarcodeBtn.addEventListener('click', searchProductByBarcode);
+    // Búsqueda por SKU
+    if (elements.searchSkuBtn) {
+        elements.searchSkuBtn.addEventListener('click', searchProductBySku);
     }
 
-    if (elements.barcodeInput) {
-        elements.barcodeInput.addEventListener('keypress', (e) => {
+    if (elements.skuInput) {
+        elements.skuInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                searchProductByBarcode();
+                searchProductBySku();
             }
         });
     }
 
-    // Búsqueda manual
+    // Botón agregar desde preview
+    if (elements.addToCartBtn) {
+        elements.addToCartBtn.addEventListener('click', handleAddFromPreview);
+    }
+
+    // Búsqueda manual por nombre
     if (elements.productSearchInput) {
         elements.productSearchInput.addEventListener('input', () => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(searchProductsByName, 300);
         });
 
-        // Cerrar resultados al hacer clic fuera
         document.addEventListener('click', (e) => {
             if (elements.searchResults &&
                 !elements.productSearchInput?.contains(e.target) &&
@@ -548,29 +666,41 @@ function bindEvents() {
 export async function saleCreateController() {
     console.log('➕ Sale Create Controller - Inicializado');
 
-    // 1. Cargar sesión del administrador desde AdminService
+    // 1. Cargar sesión del administrador
     const sessionLoaded = loadAdminSession();
 
     if (!sessionLoaded) {
         console.error('❌ No se pudo cargar la sesión del administrador');
-        // No mostramos error crítico, solo warning
+        Swal.fire('Error', 'No se pudo cargar la sesión. Por favor inicie sesión nuevamente.', 'error');
+        if (window.router) window.router.navigate('/admin/login');
+        return;
     }
 
-    // 2. Cachear referencias DOM
+    // 2. Cargar tienda del admin
+    const storeLoaded = await loadCurrentStore();
+
+    if (!storeLoaded) {
+        console.warn('⚠️ No se pudo cargar la tienda');
+    }
+
+    // 3. Cachear referencias DOM
     cacheElements();
 
-    // 3. Actualizar UI con datos del admin (si existen los elementos)
+    // 4. Actualizar UI con datos del admin
     updateAdminInfoInUI();
 
-    // 4. Bindear eventos
+    // 5. Bindear eventos
     bindEvents();
 
-    // 5. Renderizar carrito vacío
+    // 6. Renderizar carrito vacío
     renderCart();
 
-    // 6. Enfocar input de código de barras
-    if (elements.barcodeInput) {
-        elements.barcodeInput.focus();
+    // 7. Ocultar preview inicialmente
+    hideProductPreview();
+
+    // 8. Enfocar input de SKU
+    if (elements.skuInput) {
+        elements.skuInput.focus();
     }
 
     console.log('✅ Sale Create Controller - Listo');

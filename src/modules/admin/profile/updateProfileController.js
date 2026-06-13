@@ -1,14 +1,11 @@
 /* FILE: updateProfileController.js
    ========================================================
-   CONTROLADOR PARA COMPLETAR PERFIL DE EMPRESA (ONBOARDING)
-   Dependencias: AdminService, SweetAlert2
-   Funcionalidad: Permite al administrador completar los datos de su negocio
-                  en un wizard de 3 pasos (negocio, ubicación, plan)
+   CONTROLADOR PARA COMPLETAR PERFIL DE EMPPRESA (ONBOARDING)
+   ACTUALIZADO PARA USAR LA ESTRUCTURA DE AVATAR DE CREATEPRODUCT
    ======================================================== */
 
 import { AdminService } from '/services/adminService.js';
 import { AdminRepository } from '/repositories/adminRepository.js';
-
 
 let currentStep = 1;
 let isTransitioning = false;
@@ -19,24 +16,15 @@ let businessLogoBase64 = '';
    FUNCION PRINCIPAL - EXPORTADA
    ======================================================== */
 export async function updateProfileController() {
-    if (!AdminService.isAuthenticated()) {
-        showToast('Debes iniciar sesión', 'error');
-        setTimeout(() => {
-            if (typeof window.navigateTo === 'function') {
-                window.navigateTo('/iniciarSesion');
-            } else {
-                window.location.href = '/iniciarSesion';
-            }
-        }, 1500);
-        return;
-    }
+
 
     initWizard();
     initLogoUpload();
     initPlanSelection();
-    initNavigationButtons();  // ✅ Esta función ahora existe
+    initNavigationButtons();
     initCompleteButton();
     initSkipButton();
+    initLogoVisibility();  // ✅ Agrega esta línea
     await loadExistingData();
 }
 
@@ -84,31 +72,6 @@ function initWizard() {
         if (currentStep > 1 && !isTransitioning) {
             cambiarPanel(-1);
         }
-    }
-
-    function cambiarPanel(direction) {
-        if (isTransitioning) return;
-
-        const currentPanel = document.querySelector('.carousel-panel.active');
-        const currentIndex = Array.from(panels).indexOf(currentPanel);
-        const newIndex = currentIndex + direction;
-
-        if (newIndex < 0 || newIndex >= panels.length) return;
-
-        isTransitioning = true;
-
-        currentPanel.style.animation = 'fadeOutDown 0.4s ease forwards';
-
-        setTimeout(() => {
-            currentPanel.classList.remove('active');
-            currentPanel.style.animation = '';
-            panels[newIndex].classList.add('active');
-            panels[newIndex].style.animation = 'fadeInUp 0.5s ease forwards';
-            currentStep = newIndex + 1;
-            updateUI();
-
-            setTimeout(() => { isTransitioning = false; }, 300);
-        }, 300);
     }
 
     stepItems.forEach((step, idx) => {
@@ -203,20 +166,22 @@ function validateStep2() {
 }
 
 /* ========================================================
-   INICIALIZA SUBIDA DE LOGOTIPO
+   ✅ INICIALIZA SUBIDA DE LOGOTIPO (ACTUALIZADO PARA AVATAR)
    ======================================================== */
 function initLogoUpload() {
-    const uploadArea = document.getElementById('logoUploadArea');
+    const avatarWrapper = document.getElementById('logoUploadArea');
     const fileInput = document.getElementById('logoInput');
-    const placeholder = document.getElementById('logoPlaceholder');
-    const preview = document.getElementById('logoPreview');
+    const avatarCircle = document.getElementById('logoAvatarCircle');
+    const avatarIcon = document.getElementById('logoAvatarIcon');
     const previewImg = document.getElementById('logoPreviewImg');
     const removeBtn = document.getElementById('removeLogoBtn');
 
-    if (!uploadArea) return;
+    if (!avatarWrapper) return;
 
-    uploadArea.addEventListener('click', () => fileInput.click());
+    // Click en el wrapper para subir imagen
+    avatarWrapper.addEventListener('click', () => fileInput.click());
 
+    // Manejar cambio de archivo
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -234,20 +199,39 @@ function initLogoUpload() {
         const reader = new FileReader();
         reader.onload = (ev) => {
             businessLogoBase64 = ev.target.result;
+
+            // Mostrar la imagen en el avatar
             previewImg.src = businessLogoBase64;
-            placeholder.style.display = 'none';
-            preview.style.display = 'flex';
+            previewImg.style.display = 'block';
+            avatarIcon.style.display = 'none';
+
+            // Mostrar el botón de eliminar
+            if (removeBtn) {
+                removeBtn.style.display = 'block';
+            }
+
             showToast('Logotipo cargado', 'success');
         };
         reader.readAsDataURL(file);
     });
 
+    // Manejar eliminación de imagen
     if (removeBtn) {
-        removeBtn.addEventListener('click', () => {
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evitar que el click llegue al wrapper
             businessLogoBase64 = '';
-            placeholder.style.display = 'flex';
-            preview.style.display = 'none';
+
+            // Ocultar imagen y mostrar icono
+            previewImg.style.display = 'none';
+            previewImg.src = '';
+            avatarIcon.style.display = 'flex';
+
+            // Ocultar botón de eliminar
+            removeBtn.style.display = 'none';
+
+            // Limpiar input file
             fileInput.value = '';
+
             showToast('Logotipo eliminado', 'info');
         });
     }
@@ -376,7 +360,7 @@ function initSkipButton() {
 }
 
 /* ========================================================
-   CARGA DATOS EXISTENTES (si ya hay datos guardados)
+   ✅ CARGA DATOS EXISTENTES (ACTUALIZADO PARA AVATAR)
    ======================================================== */
 async function loadExistingData() {
     try {
@@ -409,16 +393,26 @@ async function loadExistingData() {
             if (stateInput) stateInput.value = adminData.state || '';
             if (refsInput) refsInput.value = adminData.locationRefs || '';
 
+            // ✅ Cargar logo existente con la nueva estructura
             if (adminData.logo) {
                 businessLogoBase64 = adminData.logo;
                 const previewImg = document.getElementById('logoPreviewImg');
-                const placeholder = document.getElementById('logoPlaceholder');
-                const preview = document.getElementById('logoPreview');
-                if (previewImg) previewImg.src = businessLogoBase64;
-                if (placeholder) placeholder.style.display = 'none';
-                if (preview) preview.style.display = 'flex';
+                const avatarIcon = document.getElementById('logoAvatarIcon');
+                const removeBtn = document.getElementById('removeLogoBtn');
+
+                if (previewImg) {
+                    previewImg.src = businessLogoBase64;
+                    previewImg.style.display = 'block';
+                }
+                if (avatarIcon) {
+                    avatarIcon.style.display = 'none';
+                }
+                if (removeBtn) {
+                    removeBtn.style.display = 'block';
+                }
             }
 
+            // Cargar plan seleccionado
             if (adminData.plan) {
                 selectedPlan = adminData.plan;
                 const planCard = document.querySelector(`.plan-card[data-plan="${selectedPlan}"]`);
@@ -431,7 +425,7 @@ async function loadExistingData() {
 }
 
 /* ========================================================
-   FUNCIÓN AUXILIAR PARA CAMBIAR PANEL (usada en initWizard y initNavigationButtons)
+   FUNCIÓN AUXILIAR PARA CAMBIAR PANEL
    ======================================================== */
 function cambiarPanel(direction) {
     const panels = document.querySelectorAll('.carousel-panel');
@@ -487,7 +481,31 @@ function updateWizardUI() {
         actionButtons.style.display = currentStep === 3 ? 'flex' : 'none';
     }
 }
+/* ========================================================
+   INICIALIZA LA VISIBILIDAD DEL LOGO (solo en paso 1)
+   ======================================================== */
+function initLogoVisibility() {
+    const logoSection = document.getElementById('logoSection');
+    if (!logoSection) return;
 
+    function updateVisibility() {
+        const activeStep = document.querySelector('.step-item.active');
+        if (activeStep && activeStep.dataset.step === '1') {
+            logoSection.style.display = 'block';
+        } else {
+            logoSection.style.display = 'none';
+        }
+    }
+
+    // Actualizar cuando cambie el paso
+    const observer = new MutationObserver(updateVisibility);
+    const stepItems = document.querySelectorAll('.step-item');
+    stepItems.forEach(step => {
+        observer.observe(step, { attributes: true, attributeFilter: ['class'] });
+    });
+
+    updateVisibility();
+}
 /* ========================================================
    TOAST NOTIFICATION
    ======================================================== */
@@ -515,6 +533,3 @@ function showToast(message, type = 'info') {
 /* ========================================================
    LIMPIEZA DEL CONTROLADOR
    ======================================================== */
-export function cleanupUpdateProfile() {
-    // Limpieza si es necesaria
-}
