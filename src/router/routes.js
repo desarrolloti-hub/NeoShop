@@ -11,19 +11,19 @@ import { aboutUsController } from '../modules/visitor/aboutUs/aboutUsController.
 import { createAccountController } from '../modules/visitor/createAccount/createAccounController.js';
 import { contactController } from '../modules/visitor/contact/contactController.js';
 import { termsAndConditionsController } from '../modules/visitor/termsAndConditions/termsAndConditionsController.js';
-   /* ========================================
-         ----------- store -----------
-   ======================================== */
+/* ========================================
+      ----------- store -----------
+======================================== */
 
 import { createStoreController } from '../modules/admin/store/create/createStoreController.js';
 
 
 
-    /* ========================================
-         ----------- settings -----------
-   ======================================== */
+/* ========================================
+     ----------- settings -----------
+======================================== */
 
-   import { settingsController } from '../modules/admin/settings/settingsController.js';
+import { settingsController } from '../modules/admin/settings/settingsController.js';
 
 
 
@@ -72,6 +72,11 @@ import { readCashSessionsController } from '../modules/admin/cashSessionStatus/r
 import { readProductsController } from '../modules/admin/products/read/readProductsController.js';
 import { createProductController } from '../modules/admin/products/create/createProductController.js';
 import { updateProductController } from '../modules/admin/products/update/updateProductController.js';
+
+/* == ventas == */
+import { saleDetailController } from '../modules/admin/sales/detail/detailSaleController.js';
+import { saleListController } from '../modules/admin/sales/read/readSaleController.js';
+import { saleCreateController } from '../modules/admin/sales/create/createSaleController.js';
 
 /* ========================================
                 Rutas HTML 
@@ -154,13 +159,13 @@ export const routes = {
         view: "/modules/admin/products/read/readProducts.html",
         controller: readProductsController
     },
-    
+
     /* crear producto */
     "/crearProducto": {
         view: "/modules/admin/products/create/createProduct.html",
         controller: createProductController
     },
-    
+
     /* editar producto */
     "/editarProducto": {
         view: "/modules/admin/products/update/updateProduct.html",
@@ -189,7 +194,23 @@ export const routes = {
         view: "/modules/admin/home/adminHome.html",
         controller: adminHomeController
     },
-
+    "/tienda": {
+        view: "/modules/admin/store/create/createStore.html",
+        controller: createStoreController
+    },
+    /* == ventas == */
+    "/nuevaVenta": {
+        view: "/modules/admin/sale/create/createSale.html",
+        controller: saleCreateController
+    },
+    "/ventas": {
+        view: "/modules/admin/sale/read/readSale.html",
+        controller: saleListController
+    },
+    "/detallesVenta": {
+        view: "/modules/admin/sale/detail/detailSale.html",
+        controller: saleDetailController
+    },
 
 
 

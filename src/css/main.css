@@ -59,7 +59,7 @@
    ======================================== */
 
 
-   @import url('./pages/admin/store/create/createStore.css');
+@import url('./pages/admin/store/create/createStore.css');
 
 /* navbar */
 @import url('./components/admin/adminNavbar.css');
@@ -87,3 +87,7 @@
 @import url('./pages/admin/products/read/readProducts.css');
 @import url('./pages/admin/products/create/createProduct.css');
 @import url('./pages/admin/products/update/updateProduct.css');
+/* ventas */
+@import url(./pages/admin/sales/read/readSale.css);
+@import url(./pages/admin/sales/create/createSale.css);
+@import url(./pages/admin/sales/detail/detailSale.css);
