@@ -430,3 +430,104 @@
         font-size: var(--font-size-lg);
     }
 }
+
+/* ============================================
+   QUICK ACCESS - VERSIÓN COMPACTA (ARRIBA)
+   ============================================ */
+
+.admin-quick-access {
+    margin-bottom: var(--spacing-2xl);
+}
+
+.admin-quick-access h3 {
+    display: none;
+    /* Ocultamos el título para ahorrar espacio */
+}
+
+.admin-quick-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    background: var(--bg-white);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+}
+
+.admin-quick-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-sm);
+    background: transparent;
+    border-radius: var(--border-radius-md);
+    padding: 8px 16px;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    border: 1px solid transparent;
+    min-width: auto;
+}
+
+.admin-quick-card i {
+    font-size: 1.1rem;
+    color: var(--color-primary);
+    margin-bottom: 0;
+}
+
+.admin-quick-card span {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-dark);
+    white-space: nowrap;
+}
+
+.admin-quick-card:hover {
+    background: rgba(69, 109, 162, 0.08);
+    border-color: var(--border-light);
+    transform: translateY(-2px);
+}
+
+/* Responsive para botones compactos */
+@media (max-width: 1024px) {
+    .admin-quick-grid {
+        gap: var(--spacing-xs);
+        padding: var(--spacing-sm);
+    }
+
+    .admin-quick-card {
+        padding: 6px 12px;
+    }
+
+    .admin-quick-card span {
+        font-size: 11px;
+    }
+
+    .admin-quick-card i {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-quick-grid {
+        flex-direction: row;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding: var(--spacing-sm);
+        scrollbar-width: thin;
+    }
+
+    .admin-quick-card {
+        flex-shrink: 0;
+    }
+}
+
+@media (max-width: 550px) {
+    .admin-quick-card {
+        padding: 5px 10px;
+    }
+
+    .admin-quick-card span {
+        font-size: 10px;
+    }
+}
