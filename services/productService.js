@@ -15,6 +15,37 @@ export default class ProductService {
     return product;
   }
 
+  /**
+   * Buscar producto por código de barras
+   * @param {string} barcode - Código de barras
+   * @returns {Promise<Product>}
+   */
+  async getProductByBarcode(barcode) {
+    if (!barcode || barcode.trim() === "") {
+      throw new Error("Barcode is required");
+    }
+    const product = await productRepo.getByBarcode(barcode.trim());
+    if (!product) {
+      throw new Error("Producto no encontrado por código de barras");
+    }
+    if (product.stock <= 0) {
+      throw new Error(`Producto "${product.name}" sin stock disponible`);
+    }
+    return product;
+  }
+
+  /**
+   * Buscar productos por nombre (autocompletado)
+   * @param {string} searchTerm - Término de búsqueda
+   * @returns {Promise<Array<Product>>}
+   */
+  async searchProducts(searchTerm) {
+    if (!searchTerm || searchTerm.trim().length < 2) {
+      return [];
+    }
+    return await productRepo.searchByName(searchTerm.trim());
+  }
+
   async createProduct(productData) {
     // Validaciones
     if (!productData.name || productData.name.trim() === "") {
@@ -37,7 +68,8 @@ export default class ProductService {
       stock: parseInt(productData.stock, 10),
       category: productData.category.trim(),
       description: productData.description ? productData.description.trim() : "",
-      imageUrl: productData.imageUrl || ""
+      imageUrl: productData.imageUrl || "",
+      barcode: productData.barcode ? productData.barcode.trim() : null
     };
 
     return await productRepo.create(cleanData);
@@ -48,7 +80,6 @@ export default class ProductService {
     const existing = await productRepo.getById(id);
     if (!existing) throw new Error("Product not found");
 
-    // Validaciones parciales (solo los campos que vienen)
     const updatedFields = {};
     if (productData.name !== undefined) updatedFields.name = productData.name.trim();
     if (productData.price !== undefined) {
@@ -62,6 +93,7 @@ export default class ProductService {
     if (productData.category !== undefined) updatedFields.category = productData.category.trim();
     if (productData.description !== undefined) updatedFields.description = productData.description.trim();
     if (productData.imageUrl !== undefined) updatedFields.imageUrl = productData.imageUrl;
+    if (productData.barcode !== undefined) updatedFields.barcode = productData.barcode ? productData.barcode.trim() : null;
 
     return await productRepo.update(id, updatedFields);
   }
@@ -74,7 +106,6 @@ export default class ProductService {
     return true;
   }
 
-  // Método adicional para verificar stock (para punto de venta)
   async checkStock(id, quantity) {
     const product = await this.getProductById(id);
     if (product.stock < quantity) {

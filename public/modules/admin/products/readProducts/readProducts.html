@@ -1,0 +1,86 @@
+<div class="credContainer">
+    <div class="page-header">
+        <h2><i class="fas fa-box-open"></i> Gestión de Productos</h2>
+        <p>Administra tu catálogo: visualiza, filtra y gestiona productos.</p>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="products-toolbar">
+        <div class="filters">
+            <select class="filter-select" id="categoryFilter">
+                <option value="">Todas las categorías</option>
+                <option value="Electrónica">Electrónica</option>
+                <option value="Audio">Audio</option>
+                <option value="Accesorios">Accesorios</option>
+            </select>
+            <select class="filter-select" id="statusFilter">
+                <option value="">Todos los estados</option>
+                <option value="active">Activo</option>
+                <option value="inactive">Inactivo</option>
+            </select>
+            <input type="text" class="filter-input" id="searchInput" placeholder="Buscar por nombre o SKU...">
+            <button class="btn-filter" id="applyFiltersBtn"><i class="fas fa-search"></i> Filtrar</button>
+        </div>
+        <button class="btn-primary" id="newProductBtn"><i class="fas fa-plus"></i> Nuevo Producto</button>
+    </div>
+
+    <!-- KPIs de productos -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-title">Total productos</div>
+            <div class="kpi-value" id="totalProducts">0</div>
+            <div class="kpi-trend"><i class="fas fa-box"></i> En catálogo</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">Productos activos</div>
+            <div class="kpi-value" id="activeProducts">0</div>
+            <div class="kpi-trend"><i class="fas fa-check-circle"></i> Disponibles</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">Stock bajo</div>
+            <div class="kpi-value" id="lowStockProducts">0</div>
+            <div class="kpi-trend" style="color:#ed6c02;"><i class="fas fa-exclamation-triangle"></i> Requieren atención
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">Valor inventario</div>
+            <div class="kpi-value" id="inventoryValue">$0</div>
+            <div class="kpi-trend"><i class="fas fa-chart-line"></i> Total en stock</div>
+        </div>
+    </div>
+
+    <!-- Tabla de productos - Desktop -->
+    <div class="component-table-wrapper desktop-view">
+        <table class="component-table">
+            <thead>
+                <tr>
+                    <th>Imagen</th>
+                    <th>Nombre / SKU</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Código Barras</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="productsTableBody">
+                <tr>
+                    <td colspan="8" class="empty-state"><i class="fas fa-box-open"></i> Cargando productos...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Vista móvil - Cards -->
+    <div class="mobile-view" id="productsMobileCards">
+        <div class="cards-empty-state"><i class="fas fa-box-open"></i> Cargando productos...</div>
+    </div>
+
+    <!-- Paginación -->
+    <div class="pagination" id="pagination">
+        <button class="page-item" id="prevPageBtn" disabled>Anterior</button>
+        <span class="page-info" id="pageInfo">Página 1</span>
+        <button class="page-item" id="nextPageBtn">Siguiente</button>
+    </div>
+</div>

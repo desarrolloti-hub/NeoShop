@@ -1,0 +1,227 @@
+/* ============================================
+   PRODUCT LIST CSS - Estilos para listado de productos
+   ============================================ */
+
+/* Toolbar */
+.products-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+.filters {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.filter-select,
+.filter-input {
+    padding: 8px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-md);
+    background: var(--bg-white);
+    font-family: var(--font-family);
+}
+
+.btn-filter {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-filter:hover {
+    background: var(--color-primary-dark);
+}
+
+/* KPIs */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-2xl);
+}
+
+.kpi-card {
+    background: var(--bg-white);
+    border-radius: var(--border-radius-xl);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-light);
+    transition: transform 0.2s;
+}
+
+.kpi-card:hover {
+    transform: translateY(-3px);
+}
+
+.kpi-title {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-xs);
+}
+
+.kpi-value {
+    font-size: var(--font-size-3xl);
+    font-weight: 800;
+    color: var(--color-primary-dark);
+}
+
+.kpi-trend {
+    font-size: var(--font-size-xs);
+    margin-top: var(--spacing-xs);
+    color: #10b981;
+}
+
+/* Product Image in Table */
+.product-img-table {
+    width: 48px;
+    height: 48px;
+    background: var(--bg-blue-light);
+    border-radius: var(--border-radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+    font-size: 1.5rem;
+    overflow: hidden;
+}
+
+.product-img-table img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Status Badges */
+.status-badge-active {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 30px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    background: #e0f2e9;
+    color: #2e7d32;
+}
+
+.status-badge-inactive {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 30px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    background: #ffe6e5;
+    color: #c62828;
+}
+
+/* Stock Badge */
+.stock-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+}
+
+.stock-normal {
+    background: #e0f2e9;
+    color: #2e7d32;
+}
+
+.stock-low {
+    background: #fff3e0;
+    color: #ed6c02;
+}
+
+.stock-critical {
+    background: #ffe6e5;
+    color: #c62828;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-xl);
+}
+
+.page-item {
+    padding: 8px 16px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-md);
+    background: var(--bg-white);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.page-item:hover:not(:disabled) {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+.page-item:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-info {
+    color: var(--text-muted);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-2xl);
+    color: var(--text-muted);
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: var(--spacing-md);
+    display: block;
+    color: var(--border-light);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-md);
+    }
+
+    .kpi-value {
+        font-size: var(--font-size-xl);
+    }
+
+    .products-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filters {
+        flex-direction: column;
+    }
+
+    .filter-select,
+    .filter-input,
+    .btn-filter {
+        width: 100%;
+    }
+}
+
+@media (max-width: 550px) {
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,141 @@
+<div class="credContainer">
+    <div class="page-header">
+        <div class="header-actions">
+            <button id="backToListBtn" class="btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a productos
+            </button>
+        </div>
+        <h2><i class="fas fa-plus-circle"></i> Nuevo Producto</h2>
+        <p>Agrega un nuevo producto al catálogo.</p>
+    </div>
+
+    <div class="create-product-container">
+        <form id="productCreateForm">
+            <div class="form-grid">
+                <!-- Columna izquierda -->
+                <div class="form-column">
+                    <div class="form-card-section">
+                        <h3><i class="fas fa-info-circle"></i> Información Básica</h3>
+
+                        <div class="form-group">
+                            <label>Nombre del producto *</label>
+                            <input type="text" id="productName" placeholder="Ej: Auriculares Bluetooth" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>SKU (Código único)</label>
+                            <input type="text" id="productSku" placeholder="Ej: AUR-002">
+                            <small class="form-hint">Identificador único interno</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Código de barras</label>
+                            <input type="text" id="productBarcode" placeholder="Escanear o escribir código de barras">
+                            <small class="form-hint">Código para punto de venta</small>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Categoría *</label>
+                                <select id="productCategory" required>
+                                    <option value="">Seleccionar categoría</option>
+                                    <option value="Electrónica">Electrónica</option>
+                                    <option value="Audio">Audio</option>
+                                    <option value="Accesorios">Accesorios</option>
+                                    <option value="Ropa">Ropa</option>
+                                    <option value="Hogar">Hogar</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Subcategoría</label>
+                                <input type="text" id="productSubcategory" placeholder="Ej: Audífonos">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-card-section">
+                        <h3><i class="fas fa-dollar-sign"></i> Precios y Stock</h3>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Precio de venta *</label>
+                                <input type="number" id="productPrice" step="0.01" placeholder="0.00" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Precio de compra</label>
+                                <input type="number" id="productCost" step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Stock inicial *</label>
+                                <input type="number" id="productStock" value="0" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Stock mínimo</label>
+                                <input type="number" id="productMinStock" value="0" min="0">
+                                <small class="form-hint">Alerta cuando stock baje de este nivel</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna derecha -->
+                <div class="form-column">
+                    <div class="form-card-section">
+                        <h3><i class="fas fa-image"></i> Imagen del Producto</h3>
+
+                        <div class="image-upload-area" id="imageUploadArea">
+                            <div class="image-preview" id="imagePreview" style="display: none;">
+                                <img id="previewImg" src="" alt="Vista previa">
+                                <button type="button" class="remove-image-btn" id="removeImageBtn">✕</button>
+                            </div>
+                            <div class="image-placeholder" id="imagePlaceholder">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Haz clic o arrastra una imagen</p>
+                                <small>PNG, JPG, GIF hasta 2MB</small>
+                            </div>
+                            <input type="file" id="productImage" accept="image/*" style="display: none;">
+                            <input type="hidden" id="productImageUrl">
+                        </div>
+                    </div>
+
+                    <div class="form-card-section">
+                        <h3><i class="fas fa-align-left"></i> Descripción</h3>
+
+                        <div class="form-group">
+                            <label>Descripción corta</label>
+                            <input type="text" id="productShortDesc" placeholder="Breve descripción del producto">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Descripción completa</label>
+                            <textarea id="productDescription" rows="4"
+                                placeholder="Descripción detallada del producto..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-card-section">
+                        <h3><i class="fas fa-toggle-on"></i> Estado</h3>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="productActive" checked>
+                                <span>Producto activo (visible en tienda)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="form-actions">
+                <button type="button" id="cancelProductBtn" class="btn-secondary">Cancelar</button>
+                <button type="submit" id="submitProductBtn" class="btn-primary">
+                    <i class="fas fa-save"></i> Guardar Producto
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

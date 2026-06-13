@@ -1,6 +1,6 @@
 // classes/Product.js
 export default class Product {
-  constructor(id, name, price, stock, category, description, imageUrl, createdAt, updatedAt) {
+  constructor(id, name, price, stock, category, description, imageUrl, createdAt, updatedAt, barcode = null) {
     this.id = id;
     this.name = name;
     this.price = price;
@@ -10,6 +10,7 @@ export default class Product {
     this.imageUrl = imageUrl;
     this.createdAt = createdAt || new Date();
     this.updatedAt = updatedAt || new Date();
+    this.barcode = barcode; // Código de barras
   }
 
   // Método para convertir a objeto plano (para Firestore)
@@ -23,6 +24,7 @@ export default class Product {
       imageUrl: this.imageUrl,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      barcode: this.barcode,
     };
   }
 
@@ -38,7 +40,8 @@ export default class Product {
       data.description,
       data.imageUrl,
       data.createdAt?.toDate(),
-      data.updatedAt?.toDate()
+      data.updatedAt?.toDate(),
+      data.barcode || null
     );
   }
 }
