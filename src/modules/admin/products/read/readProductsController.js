@@ -18,9 +18,9 @@ let currentFilter = 'active';
 export async function readProductsController() {
     rowTemplate = document.getElementById('productRowTemplate');
     cardTemplate = document.getElementById('productCardTemplate');
-    
+
     await loadProducts();
-    
+
     initAddProductButton();
     initModalClose();
     initOutsideModalClose();
@@ -34,21 +34,21 @@ export async function readProductsController() {
 async function loadProducts() {
     try {
         showToast('Cargando productos...', 'info');
-        
+
         const adminSession = AdminService.getSession();
         const adminId = adminSession?.id;
-        
+
         if (!adminId) {
             showToast('No se encontro la sesion del administrador', 'error');
             return;
         }
-        
+
         // Obtener productos usando el adminId (el service obtiene la tienda)
         const products = await ProductService.getAll(adminId, {}, false);
         allProducts = products;
-        
+
         applyFilterAndRender();
-        
+
     } catch (error) {
         console.error('Error al cargar productos:', error);
         showToast('Error al cargar productos', 'error');
@@ -67,14 +67,14 @@ function applyFilterAndRender() {
             return product.active === false;
         }
     });
-    
+
     if (filteredProducts.length === 0) {
         showEmptyState();
     } else {
         renderProductsTable(filteredProducts);
         renderProductsCards(filteredProducts);
     }
-    
+
     updateTotalCount(filteredProducts.length);
 }
 
@@ -89,7 +89,7 @@ function renderProductsTable(products) {
     products.forEach(product => {
         const row = rowTemplate.content.cloneNode(true);
         const rowElement = row.querySelector('tr');
-        
+
         // Configurar imagen del producto
         const imgContainer = row.querySelector('.product-img-container');
         if (imgContainer) {
@@ -107,7 +107,7 @@ function renderProductsTable(products) {
                 imgContainer.appendChild(icon);
             }
         }
-        
+
         // Asignar valores a las celdas (usando nombres del modelo en ingles)
         const skuCell = row.querySelector('.product-sku');
         const nameCell = row.querySelector('.product-name');
@@ -115,28 +115,28 @@ function renderProductsTable(products) {
         const priceCell = row.querySelector('.product-price');
         const stockCell = row.querySelector('.product-stock');
         const statusSpan = row.querySelector('.product-status');
-        
+
         if (skuCell) skuCell.textContent = product.barcode || 'N/A';
         if (nameCell) nameCell.textContent = product.name || 'N/A';
         if (brandCell) brandCell.textContent = product.brand || 'N/A';
         if (priceCell) priceCell.textContent = formatCurrency(product.price || 0);
         if (stockCell) stockCell.textContent = product.stock || 0;
-        
+
         if (statusSpan) {
             statusSpan.textContent = product.active ? 'Activo' : 'Inactivo';
             const statusClass = product.active ? 'status-active' : 'status-inactive';
             statusSpan.className = `product-status ${statusClass}`;
         }
-        
+
         rowElement.dataset.id = product.id;
-        
+
         // Configurar eventos de los botones
         const viewBtn = rowElement.querySelector('.btn-view');
         const editBtn = rowElement.querySelector('.btn-edit');
-        
+
         if (viewBtn) viewBtn.addEventListener('click', () => viewProductDetails(product.id));
         if (editBtn) editBtn.addEventListener('click', () => editProduct(product.id));
-        
+
         // Configurar toggle switch individual
         const toggleSwitch = row.querySelector('.status-row-switch');
         if (toggleSwitch) {
@@ -151,7 +151,7 @@ function renderProductsTable(products) {
                 handleToggleSwitch(product.id, product.name, product.active, toggleSwitch);
             });
         }
-        
+
         tbody.appendChild(row);
     });
 }
@@ -167,7 +167,7 @@ function renderProductsCards(products) {
     products.forEach(product => {
         const card = cardTemplate.content.cloneNode(true);
         const cardDiv = card.querySelector('.product-card-item');
-        
+
         // Configurar avatar del producto
         const avatarDiv = card.querySelector('.product-card-avatar');
         if (avatarDiv) {
@@ -185,7 +185,7 @@ function renderProductsCards(products) {
                 avatarDiv.appendChild(icon);
             }
         }
-        
+
         // Asignar valores a la tarjeta (usando nombres del modelo en ingles)
         const nameEl = card.querySelector('.card-name');
         const skuEl = card.querySelector('.card-sku');
@@ -193,33 +193,33 @@ function renderProductsCards(products) {
         const priceEl = card.querySelector('.card-price');
         const stockEl = card.querySelector('.card-stock');
         const statusSpan = card.querySelector('.card-status');
-        
+
         if (nameEl) nameEl.textContent = product.name || 'N/A';
         if (skuEl) skuEl.textContent = `Codigo: ${product.barcode || 'N/A'}`;
         if (brandEl) brandEl.textContent = product.brand || 'N/A';
         if (priceEl) priceEl.textContent = formatCurrency(product.price || 0);
         if (stockEl) stockEl.textContent = `Stock: ${product.stock || 0}`;
-        
+
         if (statusSpan) {
             statusSpan.textContent = product.active ? 'Activo' : 'Inactivo';
             const statusClass = product.active ? 'status-active' : 'status-inactive';
             statusSpan.className = `card-status ${statusClass}`;
         }
-        
+
         // Agregar clase especial para inactivos
         if (!product.active) {
             cardDiv.classList.add('status-inactive-card');
         }
-        
+
         cardDiv.dataset.id = product.id;
-        
+
         // Configurar eventos de los botones
         const viewBtn = cardDiv.querySelector('.btn-view');
         const editBtn = cardDiv.querySelector('.btn-edit');
-        
+
         if (viewBtn) viewBtn.addEventListener('click', () => viewProductDetails(product.id));
         if (editBtn) editBtn.addEventListener('click', () => editProduct(product.id));
-        
+
         // Configurar toggle switch individual
         const toggleSwitch = card.querySelector('.status-row-switch');
         if (toggleSwitch) {
@@ -234,7 +234,7 @@ function renderProductsCards(products) {
                 handleToggleSwitch(product.id, product.name, product.active, toggleSwitch);
             });
         }
-        
+
         container.appendChild(card);
     });
 }
@@ -247,7 +247,7 @@ async function handleToggleSwitch(id, name, isCurrentlyActive, toggleElement) {
     const actionText = isCurrentlyActive ? 'deshabilitado' : 'habilitado';
     const confirmText = isCurrentlyActive ? 'Si, deshabilitar' : 'Si, habilitar';
     const iconColor = isCurrentlyActive ? '#dc2626' : '#22c55e';
-    
+
     const result = await Swal.fire({
         title: `${isCurrentlyActive ? 'Deshabilitar' : 'Habilitar'} producto`,
         html: `Estas a punto de ${action} <strong>${name}</strong>.<br>El producto quedara ${actionText} en el sistema.`,
@@ -263,9 +263,9 @@ async function handleToggleSwitch(id, name, isCurrentlyActive, toggleElement) {
             cancelButton: 'swal2-cancel'
         }
     });
-    
+
     if (!result.isConfirmed) return;
-    
+
     try {
         if (toggleElement) {
             if (!isCurrentlyActive) {
@@ -274,7 +274,7 @@ async function handleToggleSwitch(id, name, isCurrentlyActive, toggleElement) {
                 toggleElement.classList.remove('active');
             }
         }
-        
+
         Swal.fire({
             title: `${isCurrentlyActive ? 'Deshabilitando' : 'Habilitando'}...`,
             text: 'Por favor espera',
@@ -282,18 +282,18 @@ async function handleToggleSwitch(id, name, isCurrentlyActive, toggleElement) {
             didOpen: () => { Swal.showLoading(); },
             customClass: { popup: 'swal2-popup' }
         });
-        
+
         const adminSession = AdminService.getSession();
         const adminId = adminSession?.id;
-        
+
         if (!adminId) {
             throw new Error('No se encontro la sesion del administrador');
         }
-        
+
         // Usar el servicio para cambiar el estado
         await ProductService.toggleStatus(id, !isCurrentlyActive, adminId);
         Swal.close();
-        
+
         await Swal.fire({
             title: `Producto ${actionText}`,
             text: `${name} ha sido ${actionText} correctamente`,
@@ -302,13 +302,13 @@ async function handleToggleSwitch(id, name, isCurrentlyActive, toggleElement) {
             confirmButtonColor: '#22c55e',
             customClass: { confirmButton: 'swal2-confirm' }
         });
-        
+
         await loadProducts();
-        
+
     } catch (error) {
         console.error(`Error al ${action} producto:`, error);
         Swal.close();
-        
+
         if (toggleElement) {
             if (isCurrentlyActive) {
                 toggleElement.classList.add('active');
@@ -316,7 +316,7 @@ async function handleToggleSwitch(id, name, isCurrentlyActive, toggleElement) {
                 toggleElement.classList.remove('active');
             }
         }
-        
+
         await Swal.fire({
             title: 'Error',
             text: error.message || `No se pudo ${action} el producto`,
@@ -335,14 +335,14 @@ function initStatusFilterToggle() {
     const toggleSwitch = document.getElementById('statusFilterSwitch');
     const activeLabel = document.querySelector('.status-toggle-wrapper .status-label.active');
     const inactiveLabel = document.querySelector('.status-toggle-wrapper .status-label:first-child');
-    
+
     if (!toggleSwitch) return;
-    
+
     toggleSwitch.classList.add('active');
-    
+
     toggleSwitch.addEventListener('click', () => {
         const isShowingActive = currentFilter === 'active';
-        
+
         if (isShowingActive) {
             currentFilter = 'inactive';
             toggleSwitch.classList.remove('active');
@@ -354,7 +354,7 @@ function initStatusFilterToggle() {
             if (activeLabel) activeLabel.classList.add('active');
             if (inactiveLabel) inactiveLabel.classList.remove('active');
         }
-        
+
         applyFilterAndRender();
     });
 }
@@ -366,13 +366,13 @@ async function viewProductDetails(id) {
     try {
         const adminSession = AdminService.getSession();
         const adminId = adminSession?.id;
-        
+
         if (!adminId) {
             throw new Error('No se encontro la sesion del administrador');
         }
-        
+
         const product = await ProductService.getById(id, adminId);
-        
+
         if (!product) {
             await Swal.fire({
                 title: 'Error',
@@ -384,10 +384,10 @@ async function viewProductDetails(id) {
             });
             return;
         }
-        
+
         const modalAvatar = document.getElementById('modalAvatar');
         const modalAvatarIcon = document.getElementById('modalAvatarIcon');
-        
+
         if (modalAvatar && product.imageUrl) {
             modalAvatar.src = product.imageUrl;
             modalAvatar.style.display = 'block';
@@ -396,7 +396,7 @@ async function viewProductDetails(id) {
             modalAvatar.style.display = 'none';
             if (modalAvatarIcon) modalAvatarIcon.style.display = 'block';
         }
-        
+
         const titleEl = document.getElementById('modalTitle');
         const skuEl = document.getElementById('modalSku');
         const nombreEl = document.getElementById('modalNombre');
@@ -404,7 +404,7 @@ async function viewProductDetails(id) {
         const precioEl = document.getElementById('modalPrecio');
         const stockEl = document.getElementById('modalStock');
         const descripcionEl = document.getElementById('modalDescripcion');
-        
+
         if (titleEl) titleEl.textContent = `Detalles: ${product.name}`;
         if (skuEl) skuEl.textContent = product.barcode || 'N/A';
         if (nombreEl) nombreEl.textContent = product.name || 'N/A';
@@ -412,10 +412,10 @@ async function viewProductDetails(id) {
         if (precioEl) precioEl.textContent = formatCurrency(product.price || 0);
         if (stockEl) stockEl.textContent = product.stock || 0;
         if (descripcionEl) descripcionEl.textContent = product.description || 'Sin descripcion';
-        
+
         const modal = document.getElementById('productModal');
         if (modal) modal.style.display = 'block';
-        
+
     } catch (error) {
         console.error('Error al cargar detalles:', error);
         await Swal.fire({
@@ -442,10 +442,10 @@ function editProduct(id) {
 function initSearchFilter() {
     const searchInput = document.getElementById('searchProduct');
     if (!searchInput) return;
-    
+
     searchInput.addEventListener('input', (event) => {
         const searchTerm = event.target.value.toLowerCase();
-        
+
         let filteredByStatus = allProducts.filter(product => {
             if (currentFilter === 'active') {
                 return product.active === true;
@@ -453,14 +453,14 @@ function initSearchFilter() {
                 return product.active === false;
             }
         });
-        
+
         const filteredProducts = filteredByStatus.filter(product => {
             const matchesName = product.name && product.name.toLowerCase().includes(searchTerm);
             const matchesBarcode = product.barcode && product.barcode.toLowerCase().includes(searchTerm);
             const matchesBrand = product.brand && product.brand.toLowerCase().includes(searchTerm);
             return matchesName || matchesBarcode || matchesBrand;
         });
-        
+
         if (filteredProducts.length === 0 && searchTerm !== '') {
             showEmptySearchState();
         } else if (filteredProducts.length === 0) {
@@ -469,7 +469,7 @@ function initSearchFilter() {
             renderProductsTable(filteredProducts);
             renderProductsCards(filteredProducts);
         }
-        
+
         updateTotalCount(filteredProducts.length);
     });
 }
@@ -492,7 +492,7 @@ function showEmptySearchState() {
             </tr>
         `;
     }
-    
+
     const cardsContainer = document.getElementById('productCardsContainer');
     if (cardsContainer) {
         cardsContainer.innerHTML = `
@@ -522,7 +522,7 @@ function updateTotalCount(count) {
 function initAddProductButton() {
     const addButton = document.getElementById('addNewProductBtn');
     if (!addButton) return;
-    
+
     addButton.addEventListener('click', (event) => {
         event.preventDefault();
         window.location.href = '/crearProducto';
@@ -536,9 +536,9 @@ function initModalClose() {
     const closeButton = document.querySelector('.modal-close');
     const closeModalButton = document.getElementById('closeModalBtn');
     const modal = document.getElementById('productModal');
-    
+
     if (!modal) return;
-    
+
     if (closeButton) closeButton.onclick = () => modal.style.display = 'none';
     if (closeModalButton) closeModalButton.onclick = () => modal.style.display = 'none';
 }
@@ -549,7 +549,7 @@ function initModalClose() {
 function initOutsideModalClose() {
     const modal = document.getElementById('productModal');
     if (!modal) return;
-    
+
     modal.onclick = (event) => {
         if (event.target.classList.contains('modal-overlay')) {
             modal.style.display = 'none';
@@ -562,7 +562,7 @@ function initOutsideModalClose() {
    ======================================================== */
 function showEmptyState() {
     const statusText = currentFilter === 'active' ? 'activos' : 'inactivos';
-    
+
     const tableBody = document.getElementById('productTableBody');
     if (tableBody) {
         tableBody.innerHTML = `
@@ -577,7 +577,7 @@ function showEmptyState() {
             </tr>
         `;
     }
-    
+
     const cardsContainer = document.getElementById('productCardsContainer');
     if (cardsContainer) {
         cardsContainer.innerHTML = `
@@ -620,12 +620,12 @@ function showToast(message, type = 'info') {
             timerProgressBar: 'swal2-timer-progress-bar'
         }
     });
-    
+
     let icon = 'info';
     if (type === 'success') icon = 'success';
     if (type === 'error') icon = 'error';
     if (type === 'warning') icon = 'warning';
-    
+
     Toast.fire({ icon: icon, title: message });
 }
 

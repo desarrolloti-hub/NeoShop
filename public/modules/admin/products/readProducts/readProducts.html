@@ -1,86 +1,154 @@
+<!-- FILE: readProducts.html -->
 <div class="credContainer">
-    <div class="page-header">
-        <h2><i class="fas fa-box-open"></i> Gestión de Productos</h2>
-        <p>Administra tu catálogo: visualiza, filtra y gestiona productos.</p>
-    </div>
+    <div class="product-list-container">
+        <div class="product-list-card">
+            <!-- HEADER USANDO COMPONENTE page-header CORRECTAMENTE -->
+            <div class="page-header">
+                <h2 class="header-title">
+                    <i class="fas fa-boxes"></i> Mis Productos
+                </h2>
+                <div class="header-actions">
+                    <a href="/crearProducto" class="btn btn-primary" id="addNewProductBtn" data-link>
+                        <i class="fas fa-plus"></i> Nuevo producto
+                    </a>
+                </div>
+            </div>
 
-    <!-- Toolbar -->
-    <div class="products-toolbar">
-        <div class="filters">
-            <select class="filter-select" id="categoryFilter">
-                <option value="">Todas las categorías</option>
-                <option value="Electrónica">Electrónica</option>
-                <option value="Audio">Audio</option>
-                <option value="Accesorios">Accesorios</option>
-            </select>
-            <select class="filter-select" id="statusFilter">
-                <option value="">Todos los estados</option>
-                <option value="active">Activo</option>
-                <option value="inactive">Inactivo</option>
-            </select>
-            <input type="text" class="filter-input" id="searchInput" placeholder="Buscar por nombre o SKU...">
-            <button class="btn-filter" id="applyFiltersBtn"><i class="fas fa-search"></i> Filtrar</button>
-        </div>
-        <button class="btn-primary" id="newProductBtn"><i class="fas fa-plus"></i> Nuevo Producto</button>
-    </div>
+            <!-- Filtros: Buscador + Toggle de estado -->
+            <div class="filters-wrapper">
+                <div class="search-wrapper">
+                    <input type="text" id="searchProduct" class="search-input"
+                        placeholder="Buscar por nombre, SKU o marca...">
+                </div>
 
-    <!-- KPIs de productos -->
-    <div class="kpi-grid">
-        <div class="kpi-card">
-            <div class="kpi-title">Total productos</div>
-            <div class="kpi-value" id="totalProducts">0</div>
-            <div class="kpi-trend"><i class="fas fa-box"></i> En catálogo</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-title">Productos activos</div>
-            <div class="kpi-value" id="activeProducts">0</div>
-            <div class="kpi-trend"><i class="fas fa-check-circle"></i> Disponibles</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-title">Stock bajo</div>
-            <div class="kpi-value" id="lowStockProducts">0</div>
-            <div class="kpi-trend" style="color:#ed6c02;"><i class="fas fa-exclamation-triangle"></i> Requieren atención
+                <!-- Toggle Switch para mostrar activos/inactivos -->
+                <div class="status-toggle-wrapper">
+                    <span class="status-label">Inactivos</span>
+                    <div class="status-filter-switch" id="statusFilterSwitch">
+                        <div class="status-filter-slider"></div>
+                    </div>
+                    <span class="status-label active">Activos</span>
+                </div>
+            </div>
+
+            <!-- TABLA -->
+            <div class="component-table-wrapper desktop-view">
+                <table class="component-table">
+                    <thead>
+                        <tr>
+                            <th>Imagen</th>
+                            <th>SKU</th>
+                            <th>Nombre</th>
+                            <th>Marca</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Estado</th>
+                            <th>Activar/Desactivar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- CARDS -->
+            <div id="productCardsContainer" class="mobile-view"></div>
+
+            <div class="list-footer">
+                <p class="total-count" id="totalProductsCount">Total: 0 productos</p>
             </div>
         </div>
-        <div class="kpi-card">
-            <div class="kpi-title">Valor inventario</div>
-            <div class="kpi-value" id="inventoryValue">$0</div>
-            <div class="kpi-trend"><i class="fas fa-chart-line"></i> Total en stock</div>
+    </div>
+</div>
+
+<!-- TEMPLATE TABLA -->
+<template id="productRowTemplate">
+    <tr>
+        <td class="product-img-container"></td>
+        <td>
+            <div class="middle-block"><span class="product-sku"></span></div>
+        </td>
+        <td>
+            <div class="middle-block"><span class="product-name"></span></div>
+        </td>
+        <td>
+            <div class="middle-block"><span class="product-brand"></span></div>
+        </td>
+        <td>
+            <div class="middle-block"><span class="product-price"></span></div>
+        </td>
+        <td>
+            <div class="middle-block"><span class="product-stock"></span></div>
+        </td>
+        <td><span class="product-status"></span></td>
+        <td>
+            <div class="action-badge">
+                <button class="btn-view" title="Ver detalles"><i class="fas fa-eye"></i></button>
+                <button class="btn-edit" title="Editar"><i class="fas fa-edit"></i></button>
+                <div class="status-switch-wrapper">
+                    <div class="status-row-switch" data-product-id="">
+                        <div class="status-row-slider"></div>
+                    </div>
+                </div>
+            </div>
+        </td>
+    </tr>
+</template>
+
+<!-- TEMPLATE CARDS -->
+<template id="productCardTemplate">
+    <div class="product-card-item">
+        <div class="product-card-header">
+            <div class="product-card-avatar"></div>
+            <div class="product-card-title">
+                <h4 class="card-name"></h4>
+                <small class="card-sku"></small>
+            </div>
+        </div>
+        <div class="product-card-info">
+            <p><i class="fas fa-tag"></i> <span class="card-brand"></span></p>
+            <p><i class="fas fa-dollar-sign"></i> <span class="card-price"></span></p>
+            <p><i class="fas fa-box"></i> <span class="card-stock"></span></p>
+        </div>
+        <div class="product-card-status">
+            <span class="card-status"></span>
+        </div>
+        <div class="product-card-actions">
+            <button class="card-action-icon btn-view" title="Ver detalles"><i class="fas fa-eye"></i> Ver</button>
+            <button class="card-action-icon btn-edit" title="Editar"><i class="fas fa-edit"></i> Editar</button>
+            <div class="status-switch-wrapper">
+                <div class="status-row-switch" data-product-id="">
+                    <div class="status-row-slider"></div>
+                </div>
+            </div>
         </div>
     </div>
+</template>
 
-    <!-- Tabla de productos - Desktop -->
-    <div class="component-table-wrapper desktop-view">
-        <table class="component-table">
-            <thead>
-                <tr>
-                    <th>Imagen</th>
-                    <th>Nombre / SKU</th>
-                    <th>Categoría</th>
-                    <th>Precio</th>
-                    <th>Stock</th>
-                    <th>Código Barras</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="productsTableBody">
-                <tr>
-                    <td colspan="8" class="empty-state"><i class="fas fa-box-open"></i> Cargando productos...</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Vista móvil - Cards -->
-    <div class="mobile-view" id="productsMobileCards">
-        <div class="cards-empty-state"><i class="fas fa-box-open"></i> Cargando productos...</div>
-    </div>
-
-    <!-- Paginación -->
-    <div class="pagination" id="pagination">
-        <button class="page-item" id="prevPageBtn" disabled>Anterior</button>
-        <span class="page-info" id="pageInfo">Página 1</span>
-        <button class="page-item" id="nextPageBtn">Siguiente</button>
+<!-- MODAL -->
+<div id="productModal" class="modal-container" style="display: none;">
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Detalles del producto</h3>
+                <span class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-avatar">
+                    <img id="modalAvatar" src="" alt="Avatar" style="display: none;">
+                    <i id="modalAvatarIcon" class="fas fa-box"></i>
+                </div>
+                <div class="modal-info">
+                    <p><strong>SKU:</strong> <span id="modalSku"></span></p>
+                    <p><strong>Nombre:</strong> <span id="modalNombre"></span></p>
+                    <p><strong>Marca:</strong> <span id="modalMarca"></span></p>
+                    <p><strong>Precio:</strong> <span id="modalPrecio"></span></p>
+                    <p><strong>Stock:</strong> <span id="modalStock"></span></p>
+                    <p><strong>Descripción:</strong> <span id="modalDescripcion"></span></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="closeModalBtn">Cerrar</button>
+            </div>
+        </div>
     </div>
 </div>

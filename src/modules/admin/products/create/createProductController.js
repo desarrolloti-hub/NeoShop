@@ -1,191 +1,3 @@
-<<<<<<< HEAD
-/* ============================================
-   PRODUCT CREATE CONTROLLER - Nuevo Producto
-   ============================================ */
-
-import ProductService from '../../../../../services/productService.js';
-
-// ========== INICIALIZAR SERVICIOS ==========
-const productService = new ProductService();
-
-// ========== ELEMENTOS DOM ==========
-let elements = {};
-
-// ========== CACHE DE ELEMENTOS ==========
-function cacheElements() {
-  elements = {
-    backToListBtn: document.getElementById('backToListBtn'),
-    productName: document.getElementById('productName'),
-    productSku: document.getElementById('productSku'),
-    productBarcode: document.getElementById('productBarcode'),
-    productCategory: document.getElementById('productCategory'),
-    productSubcategory: document.getElementById('productSubcategory'),
-    productPrice: document.getElementById('productPrice'),
-    productCost: document.getElementById('productCost'),
-    productStock: document.getElementById('productStock'),
-    productMinStock: document.getElementById('productMinStock'),
-    productShortDesc: document.getElementById('productShortDesc'),
-    productDescription: document.getElementById('productDescription'),
-    productActive: document.getElementById('productActive'),
-    productImage: document.getElementById('productImage'),
-    productImageUrl: document.getElementById('productImageUrl'),
-    imageUploadArea: document.getElementById('imageUploadArea'),
-    imagePreview: document.getElementById('imagePreview'),
-    imagePlaceholder: document.getElementById('imagePlaceholder'),
-    previewImg: document.getElementById('previewImg'),
-    removeImageBtn: document.getElementById('removeImageBtn'),
-    cancelProductBtn: document.getElementById('cancelProductBtn'),
-    submitProductBtn: document.getElementById('submitProductBtn'),
-    productCreateForm: document.getElementById('productCreateForm')
-  };
-}
-
-// ========== MANEJO DE IMAGEN ==========
-function setupImageUpload() {
-  if (!elements.imageUploadArea) return;
-
-  elements.imageUploadArea.addEventListener('click', () => {
-    elements.productImage?.click();
-  });
-
-  elements.productImage?.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (elements.previewImg) {
-          elements.previewImg.src = event.target.result;
-        }
-        if (elements.imagePreview) {
-          elements.imagePreview.style.display = 'inline-block';
-        }
-        if (elements.imagePlaceholder) {
-          elements.imagePlaceholder.style.display = 'none';
-        }
-        elements.productImageUrl.value = event.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-
-  elements.removeImageBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (elements.previewImg) elements.previewImg.src = '';
-    if (elements.imagePreview) elements.imagePreview.style.display = 'none';
-    if (elements.imagePlaceholder) elements.imagePlaceholder.style.display = 'block';
-    if (elements.productImage) elements.productImage.value = '';
-    if (elements.productImageUrl) elements.productImageUrl.value = '';
-  });
-}
-
-// ========== VALIDAR FORMULARIO ==========
-function validateForm() {
-  if (!elements.productName?.value.trim()) {
-    Swal.fire('Error', 'El nombre del producto es requerido', 'error');
-    return false;
-  }
-
-  if (!elements.productCategory?.value) {
-    Swal.fire('Error', 'La categoría es requerida', 'error');
-    return false;
-  }
-
-  const price = parseFloat(elements.productPrice?.value);
-  if (isNaN(price) || price <= 0) {
-    Swal.fire('Error', 'El precio debe ser mayor a 0', 'error');
-    return false;
-  }
-
-  const stock = parseInt(elements.productStock?.value);
-  if (isNaN(stock) || stock < 0) {
-    Swal.fire('Error', 'El stock no puede ser negativo', 'error');
-    return false;
-  }
-
-  return true;
-}
-
-// ========== CREAR PRODUCTO ==========
-async function createProduct() {
-  if (!validateForm()) return;
-
-  const productData = {
-    name: elements.productName.value.trim(),
-    sku: elements.productSku?.value.trim() || null,
-    barcode: elements.productBarcode?.value.trim() || null,
-    category: elements.productCategory.value,
-    subcategory: elements.productSubcategory?.value.trim() || null,
-    price: parseFloat(elements.productPrice.value),
-    cost: parseFloat(elements.productCost?.value) || 0,
-    stock: parseInt(elements.productStock.value),
-    minStock: parseInt(elements.productMinStock?.value) || 5,
-    shortDescription: elements.productShortDesc?.value.trim() || '',
-    description: elements.productDescription?.value.trim() || '',
-    active: elements.productActive?.checked !== false,
-    imageUrl: elements.productImageUrl?.value || null
-  };
-
-  Swal.fire({
-    title: 'Guardando...',
-    text: 'Creando nuevo producto',
-    allowOutsideClick: false,
-    didOpen: () => Swal.showLoading()
-  });
-
-  try {
-    const newProduct = await productService.createProduct(productData);
-
-    Swal.fire({
-      title: '¡Producto creado!',
-      text: `${newProduct.name} ha sido agregado al catálogo`,
-      icon: 'success',
-      confirmButtonText: 'Ver producto'
-    }).then((result) => {
-      if (result.isConfirmed && window.router) {
-        window.router.navigate(`/admin/productos/ver/${newProduct.id}`);
-      } else if (window.router) {
-        window.router.navigate('/admin/productos');
-      }
-    });
-
-  } catch (error) {
-    console.error('Error creando producto:', error);
-    Swal.fire('Error', error.message, 'error');
-  }
-}
-
-// ========== EVENTOS ==========
-function bindEvents() {
-  if (elements.backToListBtn) {
-    elements.backToListBtn.addEventListener('click', () => {
-      if (window.router) window.router.navigate('/admin/productos');
-    });
-  }
-
-  if (elements.cancelProductBtn) {
-    elements.cancelProductBtn.addEventListener('click', () => {
-      if (window.router) window.router.navigate('/admin/productos');
-    });
-  }
-
-  if (elements.submitProductBtn) {
-    elements.submitProductBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      await createProduct();
-    });
-  }
-}
-
-// ========== INICIALIZAR ==========
-export async function productCreateController() {
-  console.log('➕ Product Create Controller - Inicializado');
-
-  cacheElements();
-  bindEvents();
-  setupImageUpload();
-
-  console.log('✅ Product Create Controller - Listo');
-=======
 /* FILE: createProductController.js
    ========================================================
    CONTROLADOR PARA CREAR PRODUCTOS
@@ -199,217 +11,217 @@ let isLoading = false;
 let currentImageBase64 = '';
 
 export async function createProductController() {
-    animateProductCard();
-    initProductImageUpload();
-    initProductFormSubmit();
+  animateProductCard();
+  initProductImageUpload();
+  initProductFormSubmit();
 }
 
 /* ========================================================
    ANIMACION DE ENTRADA
    ======================================================== */
 function animateProductCard() {
-    const card = document.querySelector('.product-card');
-    if (!card) return;
+  const card = document.querySelector('.product-card');
+  if (!card) return;
 
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(20px)';
-    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-    card.offsetHeight;
-    card.style.opacity = '1';
-    card.style.transform = 'translateY(0)';
+  card.style.opacity = '0';
+  card.style.transform = 'translateY(20px)';
+  card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+  card.offsetHeight;
+  card.style.opacity = '1';
+  card.style.transform = 'translateY(0)';
 }
 
 /* ========================================================
    INICIALIZA SUBIDA DE IMAGEN
    ======================================================== */
 function initProductImageUpload() {
-    const avatarWrapper = document.getElementById('productImageWrapper');
-    const fileInput = document.getElementById('productImageInput');
-    const avatarPreview = document.getElementById('productAvatarPreview');
-    const avatarIcon = document.getElementById('productAvatarIcon');
-    const removeBtn = document.getElementById('removeProductImageBtn');
+  const avatarWrapper = document.getElementById('productImageWrapper');
+  const fileInput = document.getElementById('productImageInput');
+  const avatarPreview = document.getElementById('productAvatarPreview');
+  const avatarIcon = document.getElementById('productAvatarIcon');
+  const removeBtn = document.getElementById('removeProductImageBtn');
 
-    if (!avatarWrapper || !fileInput) {
-        console.error('Elementos de imagen no encontrados');
-        return;
+  if (!avatarWrapper || !fileInput) {
+    console.error('Elementos de imagen no encontrados');
+    return;
+  }
+
+  avatarWrapper.addEventListener('click', (e) => {
+    e.stopPropagation();
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showSweetAlert('Formato no valido', 'Selecciona una imagen valida (JPG, PNG, GIF)', 'error');
+      fileInput.value = '';
+      return;
     }
 
-    avatarWrapper.addEventListener('click', (e) => {
-        e.stopPropagation();
-        fileInput.click();
-    });
-
-    fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        
-        if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            showSweetAlert('Formato no valido', 'Selecciona una imagen valida (JPG, PNG, GIF)', 'error');
-            fileInput.value = '';
-            return;
-        }
-
-        if (file.size > 2 * 1024 * 1024) {
-            showSweetAlert('Imagen muy pesada', 'La imagen no debe superar los 2MB', 'error');
-            fileInput.value = '';
-            return;
-        }
-
-        showSweetAlert('Procesando imagen', 'Espera un momento...', 'info', 1500);
-
-        const reader = new FileReader();
-        
-        reader.onload = (event) => {
-            currentImageBase64 = event.target.result;
-            
-            if (avatarPreview) {
-                avatarPreview.src = currentImageBase64;
-                avatarPreview.style.display = 'block';
-                avatarPreview.style.width = '100%';
-                avatarPreview.style.height = '100%';
-                avatarPreview.style.objectFit = 'cover';
-                avatarPreview.style.borderRadius = '50%';
-            }
-            
-            if (avatarIcon) {
-                avatarIcon.style.display = 'none';
-            }
-            
-            if (removeBtn) {
-                removeBtn.style.display = 'inline-block';
-            }
-            
-            showSweetAlert('Imagen cargada', 'La imagen se ha cargado correctamente', 'success', 1500);
-        };
-        
-        reader.onerror = () => {
-            showSweetAlert('Error', 'No se pudo procesar la imagen', 'error');
-            currentImageBase64 = '';
-            fileInput.value = '';
-        };
-        
-        reader.readAsDataURL(file);
-    });
-
-    if (removeBtn) {
-        removeBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            
-            fileInput.value = '';
-            
-            if (avatarPreview) {
-                avatarPreview.src = '';
-                avatarPreview.style.display = 'none';
-            }
-            
-            if (avatarIcon) {
-                avatarIcon.style.display = 'block';
-            }
-            
-            removeBtn.style.display = 'none';
-            currentImageBase64 = '';
-            
-            showSweetAlert('Imagen eliminada', 'La imagen ha sido removida', 'info', 1500);
-        });
+    if (file.size > 2 * 1024 * 1024) {
+      showSweetAlert('Imagen muy pesada', 'La imagen no debe superar los 2MB', 'error');
+      fileInput.value = '';
+      return;
     }
+
+    showSweetAlert('Procesando imagen', 'Espera un momento...', 'info', 1500);
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      currentImageBase64 = event.target.result;
+
+      if (avatarPreview) {
+        avatarPreview.src = currentImageBase64;
+        avatarPreview.style.display = 'block';
+        avatarPreview.style.width = '100%';
+        avatarPreview.style.height = '100%';
+        avatarPreview.style.objectFit = 'cover';
+        avatarPreview.style.borderRadius = '50%';
+      }
+
+      if (avatarIcon) {
+        avatarIcon.style.display = 'none';
+      }
+
+      if (removeBtn) {
+        removeBtn.style.display = 'inline-block';
+      }
+
+      showSweetAlert('Imagen cargada', 'La imagen se ha cargado correctamente', 'success', 1500);
+    };
+
+    reader.onerror = () => {
+      showSweetAlert('Error', 'No se pudo procesar la imagen', 'error');
+      currentImageBase64 = '';
+      fileInput.value = '';
+    };
+
+    reader.readAsDataURL(file);
+  });
+
+  if (removeBtn) {
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+
+      fileInput.value = '';
+
+      if (avatarPreview) {
+        avatarPreview.src = '';
+        avatarPreview.style.display = 'none';
+      }
+
+      if (avatarIcon) {
+        avatarIcon.style.display = 'block';
+      }
+
+      removeBtn.style.display = 'none';
+      currentImageBase64 = '';
+
+      showSweetAlert('Imagen eliminada', 'La imagen ha sido removida', 'info', 1500);
+    });
+  }
 }
 
 /* ========================================================
    INICIALIZA ENVIO DEL FORMULARIO
    ======================================================== */
 function initProductFormSubmit() {
-    const form = document.getElementById('productForm');
-    if (!form) {
-        console.error('Formulario no encontrado');
-        return;
+  const form = document.getElementById('productForm');
+  if (!form) {
+    console.error('Formulario no encontrado');
+    return;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (isLoading) return;
+
+    // Obtener valores del formulario
+    const name = document.querySelector('input[name="nombre"]')?.value.trim();
+    const barcode = document.querySelector('input[name="sku"]')?.value.trim();
+    const brand = document.querySelector('input[name="marca"]')?.value.trim();
+    const description = document.querySelector('textarea[name="descripcion"]')?.value.trim();
+    const price = parseFloat(document.querySelector('input[name="precio"]')?.value) || 0;
+    const cost = parseFloat(document.querySelector('input[name="costo"]')?.value) || 0;
+    const stock = parseInt(document.querySelector('input[name="stock"]')?.value) || 0;
+    const minStock = parseInt(document.querySelector('input[name="stockMinimo"]')?.value) || 0;
+    const unitOfMeasure = document.querySelector('input[name="unidadMedida"]')?.value.trim();
+
+    // Validaciones basicas de UI
+    if (!name) {
+      showSweetAlert('Campo requerido', 'El nombre del producto es obligatorio', 'warning');
+      document.querySelector('input[name="nombre"]')?.focus();
+      return;
     }
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    if (!barcode) {
+      showSweetAlert('Campo requerido', 'El codigo de barras es obligatorio', 'warning');
+      document.querySelector('input[name="sku"]')?.focus();
+      return;
+    }
 
-        if (isLoading) return;
+    if (!brand) {
+      showSweetAlert('Campo requerido', 'La marca es obligatoria', 'warning');
+      document.querySelector('input[name="marca"]')?.focus();
+      return;
+    }
 
-        // Obtener valores del formulario
-        const name = document.querySelector('input[name="nombre"]')?.value.trim();
-        const barcode = document.querySelector('input[name="sku"]')?.value.trim();
-        const brand = document.querySelector('input[name="marca"]')?.value.trim();
-        const description = document.querySelector('textarea[name="descripcion"]')?.value.trim();
-        const price = parseFloat(document.querySelector('input[name="precio"]')?.value) || 0;
-        const cost = parseFloat(document.querySelector('input[name="costo"]')?.value) || 0;
-        const stock = parseInt(document.querySelector('input[name="stock"]')?.value) || 0;
-        const minStock = parseInt(document.querySelector('input[name="stockMinimo"]')?.value) || 0;
-        const unitOfMeasure = document.querySelector('input[name="unidadMedida"]')?.value.trim();
+    if (price <= 0) {
+      showSweetAlert('Precio invalido', 'El precio debe ser mayor a 0', 'error');
+      document.querySelector('input[name="precio"]')?.focus();
+      return;
+    }
 
-        // Validaciones basicas de UI
-        if (!name) {
-            showSweetAlert('Campo requerido', 'El nombre del producto es obligatorio', 'warning');
-            document.querySelector('input[name="nombre"]')?.focus();
-            return;
-        }
-        
-        if (!barcode) {
-            showSweetAlert('Campo requerido', 'El codigo de barras es obligatorio', 'warning');
-            document.querySelector('input[name="sku"]')?.focus();
-            return;
-        }
-        
-        if (!brand) {
-            showSweetAlert('Campo requerido', 'La marca es obligatoria', 'warning');
-            document.querySelector('input[name="marca"]')?.focus();
-            return;
-        }
-        
-        if (price <= 0) {
-            showSweetAlert('Precio invalido', 'El precio debe ser mayor a 0', 'error');
-            document.querySelector('input[name="precio"]')?.focus();
-            return;
-        }
+    // Obtener adminId de la sesion
+    const adminSession = AdminService.getSession();
+    const adminId = adminSession?.id;
 
-        // Obtener adminId de la sesion
-        const adminSession = AdminService.getSession();
-        const adminId = adminSession?.id;
+    if (!adminId) {
+      showSweetAlert('Error', 'No se encontro la sesion del administrador', 'error');
+      return;
+    }
 
-        if (!adminId) {
-            showSweetAlert('Error', 'No se encontro la sesion del administrador', 'error');
-            return;
-        }
+    // Preparar datos para el servicio
+    const productData = {
+      name: name,
+      barcode: barcode.toUpperCase(),
+      brand: brand,
+      description: description || '',
+      price: price,
+      cost: cost,
+      stock: stock,
+      minStock: minStock,
+      unitOfMeasure: unitOfMeasure || 'pieza',
+      imageUrl: currentImageBase64
+    };
 
-        // Preparar datos para el servicio
-        const productData = {
-            name: name,
-            barcode: barcode.toUpperCase(),
-            brand: brand,
-            description: description || '',
-            price: price,
-            cost: cost,
-            stock: stock,
-            minStock: minStock,
-            unitOfMeasure: unitOfMeasure || 'pieza',
-            imageUrl: currentImageBase64
-        };
+    isLoading = true;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
 
-        isLoading = true;
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        
-        Swal.fire({
-            title: 'Registrando producto...',
-            text: 'Por favor espera un momento',
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); },
-            customClass: { popup: 'swal2-popup' }
-        });
+    Swal.fire({
+      title: 'Registrando producto...',
+      text: 'Por favor espera un momento',
+      allowOutsideClick: false,
+      didOpen: () => { Swal.showLoading(); },
+      customClass: { popup: 'swal2-popup' }
+    });
 
-        try {
-            // El service obtiene la tienda del admin y guarda en la coleccion correspondiente
-            const result = await ProductService.create(productData, adminId);
-            
-            Swal.close();
-            
-            await Swal.fire({
-                title: 'Producto registrado',
-                html: `
+    try {
+      // El service obtiene la tienda del admin y guarda en la coleccion correspondiente
+      const result = await ProductService.create(productData, adminId);
+
+      Swal.close();
+
+      await Swal.fire({
+        title: 'Producto registrado',
+        html: `
                     <div style="text-align: left;">
                         <p><strong>${name}</strong> ha sido registrado exitosamente</p>
                         <p>Codigo: ${barcode.toUpperCase()}</p>
@@ -417,108 +229,107 @@ function initProductFormSubmit() {
                         <p>Stock: ${stock} unidades</p>
                     </div>
                 `,
-                icon: 'success',
-                confirmButtonText: 'Aceptar',
-                confirmButtonColor: '#22c55e',
-                customClass: { confirmButton: 'swal2-confirm' }
-            });
+        icon: 'success',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#22c55e',
+        customClass: { confirmButton: 'swal2-confirm' }
+      });
 
-            form.reset();
-            
-            // Limpiar imagen
-            const avatarPreview = document.getElementById('productAvatarPreview');
-            const avatarIcon = document.getElementById('productAvatarIcon');
-            const removeBtn = document.getElementById('removeProductImageBtn');
-            const fileInput = document.getElementById('productImageInput');
-            
-            if (avatarPreview) {
-                avatarPreview.src = '';
-                avatarPreview.style.display = 'none';
-            }
-            if (avatarIcon) avatarIcon.style.display = 'block';
-            if (removeBtn) removeBtn.style.display = 'none';
-            if (fileInput) fileInput.value = '';
-            
-            currentImageBase64 = '';
+      form.reset();
 
-            const resultConfirm = await Swal.fire({
-                title: 'Que deseas hacer ahora',
-                text: 'Puedes registrar otro producto o ver el listado',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Ver listado',
-                cancelButtonText: 'Registrar otro',
-                confirmButtonColor: '#456da2',
-                cancelButtonColor: '#64748b',
-                reverseButtons: true,
-                customClass: {
-                    confirmButton: 'swal2-confirm',
-                    cancelButton: 'swal2-cancel'
-                }
-            });
+      // Limpiar imagen
+      const avatarPreview = document.getElementById('productAvatarPreview');
+      const avatarIcon = document.getElementById('productAvatarIcon');
+      const removeBtn = document.getElementById('removeProductImageBtn');
+      const fileInput = document.getElementById('productImageInput');
 
-            if (resultConfirm.isConfirmed) {
-                window.location.href = '/productos';
-            } else {
-                document.querySelector('input[name="nombre"]')?.focus();
-            }
+      if (avatarPreview) {
+        avatarPreview.src = '';
+        avatarPreview.style.display = 'none';
+      }
+      if (avatarIcon) avatarIcon.style.display = 'block';
+      if (removeBtn) removeBtn.style.display = 'none';
+      if (fileInput) fileInput.value = '';
 
-        } catch (error) {
-            console.error('Error:', error);
-            Swal.close();
-            
-            await Swal.fire({
-                title: 'Error al registrar',
-                html: `<p>${error.message || 'Intenta nuevamente'}</p>`,
-                icon: 'error',
-                confirmButtonText: 'Entendido',
-                confirmButtonColor: '#dc2626',
-                customClass: { confirmButton: 'swal2-confirm' }
-            });
-        } finally {
-            isLoading = false;
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
+      currentImageBase64 = '';
+
+      const resultConfirm = await Swal.fire({
+        title: 'Que deseas hacer ahora',
+        text: 'Puedes registrar otro producto o ver el listado',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Ver listado',
+        cancelButtonText: 'Registrar otro',
+        confirmButtonColor: '#456da2',
+        cancelButtonColor: '#64748b',
+        reverseButtons: true,
+        customClass: {
+          confirmButton: 'swal2-confirm',
+          cancelButton: 'swal2-cancel'
         }
-    });
+      });
+
+      if (resultConfirm.isConfirmed) {
+        window.location.href = '/productos';
+      } else {
+        document.querySelector('input[name="nombre"]')?.focus();
+      }
+
+    } catch (error) {
+      console.error('Error:', error);
+      Swal.close();
+
+      await Swal.fire({
+        title: 'Error al registrar',
+        html: `<p>${error.message || 'Intenta nuevamente'}</p>`,
+        icon: 'error',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#dc2626',
+        customClass: { confirmButton: 'swal2-confirm' }
+      });
+    } finally {
+      isLoading = false;
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    }
+  });
 }
 
 /* ========================================================
    FUNCION PARA SWEET ALERT DE VALIDACION
    ======================================================== */
 function showSweetAlert(title, message, type = 'info', timer = null) {
-    const config = {
-        title: title,
-        text: message,
-        icon: type,
-        confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#456da2',
-        customClass: { confirmButton: 'swal2-confirm' }
-    };
-    
-    if (timer) {
-        config.timer = timer;
-        config.showConfirmButton = false;
-    }
-    
-    Swal.fire(config);
+  const config = {
+    title: title,
+    text: message,
+    icon: type,
+    confirmButtonText: 'Aceptar',
+    confirmButtonColor: '#456da2',
+    customClass: { confirmButton: 'swal2-confirm' }
+  };
+
+  if (timer) {
+    config.timer = timer;
+    config.showConfirmButton = false;
+  }
+
+  Swal.fire(config);
 }
 
 /* ========================================================
    FORMATEA MONEDA
    ======================================================== */
 function formatCurrency(value) {
-    return new Intl.NumberFormat('es-MX', {
-        style: 'currency',
-        currency: 'MXN',
-        minimumFractionDigits: 2
-    }).format(value);
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN',
+    minimumFractionDigits: 2
+  }).format(value);
 }
 
 /* ========================================================
    LIMPIEZA DEL CONTROLADOR
    ======================================================== */
 export function cleanupCreateProduct() {
-    // Limpieza si es necesaria
->>>>>>> 75395177d38ef80b00ba152b081bc83efc8e69d0
+  // Limpieza si es necesaria
 }

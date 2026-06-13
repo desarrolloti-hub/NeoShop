@@ -1,152 +1,3 @@
-<<<<<<< HEAD
-<div class="credContainer">
-    <div class="page-header">
-        <div class="header-actions">
-            <button id="backToListBtn" class="btn-secondary">
-                <i class="fas fa-arrow-left"></i> Volver a productos
-            </button>
-        </div>
-        <h2><i class="fas fa-edit"></i> Editar Producto</h2>
-        <p id="productIdDisplay">ID: ---</p>
-    </div>
-
-    <div class="create-product-container">
-        <form id="productEditForm">
-            <div class="form-grid">
-                <!-- Columna izquierda -->
-                <div class="form-column">
-                    <div class="form-card-section">
-                        <h3><i class="fas fa-info-circle"></i> Información Básica</h3>
-
-                        <div class="form-group">
-                            <label>Nombre del producto *</label>
-                            <input type="text" id="productName" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label>SKU (Código único)</label>
-                            <input type="text" id="productSku">
-                            <small class="form-hint">Identificador único interno</small>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Código de barras</label>
-                            <input type="text" id="productBarcode">
-                            <small class="form-hint">Código para punto de venta</small>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Categoría *</label>
-                                <select id="productCategory" required>
-                                    <option value="">Seleccionar categoría</option>
-                                    <option value="Electrónica">Electrónica</option>
-                                    <option value="Audio">Audio</option>
-                                    <option value="Accesorios">Accesorios</option>
-                                    <option value="Ropa">Ropa</option>
-                                    <option value="Hogar">Hogar</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Subcategoría</label>
-                                <input type="text" id="productSubcategory">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-card-section">
-                        <h3><i class="fas fa-dollar-sign"></i> Precios y Stock</h3>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Precio de venta *</label>
-                                <input type="number" id="productPrice" step="0.01" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Precio de compra</label>
-                                <input type="number" id="productCost" step="0.01">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Stock actual</label>
-                                <input type="number" id="productStock" min="0" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Stock mínimo</label>
-                                <input type="number" id="productMinStock" min="0">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Columna derecha -->
-                <div class="form-column">
-                    <div class="form-card-section">
-                        <h3><i class="fas fa-image"></i> Imagen del Producto</h3>
-
-                        <div class="image-upload-area" id="imageUploadArea">
-                            <div class="image-preview" id="imagePreview">
-                                <img id="previewImg" src="" alt="Vista previa">
-                                <button type="button" class="remove-image-btn" id="removeImageBtn">✕</button>
-                            </div>
-                            <div class="image-placeholder" id="imagePlaceholder" style="display: none;">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p>Haz clic o arrastra una imagen</p>
-                                <small>PNG, JPG, GIF hasta 2MB</small>
-                            </div>
-                            <input type="file" id="productImage" accept="image/*" style="display: none;">
-                            <input type="hidden" id="productImageUrl">
-                        </div>
-                    </div>
-
-                    <div class="form-card-section">
-                        <h3><i class="fas fa-align-left"></i> Descripción</h3>
-
-                        <div class="form-group">
-                            <label>Descripción corta</label>
-                            <input type="text" id="productShortDesc">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Descripción completa</label>
-                            <textarea id="productDescription" rows="4"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="form-card-section">
-                        <h3><i class="fas fa-toggle-on"></i> Estado</h3>
-
-                        <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="productActive">
-                                <span>Producto activo (visible en tienda)</span>
-                            </label>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="productHasBarcode">
-                                <span>Producto con código de barras asignado</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Botones de acción -->
-            <div class="form-actions">
-                <button type="button" id="deleteProductBtn" class="btn-danger">
-                    <i class="fas fa-trash"></i> Eliminar
-                </button>
-                <button type="button" id="cancelEditBtn" class="btn-secondary">Cancelar</button>
-                <button type="submit" id="updateProductBtn" class="btn-primary">
-                    <i class="fas fa-save"></i> Actualizar Producto
-                </button>
-            </div>
-        </form>
-=======
 <!-- FILE: updateProduct.html -->
 <div class="credContainer">
     <div class="product-list-container">
@@ -170,20 +21,21 @@
                     <div class="avatar-wrapper" id="productImageWrapper" style="cursor: pointer;">
                         <div class="avatar-circle" id="productAvatarCircle">
                             <i class="fas fa-box" id="productAvatarIcon"></i>
-                            <img id="productAvatarPreview" alt="Imagen del producto" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                            <img id="productAvatarPreview" alt="Imagen del producto"
+                                style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                         </div>
                         <div class="avatar-overlay">
                             <i class="fas fa-camera"></i>
                             <span class="avatar-hint">Haz clic para cambiar imagen</span>
                         </div>
                     </div>
-                    
+
                     <p class="avatar-guide">
                         <i class="fas fa-info-circle"></i> Haz clic en la imagen para cambiarla (opcional)
                     </p>
 
                     <input type="file" id="productImageInput" accept="image/*" style="display: none;">
-                    
+
                     <button type="button" id="removeProductImageBtn" style="display: none;">
                         <i class="fas fa-trash"></i> Eliminar imagen
                     </button>
@@ -218,7 +70,8 @@
                             <label for="descripcion">
                                 <i class="fas fa-align-left"></i> Descripción
                             </label>
-                            <textarea id="descripcion" name="descripcion" rows="3" placeholder="Descripción detallada del producto..."></textarea>
+                            <textarea id="descripcion" name="descripcion" rows="3"
+                                placeholder="Descripción detallada del producto..."></textarea>
                         </div>
 
                         <!-- Precios -->
@@ -275,10 +128,11 @@
                             <label for="unidadMedida">
                                 <i class="fas fa-ruler"></i> Unidad de medida
                             </label>
-                            <input type="text" id="unidadMedida" name="unidadMedida" placeholder="Ej: pieza, kg, litro, par">
+                            <input type="text" id="unidadMedida" name="unidadMedida"
+                                placeholder="Ej: pieza, kg, litro, par">
                             <small class="field-note">Ej: pieza, kilogramo, litro, par</small>
                         </div>
-                        
+
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> Actualizar producto
                         </button>
@@ -286,6 +140,5 @@
                 </div>
             </div>
         </div>
->>>>>>> 75395177d38ef80b00ba152b081bc83efc8e69d0
     </div>
 </div>
