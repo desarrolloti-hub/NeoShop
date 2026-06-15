@@ -87,6 +87,8 @@
 @import url('./pages/admin/products/read/readProducts.css');
 @import url('./pages/admin/products/create/createProduct.css');
 @import url('./pages/admin/products/update/updateProduct.css');
+
+@import url(./pages/admin/settings/settings.css);
 /* ventas */
 @import url(./pages/admin/sales/read/readSale.css);
 @import url(./pages/admin/sales/create/createSale.css);

@@ -78,6 +78,8 @@ import { saleDetailController } from '../modules/admin/sales/detail/detailSaleCo
 import { saleListController } from '../modules/admin/sales/read/readSaleController.js';
 import { saleCreateController } from '../modules/admin/sales/create/createSaleController.js';
 
+
+
 /* ========================================
                 Rutas HTML 
    ======================================== */
@@ -211,6 +213,18 @@ export const routes = {
         view: "/modules/admin/sale/detail/detailSale.html",
         controller: saleDetailController
     },
+    /*settings */
+    "/configuracion": {
+        view: "/modules/admin/settings/settings.html",
+        controller: settingsController
+    },
+
+    /*store */
+    "/crearTienda": {
+        view: "/modules/admin/store/create/createStore.html",
+        controller: createStoreController
+    },
+
 
 
 
