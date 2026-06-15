@@ -267,9 +267,9 @@ function initCompleteButton() {
             });
 
             if (typeof window.navigateTo === 'function') {
-                window.navigateTo('/homeAdmin');
+                window.navigateTo('/inicioAdmin');
             } else {
-                window.location.href = '/homeAdmin';
+                window.location.href = '/inicioAdmin';
             }
 
         } catch (error) {
@@ -300,9 +300,9 @@ function initSkipButton() {
 
         if (result.isConfirmed) {
             if (typeof window.navigateTo === 'function') {
-                window.navigateTo('/homeAdmin');
+                window.navigateTo('/inicioAdmin');
             } else {
-                window.location.href = '/homeAdmin';
+                window.location.href = '/inicioAdmin';
             }
         }
     });
@@ -327,7 +327,7 @@ async function loadExistingData() {
                 confirmButtonText: 'Ir al dashboard',
                 confirmButtonColor: '#456da2'
             }).then(() => {
-                window.location.href = '/adminHome';
+                window.location.href = '/inicioAdmin';
             });
             return;
         }
