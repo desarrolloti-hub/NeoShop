@@ -7,9 +7,9 @@ export async function settingsController() {
     if (companyBtn) {
         companyBtn.addEventListener('click', () => {
             if (typeof window.navigateTo === 'function') {
-                window.navigateTo('/createStore');
+                window.navigateTo('/crearTienda');
             } else {
-                window.location.href = '/createStore';
+                window.location.href = '/crearTienda';
             }
         });
     }
@@ -19,7 +19,7 @@ export async function settingsController() {
     if (themeBtn) {
         themeBtn.addEventListener('click', () => {
             const isDark = document.body.classList.contains('dark-mode');
-            
+
             if (isDark) {
                 document.body.classList.remove('dark-mode');
                 localStorage.setItem('theme', 'light');
@@ -27,7 +27,7 @@ export async function settingsController() {
                 document.body.classList.add('dark-mode');
                 localStorage.setItem('theme', 'dark');
             }
-            
+
             // Notificar a otros componentes
             window.dispatchEvent(new CustomEvent('themeChanged', {
                 detail: { isDarkMode: !isDark }
