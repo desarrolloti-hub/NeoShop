@@ -1,0 +1,81 @@
+<div class="credContainer">
+    <div class="partners-create-container">
+        <div class="partner-create-form-container">
+            <div class="partner-create-header">
+                <h2>
+                    <i class="fas fa-user-plus"></i>
+                    Nuevo Colaborador
+                </h2>
+                <p>Registra un nuevo colaborador para tu negocio</p>
+            </div>
+
+            <div class="partner-create-body">
+                <form id="partnerCreateForm">
+                    <div class="create-photo-section">
+                        <div class="create-photo-preview" id="photoPreview">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        <input type="file" id="photoInput" class="create-photo-input"
+                            accept="image/jpeg,image/png,image/jpg,image/webp">
+                        <button type="button" id="uploadPhotoBtn" class="btn-secondary btn-upload">
+                            <i class="fas fa-upload"></i> Subir foto
+                        </button>
+                        <p class="photo-help">Opcional. Puedes subir una foto o usar una URL</p>
+                        <input type="text" id="photoUrl" placeholder="O pega una URL de imagen aquí"
+                            class="photo-url-input">
+                    </div>
+
+                    <div class="create-form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-envelope"></i> Email *</label>
+                            <input type="email" id="email" required placeholder="correo@ejemplo.com">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-user"></i> Nombre completo *</label>
+                            <input type="text" id="fullName" required placeholder="Juan Pérez González">
+                        </div>
+                    </div>
+
+                    <div class="create-form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-phone"></i> Teléfono</label>
+                            <input type="tel" id="phone" placeholder="5512345678">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-id-card"></i> RFC</label>
+                            <input type="text" id="rfc" placeholder="PEGJ880101ABC">
+                        </div>
+                    </div>
+
+                    <div class="create-form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-tag"></i> Rol</label>
+                            <select id="role">
+                                <option value="partner">Partner</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-key"></i> Permiso</label>
+                            <select id="permissionId">
+                                <option value="">Sin permiso especial</option>
+                                <option value="inventory_access">Acceso a inventario</option>
+                                <option value="orders_access">Acceso a pedidos</option>
+                                <option value="reports_access">Acceso a reportes</option>
+                                <option value="full_access">Acceso completo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="create-form-actions">
+                        <button type="button" id="cancelCreateBtn" class="btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button type="submit" id="submitCreateBtn" class="btn-primary">
+                            <i class="fas fa-save"></i> Crear colaborador
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -93,3 +93,8 @@
 @import url(./pages/admin/sales/read/readSale.css);
 @import url(./pages/admin/sales/create/createSale.css);
 @import url(./pages/admin/sales/detail/detailSale.css);
+
+/* colaboradore */
+@import url(./pages/admin/partners/create/createPartner.css);
+@import url(./pages/admin/partners/read/readPartners.css);
+@import url(./pages/admin/partners/update/updatePartner.css);

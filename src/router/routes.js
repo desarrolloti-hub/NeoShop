@@ -78,6 +78,10 @@ import { saleDetailController } from '../modules/admin/sales/detail/detailSaleCo
 import { saleListController } from '../modules/admin/sales/read/readSaleController.js';
 import { saleCreateController } from '../modules/admin/sales/create/createSaleController.js';
 
+/* colaboradores */
+import { createPartnerController } from '../modules/admin/partners/create/createPartnerController.js'
+import { updatePartnerController } from '../modules/admin/partners/update/updatePartnerController.js'
+import { readPartnersController } from '../modules/admin/partners/read/readPartnersController.js'
 
 
 /* ========================================
@@ -224,9 +228,19 @@ export const routes = {
         view: "/modules/admin/store/create/createStore.html",
         controller: createStoreController
     },
-
-
-
+    /* colaboradores */
+    "/colaboradores": {
+        view: "/modules/admin/partners/read/readPartners.html",
+        controller: readPartnersController
+    },
+    "/crearColaborador": {
+        view: "/modules/admin/partners/create/createPartner.html",
+        controller: createPartnerController
+    },
+    "/editarColaborador": {
+        view: "/modules/admin/partners/update/updatePartner.html",
+        controller: updatePartnerController
+    },
 
     /* ========================================
          ----------- Todos -----------
