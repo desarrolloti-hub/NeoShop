@@ -1,14 +1,36 @@
 /* ========================================
    CREATE SUPPLIER CONTROLLER (CON SWEET ALERT)
+   COLECCIONES DINÁMICAS: suppliers + NombreTienda
    ======================================== */
 
 import { SupplierService } from '/services/supplierService.js';
+import { AdminService } from '/services/adminService.js';
 
 let isLoading = false;
 let currentImageBase64 = '';
 
 export async function createSupplierController() {
     console.log('📝 Supplier controller inicializado con SweetAlert');
+
+    // Verificar que exista sesión y storeName
+    const session = AdminService.getSession();
+    if (!session?.storeName) {
+        console.error('❌ No se encontró la tienda asociada al administrador');
+        await Swal.fire({
+            title: 'Error de configuración',
+            text: 'No se encontró la tienda asociada a tu cuenta. Contacta al administrador.',
+            icon: 'error',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#dc2626'
+        });
+        // Redirigir al dashboard o a configuración de tienda
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo('/inicioAdmin');
+        } else {
+            window.location.href = '/inicioAdmin';
+        }
+        return;
+    }
 
     animateSupplierCard();
     initSupplierImageUpload();
@@ -46,7 +68,7 @@ function initSupplierImageUpload() {
 
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
-        
+
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
@@ -64,11 +86,11 @@ function initSupplierImageUpload() {
         showSweetAlert('Procesando imagen', 'Espera un momento...', 'info', 1500);
 
         const reader = new FileReader();
-        
+
         reader.onload = (event) => {
             const base64String = event.target.result;
             currentImageBase64 = base64String;
-            
+
             if (avatarPreview) {
                 avatarPreview.src = base64String;
                 avatarPreview.style.display = 'block';
@@ -77,47 +99,47 @@ function initSupplierImageUpload() {
                 avatarPreview.style.objectFit = 'cover';
                 avatarPreview.style.borderRadius = '50%';
             }
-            
+
             if (avatarIcon) {
                 avatarIcon.style.display = 'none';
             }
-            
+
             if (removeBtn) {
                 removeBtn.style.display = 'inline-block';
             }
-            
+
             console.log('✅ Imagen convertida a base64');
             showSweetAlert('¡Imagen cargada!', 'La imagen se ha cargado correctamente', 'success', 1500);
         };
-        
+
         reader.onerror = (error) => {
             console.error('❌ Error al leer la imagen:', error);
             showSweetAlert('Error', 'No se pudo procesar la imagen', 'error');
             currentImageBase64 = '';
             fileInput.value = '';
         };
-        
+
         reader.readAsDataURL(file);
     });
 
     if (removeBtn) {
         removeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            
+
             fileInput.value = '';
-            
+
             if (avatarPreview) {
                 avatarPreview.src = '';
                 avatarPreview.style.display = 'none';
             }
-            
+
             if (avatarIcon) {
                 avatarIcon.style.display = 'block';
             }
-            
+
             removeBtn.style.display = 'none';
             currentImageBase64 = '';
-            
+
             showSweetAlert('Imagen eliminada', 'La imagen ha sido removida', 'info', 1500);
         });
     }
@@ -135,6 +157,16 @@ function initSupplierFormSubmit() {
 
         if (isLoading) return;
 
+        // Obtener storeName de la sesión
+        const session = AdminService.getSession();
+        const storeName = session?.storeName;
+        const adminId = session?.id;
+
+        if (!storeName) {
+            showSweetAlert('Error de configuración', 'No se encontró la tienda asociada. Contacta al administrador.', 'error');
+            return;
+        }
+
         const nombre = document.querySelector('input[name="nombre"]')?.value.trim();
         const razonSocial = document.querySelector('input[name="razonSocial"]')?.value.trim();
         const telefono = document.querySelector('input[name="telefono"]')?.value.trim();
@@ -149,31 +181,31 @@ function initSupplierFormSubmit() {
             document.querySelector('input[name="nombre"]')?.focus();
             return;
         }
-        
+
         if (!razonSocial) {
             showSweetAlert('¡Oye pai! 👀', 'La razón social es requerida', 'warning');
             document.querySelector('input[name="razonSocial"]')?.focus();
             return;
         }
-        
+
         if (!rfc || rfc.length < 12) {
             showSweetAlert('RFC inválido', 'El RFC debe tener al menos 12 caracteres', 'error');
             document.querySelector('input[name="rfc"]')?.focus();
             return;
         }
-        
+
         if (!telefono || telefono.length < 10) {
             showSweetAlert('Teléfono inválido', 'El teléfono debe tener al menos 10 dígitos', 'error');
             document.querySelector('input[name="telefono"]')?.focus();
             return;
         }
-        
+
         if (!correo || !validateEmail(correo)) {
             showSweetAlert('Correo inválido', 'Ingresa un correo electrónico válido (ej: proveedor@mail.com)', 'error');
             document.querySelector('input[name="correo"]')?.focus();
             return;
         }
-        
+
         if (!direccionFiscal) {
             showSweetAlert('¡Oye pai! 👀', 'La dirección fiscal es requerida', 'warning');
             document.querySelector('input[name="direccionFiscal"]')?.focus();
@@ -189,13 +221,14 @@ function initSupplierFormSubmit() {
             direccionFiscal,
             correo: correo.toLowerCase(),
             imagen: currentImageBase64,
-            createdBy: null
+            createdBy: adminId,
+            storeId: session?.storeId || null
         };
 
         isLoading = true;
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
-        
+
         // Mostrar loading
         Swal.fire({
             title: 'Registrando proveedor...',
@@ -211,13 +244,15 @@ function initSupplierFormSubmit() {
         });
 
         try {
-            const result = await SupplierService.create(supplierData, null);
-            
+            // 🔥 PASAMOS storeName AL SERVICE
+            const result = await SupplierService.create(supplierData, storeName, adminId);
+
             console.log('✅ Proveedor creado:', result);
-            
+            console.log('✅ Colección:', `suppliers${storeName.replace(/\s/g, '')}`);
+
             // Cerrar loading
             Swal.close();
-            
+
             // Mostrar éxito
             await Swal.fire({
                 title: '¡Proveedor registrado! 🎉',
@@ -229,6 +264,7 @@ function initSupplierFormSubmit() {
                         <p><i class="fas fa-phone"></i> <strong>Teléfono:</strong> ${telefono}</p>
                         <hr style="margin: 10px 0; border-color: #e2e8f0;">
                         <p style="color: #64748b; font-size: 0.8rem;">El proveedor ya está disponible en el sistema</p>
+                        <p style="color: #64748b; font-size: 0.7rem;">📁 Colección: suppliers${storeName.replace(/\s/g, '')}</p>
                     </div>
                 `,
                 icon: 'success',
@@ -241,12 +277,12 @@ function initSupplierFormSubmit() {
 
             // Limpiar formulario
             form.reset();
-            
+
             const avatarPreview = document.getElementById('supplierAvatarPreview');
             const avatarIcon = document.getElementById('supplierAvatarIcon');
             const removeBtn = document.getElementById('removeSupplierImageBtn');
             const fileInput = document.getElementById('supplierImageInput');
-            
+
             if (avatarPreview) {
                 avatarPreview.src = '';
                 avatarPreview.style.display = 'none';
@@ -254,7 +290,7 @@ function initSupplierFormSubmit() {
             if (avatarIcon) avatarIcon.style.display = 'block';
             if (removeBtn) removeBtn.style.display = 'none';
             if (fileInput) fileInput.value = '';
-            
+
             currentImageBase64 = '';
 
             // Preguntar si quiere ver el listado
@@ -284,7 +320,7 @@ function initSupplierFormSubmit() {
         } catch (error) {
             console.error('❌ Error:', error);
             Swal.close();
-            
+
             await Swal.fire({
                 title: 'Error al registrar',
                 html: `
@@ -320,12 +356,12 @@ function showSweetAlert(title, message, type = 'info', timer = null) {
             confirmButton: 'swal2-confirm'
         }
     };
-    
+
     if (timer) {
         config.timer = timer;
         config.showConfirmButton = false;
     }
-    
+
     Swal.fire(config);
 }
 

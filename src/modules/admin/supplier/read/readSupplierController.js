@@ -1,29 +1,48 @@
 /* FILE: readSupplierController.js
    ========================================================
    CONTROLADOR PARA LISTADO DE PROVEEDORES
-   Dependencias: SupplierService, SweetAlert2
-   Funcionalidad: Muestra listado de proveedores en tabla y cards,
-                  permite buscar, ver detalles, editar y cambiar estado
-                  mediante toggle switch individual (apagador)
+   COLECCIONES DINÁMICAS: suppliers + NombreTienda
    ======================================================== */
 
 import { SupplierService } from '/services/supplierService.js';
-
+import { AdminService } from '/services/adminService.js';
 
 let rowTemplate = null;
 let cardTemplate = null;
 let allSuppliers = [];
 let currentFilter = 'active'; // 'active' o 'inactive'
+let currentStoreName = null;
 
 /* ========================================================
    FUNCION PRINCIPAL - EXPORTADA
    ======================================================== */
 export async function readSupplierController() {
+    // Obtener storeName de la sesión
+    const session = AdminService.getSession();
+    currentStoreName = session?.storeName;
+
+    if (!currentStoreName) {
+        console.error('❌ No se encontró la tienda asociada');
+        await Swal.fire({
+            title: 'Error de configuración',
+            text: 'No se encontró la tienda asociada a tu cuenta. Contacta al administrador.',
+            icon: 'error',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#dc2626'
+        });
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo('/inicioAdmin');
+        } else {
+            window.location.href = '/inicioAdmin';
+        }
+        return;
+    }
+
     rowTemplate = document.getElementById('supplierRowTemplate');
     cardTemplate = document.getElementById('supplierCardTemplate');
-    
+
     await loadSuppliers();
-    
+
     initAddSupplierButton();
     initModalClose();
     initOutsideModalClose();
@@ -37,12 +56,13 @@ export async function readSupplierController() {
 async function loadSuppliers() {
     try {
         showToast('Cargando proveedores...', 'info');
-        
-        const suppliers = await SupplierService.getAll({}, false);
+
+        // 🔥 PASAMOS storeName AL SERVICE
+        const suppliers = await SupplierService.getAll(currentStoreName, {}, false);
         allSuppliers = suppliers;
-        
+
         applyFilterAndRender();
-        
+
     } catch (error) {
         console.error('Error al cargar proveedores:', error);
         showToast('Error al cargar proveedores', 'error');
@@ -61,14 +81,14 @@ function applyFilterAndRender() {
             return supplier.activo === false;
         }
     });
-    
+
     if (filteredSuppliers.length === 0) {
         showEmptyState();
     } else {
         renderSuppliersTable(filteredSuppliers);
         renderSuppliersCards(filteredSuppliers);
     }
-    
+
     updateTotalCount(filteredSuppliers.length);
 }
 
@@ -83,7 +103,7 @@ function renderSuppliersTable(suppliers) {
     suppliers.forEach(supplier => {
         const row = rowTemplate.content.cloneNode(true);
         const rowElement = row.querySelector('tr');
-        
+
         // Configurar imagen del proveedor
         const imgContainer = row.querySelector('.supplier-img-container');
         if (imgContainer) {
@@ -101,7 +121,7 @@ function renderSuppliersTable(suppliers) {
                 imgContainer.appendChild(icon);
             }
         }
-        
+
         // Asignar valores a las celdas
         const nameCell = row.querySelector('.supplier-name');
         const businessCell = row.querySelector('.supplier-business-name');
@@ -109,28 +129,28 @@ function renderSuppliersTable(suppliers) {
         const emailCell = row.querySelector('.supplier-email');
         const rfcCell = row.querySelector('.supplier-rfc');
         const statusSpan = row.querySelector('.supplier-status');
-        
+
         if (nameCell) nameCell.textContent = supplier.nombre || 'N/A';
         if (businessCell) businessCell.textContent = supplier.razonSocial || 'N/A';
         if (phoneCell) phoneCell.textContent = supplier.telefono || 'N/A';
         if (emailCell) emailCell.textContent = supplier.correo || 'N/A';
         if (rfcCell) rfcCell.textContent = supplier.rfc || 'N/A';
-        
+
         if (statusSpan) {
             statusSpan.textContent = supplier.activo ? 'Activo' : 'Inactivo';
             const statusClass = supplier.activo ? 'status-active' : 'status-inactive';
             statusSpan.className = `supplier-status ${statusClass}`;
         }
-        
+
         rowElement.dataset.id = supplier.id;
-        
+
         // Configurar eventos de los botones
         const viewBtn = rowElement.querySelector('.btn-view');
         const editBtn = rowElement.querySelector('.btn-edit');
-        
+
         if (viewBtn) viewBtn.addEventListener('click', () => viewSupplierDetails(supplier.id));
         if (editBtn) editBtn.addEventListener('click', () => editSupplier(supplier.id));
-        
+
         // Configurar toggle switch individual
         const toggleSwitch = row.querySelector('.status-row-switch');
         if (toggleSwitch) {
@@ -145,7 +165,7 @@ function renderSuppliersTable(suppliers) {
                 handleToggleSwitch(supplier.id, supplier.nombre, supplier.activo, toggleSwitch);
             });
         }
-        
+
         tbody.appendChild(row);
     });
 }
@@ -161,7 +181,7 @@ function renderSuppliersCards(suppliers) {
     suppliers.forEach(supplier => {
         const card = cardTemplate.content.cloneNode(true);
         const cardDiv = card.querySelector('.supplier-card-item');
-        
+
         // Configurar avatar del proveedor
         const avatarDiv = card.querySelector('.supplier-card-avatar');
         if (avatarDiv) {
@@ -179,7 +199,7 @@ function renderSuppliersCards(suppliers) {
                 avatarDiv.appendChild(icon);
             }
         }
-        
+
         // Asignar valores a la tarjeta
         const nameEl = card.querySelector('.card-name');
         const businessEl = card.querySelector('.card-business-name');
@@ -187,33 +207,33 @@ function renderSuppliersCards(suppliers) {
         const emailEl = card.querySelector('.card-email');
         const rfcEl = card.querySelector('.card-rfc');
         const statusSpan = card.querySelector('.card-status');
-        
+
         if (nameEl) nameEl.textContent = supplier.nombre || 'N/A';
         if (businessEl) businessEl.textContent = supplier.razonSocial || 'N/A';
         if (phoneEl) phoneEl.textContent = supplier.telefono || 'N/A';
         if (emailEl) emailEl.textContent = supplier.correo || 'N/A';
         if (rfcEl) rfcEl.textContent = supplier.rfc || 'N/A';
-        
+
         if (statusSpan) {
             statusSpan.textContent = supplier.activo ? 'Activo' : 'Inactivo';
             const statusClass = supplier.activo ? 'status-active' : 'status-inactive';
             statusSpan.className = `card-status ${statusClass}`;
         }
-        
+
         // Agregar clase especial para inactivos
         if (!supplier.activo) {
             cardDiv.classList.add('status-inactive-card');
         }
-        
+
         cardDiv.dataset.id = supplier.id;
-        
+
         // Configurar eventos de los botones
         const viewBtn = cardDiv.querySelector('.btn-view');
         const editBtn = cardDiv.querySelector('.btn-edit');
-        
+
         if (viewBtn) viewBtn.addEventListener('click', () => viewSupplierDetails(supplier.id));
         if (editBtn) editBtn.addEventListener('click', () => editSupplier(supplier.id));
-        
+
         // Configurar toggle switch individual
         const toggleSwitch = card.querySelector('.status-row-switch');
         if (toggleSwitch) {
@@ -228,7 +248,7 @@ function renderSuppliersCards(suppliers) {
                 handleToggleSwitch(supplier.id, supplier.nombre, supplier.activo, toggleSwitch);
             });
         }
-        
+
         container.appendChild(card);
     });
 }
@@ -241,7 +261,7 @@ async function handleToggleSwitch(id, nombre, isCurrentlyActive, toggleElement) 
     const actionText = isCurrentlyActive ? 'deshabilitado' : 'habilitado';
     const confirmText = isCurrentlyActive ? 'Si, deshabilitar' : 'Si, habilitar';
     const iconColor = isCurrentlyActive ? '#dc2626' : '#22c55e';
-    
+
     const result = await Swal.fire({
         title: `${isCurrentlyActive ? 'Deshabilitar' : 'Habilitar'} proveedor`,
         html: `Estas a punto de ${action} a <strong>${nombre}</strong>.<br>El proveedor quedara ${actionText} en el sistema.`,
@@ -257,9 +277,9 @@ async function handleToggleSwitch(id, nombre, isCurrentlyActive, toggleElement) 
             cancelButton: 'swal2-cancel'
         }
     });
-    
+
     if (!result.isConfirmed) return;
-    
+
     try {
         // Cambiar visualmente el toggle switch inmediatamente para feedback
         if (toggleElement) {
@@ -269,7 +289,7 @@ async function handleToggleSwitch(id, nombre, isCurrentlyActive, toggleElement) 
                 toggleElement.classList.remove('active');
             }
         }
-        
+
         Swal.fire({
             title: `${isCurrentlyActive ? 'Deshabilitando' : 'Habilitando'}...`,
             text: 'Por favor espera',
@@ -277,11 +297,12 @@ async function handleToggleSwitch(id, nombre, isCurrentlyActive, toggleElement) 
             didOpen: () => { Swal.showLoading(); },
             customClass: { popup: 'swal2-popup' }
         });
-        
+
         const updateData = { activo: !isCurrentlyActive };
-        await SupplierService.update(id, updateData);
+        // 🔥 PASAMOS storeName AL SERVICE
+        await SupplierService.update(id, currentStoreName, updateData);
         Swal.close();
-        
+
         await Swal.fire({
             title: `Proveedor ${actionText}`,
             text: `${nombre} ha sido ${actionText} correctamente`,
@@ -290,14 +311,14 @@ async function handleToggleSwitch(id, nombre, isCurrentlyActive, toggleElement) 
             confirmButtonColor: '#22c55e',
             customClass: { confirmButton: 'swal2-confirm' }
         });
-        
+
         // Recargar los datos
         await loadSuppliers();
-        
+
     } catch (error) {
         console.error(`Error al ${action} proveedor:`, error);
         Swal.close();
-        
+
         // Revertir el toggle visualmente
         if (toggleElement) {
             if (isCurrentlyActive) {
@@ -306,7 +327,7 @@ async function handleToggleSwitch(id, nombre, isCurrentlyActive, toggleElement) 
                 toggleElement.classList.remove('active');
             }
         }
-        
+
         await Swal.fire({
             title: 'Error',
             text: error.message || `No se pudo ${action} el proveedor`,
@@ -325,15 +346,15 @@ function initStatusFilterToggle() {
     const toggleSwitch = document.getElementById('statusFilterSwitch');
     const activeLabel = document.querySelector('.status-toggle-wrapper .status-label.active');
     const inactiveLabel = document.querySelector('.status-toggle-wrapper .status-label:first-child');
-    
+
     if (!toggleSwitch) return;
-    
+
     // Estado inicial: mostrar activos (switch en posicion "activos")
     toggleSwitch.classList.add('active');
-    
+
     toggleSwitch.addEventListener('click', () => {
         const isShowingActive = currentFilter === 'active';
-        
+
         if (isShowingActive) {
             currentFilter = 'inactive';
             toggleSwitch.classList.remove('active');
@@ -345,7 +366,7 @@ function initStatusFilterToggle() {
             if (activeLabel) activeLabel.classList.add('active');
             if (inactiveLabel) inactiveLabel.classList.remove('active');
         }
-        
+
         applyFilterAndRender();
     });
 }
@@ -355,8 +376,9 @@ function initStatusFilterToggle() {
    ======================================================== */
 async function viewSupplierDetails(id) {
     try {
-        const supplier = await SupplierService.getById(id, true);
-        
+        // 🔥 PASAMOS storeName AL SERVICE
+        const supplier = await SupplierService.getById(id, currentStoreName, true);
+
         if (!supplier) {
             await Swal.fire({
                 title: 'Error',
@@ -368,10 +390,10 @@ async function viewSupplierDetails(id) {
             });
             return;
         }
-        
+
         const modalAvatar = document.getElementById('modalAvatar');
         const modalAvatarIcon = document.getElementById('modalAvatarIcon');
-        
+
         if (modalAvatar && supplier.imagen) {
             modalAvatar.src = supplier.imagen;
             modalAvatar.style.display = 'block';
@@ -380,7 +402,7 @@ async function viewSupplierDetails(id) {
             modalAvatar.style.display = 'none';
             if (modalAvatarIcon) modalAvatarIcon.style.display = 'block';
         }
-        
+
         const titleEl = document.getElementById('modalTitle');
         const nombreEl = document.getElementById('modalNombre');
         const razonSocialEl = document.getElementById('modalRazonSocial');
@@ -389,7 +411,7 @@ async function viewSupplierDetails(id) {
         const direccionEl = document.getElementById('modalDireccion');
         const correoEl = document.getElementById('modalCorreo');
         const rfcEl = document.getElementById('modalRfc');
-        
+
         if (titleEl) titleEl.textContent = `Detalles: ${supplier.nombre}`;
         if (nombreEl) nombreEl.textContent = supplier.nombre || 'N/A';
         if (razonSocialEl) razonSocialEl.textContent = supplier.razonSocial || 'N/A';
@@ -398,10 +420,10 @@ async function viewSupplierDetails(id) {
         if (direccionEl) direccionEl.textContent = supplier.direccionFiscal || 'N/A';
         if (correoEl) correoEl.textContent = supplier.correo || 'N/A';
         if (rfcEl) rfcEl.textContent = supplier.rfc || 'N/A';
-        
+
         const modal = document.getElementById('supplierModal');
         if (modal) modal.style.display = 'block';
-        
+
     } catch (error) {
         console.error('Error al cargar detalles:', error);
         await Swal.fire({
@@ -428,10 +450,10 @@ function editSupplier(id) {
 function initSearchFilter() {
     const searchInput = document.getElementById('searchSupplier');
     if (!searchInput) return;
-    
+
     searchInput.addEventListener('input', (event) => {
         const searchTerm = event.target.value.toLowerCase();
-        
+
         let filteredByStatus = allSuppliers.filter(supplier => {
             if (currentFilter === 'active') {
                 return supplier.activo === true;
@@ -439,14 +461,14 @@ function initSearchFilter() {
                 return supplier.activo === false;
             }
         });
-        
+
         const filteredSuppliers = filteredByStatus.filter(supplier => {
             const matchesName = supplier.nombre && supplier.nombre.toLowerCase().includes(searchTerm);
             const matchesRfc = supplier.rfc && supplier.rfc.toLowerCase().includes(searchTerm);
             const matchesEmail = supplier.correo && supplier.correo.toLowerCase().includes(searchTerm);
             return matchesName || matchesRfc || matchesEmail;
         });
-        
+
         if (filteredSuppliers.length === 0 && searchTerm !== '') {
             showEmptySearchState();
         } else if (filteredSuppliers.length === 0) {
@@ -455,7 +477,7 @@ function initSearchFilter() {
             renderSuppliersTable(filteredSuppliers);
             renderSuppliersCards(filteredSuppliers);
         }
-        
+
         updateTotalCount(filteredSuppliers.length);
     });
 }
@@ -478,7 +500,7 @@ function showEmptySearchState() {
             </tr>
         `;
     }
-    
+
     const cardsContainer = document.getElementById('supplierCardsContainer');
     if (cardsContainer) {
         cardsContainer.innerHTML = `
@@ -508,7 +530,7 @@ function updateTotalCount(count) {
 function initAddSupplierButton() {
     const addButton = document.getElementById('addNewSupplierBtn');
     if (!addButton) return;
-    
+
     addButton.addEventListener('click', (event) => {
         event.preventDefault();
         window.location.href = '/crearProveedor';
@@ -522,9 +544,9 @@ function initModalClose() {
     const closeButton = document.querySelector('.modal-close');
     const closeModalButton = document.getElementById('closeModalBtn');
     const modal = document.getElementById('supplierModal');
-    
+
     if (!modal) return;
-    
+
     if (closeButton) closeButton.onclick = () => modal.style.display = 'none';
     if (closeModalButton) closeModalButton.onclick = () => modal.style.display = 'none';
 }
@@ -535,7 +557,7 @@ function initModalClose() {
 function initOutsideModalClose() {
     const modal = document.getElementById('supplierModal');
     if (!modal) return;
-    
+
     modal.onclick = (event) => {
         if (event.target.classList.contains('modal-overlay')) {
             modal.style.display = 'none';
@@ -548,7 +570,7 @@ function initOutsideModalClose() {
    ======================================================== */
 function showEmptyState() {
     const statusText = currentFilter === 'active' ? 'activos' : 'inactivos';
-    
+
     const tableBody = document.getElementById('supplierTableBody');
     if (tableBody) {
         tableBody.innerHTML = `
@@ -563,7 +585,7 @@ function showEmptyState() {
             </tr>
         `;
     }
-    
+
     const cardsContainer = document.getElementById('supplierCardsContainer');
     if (cardsContainer) {
         cardsContainer.innerHTML = `
@@ -595,12 +617,12 @@ function showToast(message, type = 'info') {
             timerProgressBar: 'swal2-timer-progress-bar'
         }
     });
-    
+
     let icon = 'info';
     if (type === 'success') icon = 'success';
     if (type === 'error') icon = 'error';
     if (type === 'warning') icon = 'warning';
-    
+
     Toast.fire({ icon: icon, title: message });
 }
 

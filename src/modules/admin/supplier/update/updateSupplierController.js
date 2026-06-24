@@ -1,22 +1,42 @@
 /* FILE: updateSupplierController.js
    ========================================================
    CONTROLADOR PARA ACTUALIZAR PROVEEDORES
-   Dependencias: SupplierService
-   Funcionalidad: Carga datos de un proveedor existente,
-                  permite editar campos y actualizar imagen,
-                  guarda cambios con validaciones
+   COLECCIONES DINÁMICAS: suppliers + NombreTienda
    ======================================================== */
 
 import { SupplierService } from '/services/supplierService.js';
+import { AdminService } from '/services/adminService.js';
 
 let isLoading = false;
 let currentImageBase64 = '';
 let originalSupplierData = null;
+let currentStoreName = null;
 
 /* ========================================================
    FUNCION PRINCIPAL - EXPORTADA
    ======================================================== */
 export async function updateSupplierController() {
+    // Obtener storeName de la sesión
+    const session = AdminService.getSession();
+    currentStoreName = session?.storeName;
+
+    if (!currentStoreName) {
+        console.error('❌ No se encontró la tienda asociada');
+        await Swal.fire({
+            title: 'Error de configuración',
+            text: 'No se encontró la tienda asociada a tu cuenta. Contacta al administrador.',
+            icon: 'error',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#dc2626'
+        });
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo('/inicioAdmin');
+        } else {
+            window.location.href = '/inicioAdmin';
+        }
+        return;
+    }
+
     animateSupplierCard();
     initSupplierImageClick();
     initSupplierImageUpload();
@@ -36,7 +56,7 @@ function animateSupplierCard() {
     card.style.opacity = '0';
     card.style.transform = 'translateY(20px)';
     card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-    
+
     setTimeout(() => {
         card.style.opacity = '1';
         card.style.transform = 'translateY(0)';
@@ -89,14 +109,14 @@ function initSupplierImageUpload() {
 
         reader.onload = (e) => {
             currentImageBase64 = e.target.result;
-            
+
             if (avatarPreview) {
                 avatarPreview.src = currentImageBase64;
                 avatarPreview.style.display = 'block';
             }
             if (avatarIcon) avatarIcon.style.display = 'none';
             if (removeBtn) removeBtn.style.display = 'inline-block';
-            
+
             showToast('Imagen actualizada', 'success');
         };
 
@@ -124,7 +144,7 @@ function initRemoveSupplierImage() {
         }
         if (avatarIcon) avatarIcon.style.display = 'block';
         removeBtn.style.display = 'none';
-        
+
         currentImageBase64 = '';
         showToast('Imagen eliminada', 'info');
     });
@@ -138,7 +158,7 @@ async function loadSupplierData() {
     try {
         const urlParams = new URLSearchParams(window.location.search);
         const supplierId = urlParams.get('id');
-        
+
         // Validar que el ID exista en la URL
         if (!supplierId) {
             await Swal.fire({
@@ -154,11 +174,12 @@ async function loadSupplierData() {
             }, 1500);
             return;
         }
-        
+
         showToast('Cargando datos del proveedor...', 'info');
-        
-        const supplier = await SupplierService.getById(supplierId, true);
-        
+
+        // 🔥 PASAMOS storeName AL SERVICE
+        const supplier = await SupplierService.getById(supplierId, currentStoreName, true);
+
         // Validar que el proveedor exista
         if (!supplier) {
             await Swal.fire({
@@ -172,10 +193,10 @@ async function loadSupplierData() {
             window.location.href = '/proveedores';
             return;
         }
-        
+
         // Guardar datos originales para comparar cambios
         originalSupplierData = supplier;
-        
+
         // Poblar campos del formulario
         document.getElementById('supplierId').value = supplier.id;
         document.getElementById('nombre').value = supplier.nombre || '';
@@ -185,15 +206,15 @@ async function loadSupplierData() {
         document.getElementById('direccionFiscal').value = supplier.direccionFiscal || '';
         document.getElementById('correo').value = supplier.correo || '';
         document.getElementById('rfc').value = supplier.rfc || '';
-        
+
         // Cargar imagen si existe
         if (supplier.imagen && supplier.imagen.startsWith('data:image')) {
             currentImageBase64 = supplier.imagen;
-            
+
             const avatarPreview = document.getElementById('supplierAvatarPreview');
             const avatarIcon = document.getElementById('supplierAvatarIcon');
             const removeBtn = document.getElementById('removeSupplierImageBtn');
-            
+
             if (avatarPreview) {
                 avatarPreview.src = supplier.imagen;
                 avatarPreview.style.display = 'block';
@@ -201,9 +222,9 @@ async function loadSupplierData() {
             if (avatarIcon) avatarIcon.style.display = 'none';
             if (removeBtn) removeBtn.style.display = 'inline-block';
         }
-        
+
         showToast('Datos cargados correctamente', 'success');
-        
+
     } catch (error) {
         console.error('Error al cargar proveedor:', error);
         showToast('Error al cargar los datos', 'error');
@@ -224,13 +245,13 @@ function initSupplierFormSubmit() {
         if (isLoading) return;
 
         const supplierId = document.getElementById('supplierId')?.value;
-        
+
         // Validar ID del proveedor
         if (!supplierId) {
             showToast('ID de proveedor no encontrado', 'error');
             return;
         }
-        
+
         // Obtener valores del formulario
         const nombre = document.getElementById('nombre')?.value.trim();
         const razonSocial = document.getElementById('razonSocial')?.value.trim();
@@ -246,31 +267,31 @@ function initSupplierFormSubmit() {
             document.getElementById('nombre')?.focus();
             return;
         }
-        
+
         if (!razonSocial || razonSocial.length < 3) {
             showSweetAlert('Razon social invalida', 'La razon social debe tener al menos 3 caracteres', 'warning');
             document.getElementById('razonSocial')?.focus();
             return;
         }
-        
+
         if (!rfc || rfc.length < 12) {
             showSweetAlert('RFC invalido', 'El RFC debe tener al menos 12 caracteres', 'error');
             document.getElementById('rfc')?.focus();
             return;
         }
-        
+
         if (!telefono || telefono.length < 10) {
             showSweetAlert('Telefono invalido', 'El telefono debe tener al menos 10 digitos', 'error');
             document.getElementById('telefono')?.focus();
             return;
         }
-        
+
         if (!correo || !validateEmail(correo)) {
             showSweetAlert('Correo invalido', 'Ingresa un correo electronico valido', 'error');
             document.getElementById('correo')?.focus();
             return;
         }
-        
+
         if (!direccionFiscal) {
             showSweetAlert('Direccion requerida', 'La direccion fiscal es requerida', 'warning');
             document.getElementById('direccionFiscal')?.focus();
@@ -287,7 +308,7 @@ function initSupplierFormSubmit() {
             direccionFiscal,
             correo: correo.toLowerCase()
         };
-        
+
         // Solo incluir imagen si hubo cambios
         if (currentImageBase64 && currentImageBase64 !== originalSupplierData?.imagen) {
             updateData.imagen = currentImageBase64;
@@ -298,7 +319,7 @@ function initSupplierFormSubmit() {
         isLoading = true;
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
-        
+
         // Mostrar loading mientras se procesa
         Swal.fire({
             title: 'Actualizando proveedor...',
@@ -309,9 +330,10 @@ function initSupplierFormSubmit() {
         });
 
         try {
-            const result = await SupplierService.update(supplierId, updateData);
+            // 🔥 PASAMOS storeName AL SERVICE
+            const result = await SupplierService.update(supplierId, currentStoreName, updateData);
             Swal.close();
-            
+
             // Mostrar confirmacion de exito
             await Swal.fire({
                 title: 'Proveedor actualizado',
@@ -329,7 +351,7 @@ function initSupplierFormSubmit() {
                 confirmButtonColor: '#456da2',
                 customClass: { confirmButton: 'swal2-confirm' }
             });
-            
+
             // Actualizar datos originales
             originalSupplierData = result;
             currentImageBase64 = result.imagen || '';
@@ -354,11 +376,11 @@ function initSupplierFormSubmit() {
             if (resultConfirm.isConfirmed) {
                 window.location.href = '/proveedores';
             }
-            
+
         } catch (error) {
             console.error('Error al actualizar proveedor:', error);
             Swal.close();
-            
+
             await Swal.fire({
                 title: 'Error al actualizar',
                 html: `<p>Ocurrio un problema</p><p style="font-size: 0.85rem; color: #64748b;">${error.message || 'Intenta nuevamente'}</p>`,
@@ -426,12 +448,12 @@ function showToast(message, type = 'info') {
             timerProgressBar: 'swal2-timer-progress-bar'
         }
     });
-    
+
     let icon = 'info';
     if (type === 'success') icon = 'success';
     if (type === 'error') icon = 'error';
     if (type === 'warning') icon = 'warning';
-    
+
     Toast.fire({ icon: icon, title: message });
 }
 
