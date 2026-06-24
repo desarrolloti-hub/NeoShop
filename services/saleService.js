@@ -1,10 +1,12 @@
 /* ========================================
-   SALE SERVICE - Logica de negocio de ventas
+   SALE SERVICE - Business logic for sales
+   DYNAMIC COLLECTIONS: sales + StoreName
    ======================================== */
 
-import { Sale } from '../classes/saleModel';
-import { SaleRepository } from '../repositories/saleRepository';
-import { CacheService, STORES } from '../services/cacheService';
+import { Sale } from '../classes/saleModel.js';
+import { SaleRepository } from '../repositories/saleRepository.js';
+import { CacheService, STORES } from '../services/cacheService.js';
+import { AdminService } from '../services/adminService.js';
 
 export const SALE_STATUS = {
     PENDING: 'pending',
@@ -24,213 +26,267 @@ export const PAYMENT_METHODS = {
 
 export const SaleService = {
     /**
-     * Crear una nueva venta
-     * @param {Object} saleData - Datos de la venta
-     * @param {string} userId - ID del usuario que crea la venta
-     * @returns {Promise<Object>} Venta creada
+     * Create a new sale
      */
-    async createSale(saleData, userId) {
-        // Validaciones de negocio
-        if (!saleData.storeSlug || saleData.storeSlug.trim().length === 0) {
-            throw new Error('El slug de la tienda es requerido');
+    async createSale(saleData, userId, storeName = null) {
+        // If storeName is not provided, try to get it from session
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to create a sale');
+            }
         }
 
+        // ========== VALIDATIONS ==========
         if (!saleData.branchId || saleData.branchId.trim().length === 0) {
-            throw new Error('El ID de la sucursal es requerido');
+            throw new Error('Branch ID is required');
         }
 
         if (!userId) {
-            throw new Error('El ID del usuario es requerido');
+            throw new Error('User ID is required');
         }
 
         if (saleData.subtotal < 0) {
-            throw new Error('El subtotal no puede ser negativo');
+            throw new Error('Subtotal cannot be negative');
         }
 
         if (saleData.discount < 0) {
-            throw new Error('El descuento no puede ser negativo');
+            throw new Error('Discount cannot be negative');
         }
 
         if (saleData.total < 0) {
-            throw new Error('El total no puede ser negativo');
+            throw new Error('Total cannot be negative');
         }
 
         if (!saleData.paymentMethod || !Object.values(PAYMENT_METHODS).includes(saleData.paymentMethod)) {
-            throw new Error(`Método de pago inválido. Métodos permitidos: ${Object.values(PAYMENT_METHODS).join(', ')}`);
+            throw new Error(`Invalid payment method. Allowed methods: ${Object.values(PAYMENT_METHODS).join(', ')}`);
         }
 
-        // Generar folio automático
-        const folio = await SaleRepository.getNextFolio(saleData.storeSlug);
+        // Generate automatic folio
+        const folio = await SaleRepository.getNextFolio(storeName, saleData.storeSlug);
 
-        // Crear instancia de Sale
+        // ========== CREATE MODEL ==========
         const sale = new Sale({
             id: this._generateId(),
+            folio: folio,
             storeSlug: saleData.storeSlug.trim(),
+            storeId: saleData.storeId || null,
+            storeName: storeName, // Save the store name
             branchId: saleData.branchId.trim(),
             customerId: saleData.customerId || null,
+            customerName: saleData.customerName || 'General customer',
             userId: userId,
-            folio: folio,
+            userName: saleData.userName || '',
+            userEmail: saleData.userEmail || '',
             date: saleData.date || new Date().toISOString(),
-            subtotal: saleData.subtotal,
+            // 🔥 No underscores
+            subtotal: saleData.subtotal || 0,
+            subtotalWithoutTax: saleData.subtotalWithoutTax || 0,
             discount: saleData.discount || 0,
             tax: saleData.tax || 0,
-            total: saleData.total,
+            taxAmount: saleData.taxAmount || 0,
+            total: saleData.total || 0,
             paymentMethod: saleData.paymentMethod,
             status: SALE_STATUS.PENDING,
+            products: saleData.products || [],
+            priceIncludesTax: saleData.priceIncludesTax !== undefined ? saleData.priceIncludesTax : true,
+            taxRate: saleData.taxRate || 0.16,
             createdBy: userId
         });
 
-        // Recalcular total para asegurar consistencia
-        sale.calcularTotal();
+        // Recalculate totals to ensure consistency
+        sale.calculateTotals();
 
-        // Validar datos
-        const validation = sale.validarParaRegistro();
-        if (!validation.valido) {
-            throw new Error(validation.errores.join(', '));
+        // Validate data
+        const validation = sale.validateForRegistration();
+        if (!validation.valid) {
+            throw new Error(validation.errors.join(', '));
         }
 
-        // Guardar en repositorio
-        const result = await SaleRepository.save(sale);
+        // 🔥 Save using toFirestore() method which has NO underscores
+        const result = await SaleRepository.save(sale.toFirestore(), storeName);
 
-        // Limpiar caché
+        // Clear cache
         await CacheService.clearCache(STORES.SALES || 'sales');
 
         return result;
     },
 
     /**
-     * Obtener una venta por ID
-     * @param {string} saleId - ID de la venta
-     * @returns {Promise<Object>} Venta encontrada
+     * Get a sale by ID
      */
-    async getSaleById(saleId) {
+    async getSaleById(saleId, storeName = null) {
         if (!saleId) {
-            throw new Error('El ID de la venta es requerido');
+            throw new Error('Sale ID is required');
         }
 
-        const sale = await SaleRepository.getById(saleId);
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get the sale');
+            }
+        }
+
+        const sale = await SaleRepository.getById(saleId, storeName);
         if (!sale) {
-            throw new Error('Venta no encontrada');
+            throw new Error('Sale not found');
         }
 
+        // 🔥 Data comes without underscores from Firestore
         return sale;
     },
 
     /**
-     * Obtener una venta por folio
-     * @param {string} folio - Folio de la venta
-     * @returns {Promise<Object>} Venta encontrada
+     * Get a sale by folio
      */
-    async getSaleByFolio(folio) {
+    async getSaleByFolio(folio, storeName = null) {
         if (!folio || folio.trim().length === 0) {
-            throw new Error('El folio es requerido');
+            throw new Error('Folio is required');
         }
 
-        const sale = await SaleRepository.getByFolio(folio.trim());
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get the sale');
+            }
+        }
+
+        const sale = await SaleRepository.getByFolio(folio.trim(), storeName);
         if (!sale) {
-            throw new Error('Venta no encontrada');
+            throw new Error('Sale not found');
         }
 
         return sale;
     },
 
     /**
-     * Obtener todas las ventas de una tienda
-     * @param {string} storeSlug - Slug de la tienda
-     * @param {Object} options - Opciones de consulta
-     * @returns {Promise<Array>} Lista de ventas
+     * Get all sales from a store
      */
-    async getSalesByStore(storeSlug, options = {}) {
-        if (!storeSlug) {
-            throw new Error('El slug de la tienda es requerido');
+    async getSalesByStore(storeName = null, options = {}) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get sales');
+            }
         }
 
-        return await SaleRepository.getByStore(storeSlug, options);
+        return await SaleRepository.getByStore(storeName, options);
     },
 
     /**
-     * Obtener ventas de una sucursal
-     * @param {string} branchId - ID de la sucursal
-     * @param {Object} options - Opciones de consulta
-     * @returns {Promise<Array>} Lista de ventas
+     * Get sales from a branch
      */
-    async getSalesByBranch(branchId, options = {}) {
+    async getSalesByBranch(branchId, storeName = null, options = {}) {
         if (!branchId) {
-            throw new Error('El ID de la sucursal es requerido');
+            throw new Error('Branch ID is required');
         }
 
-        return await SaleRepository.getByBranch(branchId, options);
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get sales');
+            }
+        }
+
+        return await SaleRepository.getByBranch(branchId, storeName, options);
     },
 
     /**
-     * Obtener ventas de un usuario
-     * @param {string} userId - ID del usuario
-     * @param {Object} options - Opciones de consulta
-     * @returns {Promise<Array>} Lista de ventas
+     * Get sales from a user
      */
-    async getSalesByUser(userId, options = {}) {
+    async getSalesByUser(userId, storeName = null, options = {}) {
         if (!userId) {
-            throw new Error('El ID del usuario es requerido');
+            throw new Error('User ID is required');
         }
 
-        return await SaleRepository.getByUser(userId, options);
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get sales');
+            }
+        }
+
+        return await SaleRepository.getByUser(userId, storeName, options);
     },
 
     /**
-     * Obtener ventas de un cliente
-     * @param {string} customerId - ID del cliente
-     * @param {Object} options - Opciones de consulta
-     * @returns {Promise<Array>} Lista de ventas
+     * Get sales from a customer
      */
-    async getSalesByCustomer(customerId, options = {}) {
+    async getSalesByCustomer(customerId, storeName = null, options = {}) {
         if (!customerId) {
-            throw new Error('El ID del cliente es requerido');
+            throw new Error('Customer ID is required');
         }
 
-        return await SaleRepository.getByCustomer(customerId, options);
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get sales');
+            }
+        }
+
+        return await SaleRepository.getByCustomer(customerId, storeName, options);
     },
 
     /**
-     * Actualizar una venta
-     * @param {string} saleId - ID de la venta
-     * @param {Object} updateData - Datos a actualizar
-     * @param {string} userId - ID del usuario que actualiza
-     * @returns {Promise<Object>} Venta actualizada
+     * Update a sale
      */
-    async updateSale(saleId, updateData, userId) {
+    async updateSale(saleId, updateData, userId, storeName = null) {
         if (!saleId) {
-            throw new Error('El ID de la venta es requerido');
+            throw new Error('Sale ID is required');
         }
 
-        // Obtener venta actual
-        const currentSale = await SaleRepository.getById(saleId);
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to update the sale');
+            }
+        }
+
+        // Get current sale
+        const currentSale = await SaleRepository.getById(saleId, storeName);
         if (!currentSale) {
-            throw new Error('Venta no encontrada');
+            throw new Error('Sale not found');
         }
 
-        // No permitir actualizar ventas completadas o canceladas
+        // Don't allow updating completed or cancelled sales
         if (currentSale.status === SALE_STATUS.COMPLETED) {
-            throw new Error('No se puede modificar una venta ya completada');
+            throw new Error('Cannot modify a completed sale');
         }
 
         if (currentSale.status === SALE_STATUS.CANCELLED) {
-            throw new Error('No se puede modificar una venta cancelada');
+            throw new Error('Cannot modify a cancelled sale');
         }
 
-        // Validar datos de actualización
+        // Validate update data
         if (updateData.discount !== undefined && updateData.discount < 0) {
-            throw new Error('El descuento no puede ser negativo');
+            throw new Error('Discount cannot be negative');
         }
 
         if (updateData.total !== undefined && updateData.total < 0) {
-            throw new Error('El total no puede ser negativo');
+            throw new Error('Total cannot be negative');
         }
 
-        // Agregar metadata
+        // Add metadata
         updateData.updatedBy = userId;
         updateData.updatedAt = new Date().toISOString();
 
-        // Si se actualizan valores monetarios, recalcular total
+        // If monetary values are updated, recalculate total
         if (updateData.subtotal !== undefined || updateData.discount !== undefined || updateData.tax !== undefined) {
             const subtotal = updateData.subtotal !== undefined ? updateData.subtotal : currentSale.subtotal;
             const discount = updateData.discount !== undefined ? updateData.discount : currentSale.discount;
@@ -238,363 +294,428 @@ export const SaleService = {
             updateData.total = subtotal - discount + tax;
         }
 
-        const result = await SaleRepository.update(saleId, updateData);
+        const result = await SaleRepository.update(saleId, storeName, updateData);
 
-        // Limpiar caché
+        // Clear cache
         await CacheService.clearCache(STORES.SALES || 'sales');
 
         return result;
     },
 
     /**
-     * Completar una venta
-     * @param {string} saleId - ID de la venta
-     * @param {string} userId - ID del usuario que completa
-     * @returns {Promise<Object>} Venta completada
+     * Complete a sale
      */
-    async completeSale(saleId, userId) {
+    async completeSale(saleId, userId, storeName = null) {
         if (!saleId) {
-            throw new Error('El ID de la venta es requerido');
+            throw new Error('Sale ID is required');
         }
 
-        const sale = await SaleRepository.getById(saleId);
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to complete the sale');
+            }
+        }
+
+        const sale = await SaleRepository.getById(saleId, storeName);
         if (!sale) {
-            throw new Error('Venta no encontrada');
+            throw new Error('Sale not found');
         }
 
         if (sale.status === SALE_STATUS.COMPLETED) {
-            throw new Error('La venta ya está completada');
+            throw new Error('Sale is already completed');
         }
 
         if (sale.status === SALE_STATUS.CANCELLED) {
-            throw new Error('No se puede completar una venta cancelada');
+            throw new Error('Cannot complete a cancelled sale');
         }
 
-        const result = await SaleRepository.updateStatus(saleId, SALE_STATUS.COMPLETED);
+        const result = await SaleRepository.updateStatus(saleId, storeName, SALE_STATUS.COMPLETED);
 
-        // Limpiar caché
+        // Clear cache
         await CacheService.clearCache(STORES.SALES || 'sales');
 
         return result;
     },
 
     /**
-     * Cancelar una venta
-     * @param {string} saleId - ID de la venta
-     * @param {string} userId - ID del usuario que cancela
-     * @param {string} reason - Razón de cancelación (opcional)
-     * @returns {Promise<Object>} Venta cancelada
+     * Cancel a sale
      */
-    async cancelSale(saleId, userId, reason = '') {
+    async cancelSale(saleId, userId, reason = '', storeName = null) {
         if (!saleId) {
-            throw new Error('El ID de la venta es requerido');
+            throw new Error('Sale ID is required');
         }
 
-        const sale = await SaleRepository.getById(saleId);
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to cancel the sale');
+            }
+        }
+
+        const sale = await SaleRepository.getById(saleId, storeName);
         if (!sale) {
-            throw new Error('Venta no encontrada');
+            throw new Error('Sale not found');
         }
 
         if (sale.status === SALE_STATUS.COMPLETED) {
-            throw new Error('No se puede cancelar una venta ya completada');
+            throw new Error('Cannot cancel a completed sale');
         }
 
         if (sale.status === SALE_STATUS.CANCELLED) {
-            throw new Error('La venta ya está cancelada');
+            throw new Error('Sale is already cancelled');
         }
 
-        const result = await SaleRepository.update(saleId, {
+        const result = await SaleRepository.update(saleId, storeName, {
             status: SALE_STATUS.CANCELLED,
             cancellationReason: reason,
             cancelledBy: userId,
             cancelledAt: new Date().toISOString()
         });
 
-        // Limpiar caché
+        // Clear cache
         await CacheService.clearCache(STORES.SALES || 'sales');
 
         return result;
     },
 
     /**
-     * Obtener resumen de ventas por día
-     * @param {string} storeSlug - Slug de la tienda
-     * @param {string} date - Fecha específica (YYYY-MM-DD)
-     * @returns {Promise<Object>} Resumen de ventas
+     * Get daily sales summary
      */
-    async getDailySummary(storeSlug, date) {
-        if (!storeSlug) {
-            throw new Error('El slug de la tienda es requerido');
+    async getDailySummary(storeName = null, date) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get the summary');
+            }
         }
 
         if (!date) {
-            throw new Error('La fecha es requerida');
+            throw new Error('Date is required');
         }
 
-        // Validar formato de fecha
+        // Validate date format
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
         if (!dateRegex.test(date)) {
-            throw new Error('Formato de fecha inválido. Use YYYY-MM-DD');
+            throw new Error('Invalid date format. Use YYYY-MM-DD');
         }
 
-        return await SaleRepository.getSalesSummaryByDay(storeSlug, date);
+        return await SaleRepository.getSalesSummaryByDay(storeName, date);
     },
 
     /**
-     * Obtener reporte de ventas por rango de fechas
-     * @param {string} storeSlug - Slug de la tienda
-     * @param {string} startDate - Fecha inicio (YYYY-MM-DD)
-     * @param {string} endDate - Fecha fin (YYYY-MM-DD)
-     * @returns {Promise<Object>} Reporte de ventas
+     * Get sales report by date range
      */
-    async getSalesReport(storeSlug, startDate, endDate) {
-        if (!storeSlug) {
-            throw new Error('El slug de la tienda es requerido');
+    async getSalesReport(storeName = null, startDate, endDate) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get the report');
+            }
         }
 
         if (!startDate || !endDate) {
-            throw new Error('Las fechas de inicio y fin son requeridas');
+            throw new Error('Start and end dates are required');
         }
 
-        // Convertir a ISO strings
+        // Convert to ISO strings
         const startISO = `${startDate}T00:00:00.000Z`;
         const endISO = `${endDate}T23:59:59.999Z`;
 
-        const sales = await SaleRepository.getByDateRange(storeSlug, startISO, endISO);
+        const sales = await SaleRepository.getByDateRange(storeName, startISO, endISO);
         const completedSales = sales.filter(sale => sale.status === SALE_STATUS.COMPLETED);
 
         const report = {
-            periodo: {
-                inicio: startDate,
-                fin: endDate
+            period: {
+                start: startDate,
+                end: endDate
             },
-            resumen: {
-                totalVentas: completedSales.length,
-                totalIngresos: completedSales.reduce((sum, sale) => sum + (sale.total || 0), 0),
-                totalDescuentos: completedSales.reduce((sum, sale) => sum + (sale.discount || 0), 0),
-                totalImpuestos: completedSales.reduce((sum, sale) => sum + (sale.tax || 0), 0),
-                promedioVenta: completedSales.length > 0
+            summary: {
+                totalSales: completedSales.length,
+                totalRevenue: completedSales.reduce((sum, sale) => sum + (sale.total || 0), 0),
+                totalDiscounts: completedSales.reduce((sum, sale) => sum + (sale.discount || 0), 0),
+                totalTaxes: completedSales.reduce((sum, sale) => sum + (sale.tax || 0), 0),
+                averageTicket: completedSales.length > 0
                     ? completedSales.reduce((sum, sale) => sum + (sale.total || 0), 0) / completedSales.length
                     : 0
             },
-            ventas: completedSales,
-            porMetodoPago: await SaleRepository.getStatsByPaymentMethod(storeSlug, startISO, endISO)
+            sales: completedSales,
+            byPaymentMethod: await SaleRepository.getStatsByPaymentMethod(storeName, startISO, endISO)
         };
 
         return report;
     },
 
     /**
-     * Buscar ventas por múltiples criterios
-     * @param {Object} filters - Filtros de búsqueda
-     * @returns {Promise<Array>} Ventas encontradas
+     * Search sales by multiple criteria
      */
-    async searchSales(filters) {
-        // Implementar lógica de búsqueda avanzada según necesidades
-        // Por ahora, delegamos a métodos existentes
+    async searchSales(filters, storeName = null) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to search sales');
+            }
+        }
+
+        // Implement advanced search logic
         if (filters.folio) {
-            const sale = await SaleRepository.getByFolio(filters.folio);
+            const sale = await SaleRepository.getByFolio(filters.folio, storeName);
             return sale ? [sale] : [];
         }
 
         if (filters.customerId) {
-            return await SaleRepository.getByCustomer(filters.customerId);
+            return await SaleRepository.getByCustomer(filters.customerId, storeName);
         }
 
         if (filters.userId) {
-            return await SaleRepository.getByUser(filters.userId);
+            return await SaleRepository.getByUser(filters.userId, storeName);
         }
 
-        if (filters.storeSlug) {
-            if (filters.status) {
-                return await SaleRepository.getByStatus(filters.storeSlug, filters.status);
+        if (filters.status) {
+            return await SaleRepository.getByStatus(storeName, filters.status);
+        }
+
+        if (filters.paymentMethod) {
+            return await SaleRepository.getByPaymentMethod(storeName, filters.paymentMethod);
+        }
+
+        if (filters.startDate && filters.endDate) {
+            return await SaleRepository.getByDateRange(storeName, filters.startDate, filters.endDate);
+        }
+
+        // If only search term
+        if (filters.searchTerm) {
+            return await SaleRepository.searchSales(storeName, filters.searchTerm);
+        }
+
+        // If no filters, return all sales
+        return await SaleRepository.getByStore(storeName);
+    },
+
+    /**
+     * Get all sales from a store (no limit)
+     */
+    async getAllSales(storeName = null, options = {}) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get sales');
             }
-            return await SaleRepository.getByStore(filters.storeSlug);
         }
 
-        throw new Error('No se especificaron criterios de búsqueda válidos');
+        return await SaleRepository.getAllSales(storeName, options);
     },
 
     /**
-     * Generar ID único para la venta
-     * @returns {string} ID generado
-     * @private
+     * Get sales with advanced filters
      */
-    _generateId() {
-        return `sale_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    },
-    /**
-         * Obtener todas las ventas de una tienda (sin límite)
-         * @param {string} storeSlug - Slug de la tienda
-         * @param {Object} options - Opciones de consulta
-         * @returns {Promise<Array>} Lista de ventas
-         */
-    async getAllSales(storeSlug, options = {}) {
-        if (!storeSlug) {
-            throw new Error('El slug de la tienda es requerido');
+    async getSalesWithFilters(filters = {}, storeName = null) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get sales');
+            }
         }
 
-        return await SaleRepository.getAllSales(storeSlug, options);
+        return await SaleRepository.getWithFilters(storeName, filters);
     },
 
     /**
-     * Obtener ventas por ID de tienda
-     * @param {string} storeId - ID de la tienda
-     * @param {Object} options - Opciones de consulta
-     * @returns {Promise<Array>} Lista de ventas
+     * Get complete sales statistics
      */
-    async getSalesByStoreId(storeId, options = {}) {
-        if (!storeId) {
-            throw new Error('El ID de la tienda es requerido');
-        }
+    async getCompleteStats(storeName = null, startDate, endDate) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
 
-        return await SaleRepository.getByStoreId(storeId, options);
-    },
-
-    /**
-     * Obtener ventas con filtros avanzados
-     * @param {Object} filters - Filtros a aplicar
-     * @returns {Promise<Array>} Lista de ventas
-     */
-    async getSalesWithFilters(filters = {}) {
-        return await SaleRepository.getWithFilters(filters);
-    },
-
-    /**
-     * Obtener estadísticas completas de ventas
-     * @param {string} storeSlug - Slug de la tienda
-     * @param {string} startDate - Fecha inicio (YYYY-MM-DD)
-     * @param {string} endDate - Fecha fin (YYYY-MM-DD)
-     * @returns {Promise<Object>} Estadísticas completas
-     */
-    async getCompleteStats(storeSlug, startDate, endDate) {
-        if (!storeSlug) {
-            throw new Error('El slug de la tienda es requerido');
+            if (!storeName) {
+                throw new Error('Store name is required to get statistics');
+            }
         }
 
         if (!startDate || !endDate) {
-            throw new Error('Las fechas de inicio y fin son requeridas');
+            throw new Error('Start and end dates are required');
         }
 
         const startISO = `${startDate}T00:00:00.000Z`;
         const endISO = `${endDate}T23:59:59.999Z`;
 
-        return await SaleRepository.getFullStats(storeSlug, startISO, endISO);
+        return await SaleRepository.getFullStats(storeName, startISO, endISO);
     },
 
     /**
-     * Obtener conteo de ventas por estado
-     * @param {string} storeSlug - Slug de la tienda
-     * @returns {Promise<Object>} Conteo por estado
+     * Get sales count by status
      */
-    async getSalesCountByStatus(storeSlug) {
-        if (!storeSlug) {
-            throw new Error('El slug de la tienda es requerido');
+    async getSalesCountByStatus(storeName = null) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get count');
+            }
         }
 
-        return await SaleRepository.getCountByStatus(storeSlug);
+        return await SaleRepository.getCountByStatus(storeName);
     },
 
     /**
-     * Buscar ventas por texto
-     * @param {string} storeSlug - Slug de la tienda
-     * @param {string} searchTerm - Término de búsqueda
-     * @returns {Promise<Array>} Ventas encontradas
+     * Search sales by text
      */
-    async searchSalesByText(storeSlug, searchTerm) {
-        if (!storeSlug) {
-            throw new Error('El slug de la tienda es requerido');
+    async searchSalesByText(storeName = null, searchTerm) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to search sales');
+            }
         }
 
         if (!searchTerm || searchTerm.trim().length < 2) {
-            throw new Error('Ingrese al menos 2 caracteres para buscar');
+            throw new Error('Enter at least 2 characters to search');
         }
 
-        return await SaleRepository.searchSales(storeSlug, searchTerm);
+        return await SaleRepository.searchSales(storeName, searchTerm);
     },
 
     /**
-     * Obtener ventas del día actual
-     * @param {string} storeSlug - Slug de la tienda
-     * @returns {Promise<Array>} Ventas del día
+     * Get today's sales
      */
-    async getTodaySales(storeSlug) {
-        if (!storeSlug) {
-            throw new Error('El slug de la tienda es requerido');
+    async getTodaySales(storeName = null) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get sales');
+            }
         }
 
-        return await SaleRepository.getTodaySales(storeSlug);
+        return await SaleRepository.getTodaySales(storeName);
     },
 
     /**
-     * Obtener ventas de la semana actual
-     * @param {string} storeSlug - Slug de la tienda
-     * @returns {Promise<Array>} Ventas de la semana
+     * Get this week's sales
      */
-    async getThisWeekSales(storeSlug) {
-        if (!storeSlug) {
-            throw new Error('El slug de la tienda es requerido');
+    async getThisWeekSales(storeName = null) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get sales');
+            }
         }
 
-        return await SaleRepository.getThisWeekSales(storeSlug);
+        return await SaleRepository.getThisWeekSales(storeName);
     },
 
     /**
-     * Obtener ventas del mes actual
-     * @param {string} storeSlug - Slug de la tienda
-     * @returns {Promise<Array>} Ventas del mes
+     * Get this month's sales
      */
-    async getThisMonthSales(storeSlug) {
-        if (!storeSlug) {
-            throw new Error('El slug de la tienda es requerido');
+    async getThisMonthSales(storeName = null) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get sales');
+            }
         }
 
-        return await SaleRepository.getThisMonthSales(storeSlug);
+        return await SaleRepository.getThisMonthSales(storeName);
     },
 
     /**
-     * Obtener resumen rápido para dashboard
-     * @param {string} storeSlug - Slug de la tienda
-     * @returns {Promise<Object>} Resumen para dashboard
+     * Get sales from the last N days
      */
-    async getDashboardSummary(storeSlug) {
-        if (!storeSlug) {
-            throw new Error('El slug de la tienda es requerido');
+    async getLastDaysSales(storeName = null, days = 7) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get sales');
+            }
         }
 
-        const todaySales = await SaleRepository.getTodaySales(storeSlug);
-        const weekSales = await SaleRepository.getThisWeekSales(storeSlug);
-        const monthSales = await SaleRepository.getThisMonthSales(storeSlug);
-        const counts = await SaleRepository.getCountByStatus(storeSlug);
+        return await SaleRepository.getLastDaysSales(storeName, days);
+    },
+
+    /**
+     * Get quick dashboard summary
+     */
+    async getDashboardSummary(storeName = null) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get summary');
+            }
+        }
+
+        const todaySales = await SaleRepository.getTodaySales(storeName);
+        const weekSales = await SaleRepository.getThisWeekSales(storeName);
+        const monthSales = await SaleRepository.getThisMonthSales(storeName);
+        const counts = await SaleRepository.getCountByStatus(storeName);
+        const lastDaysSales = await SaleRepository.getLastDaysSales(storeName, 7);
 
         const completedToday = todaySales.filter(s => s.status === 'completed');
         const completedWeek = weekSales.filter(s => s.status === 'completed');
         const completedMonth = monthSales.filter(s => s.status === 'completed');
 
         return {
-            hoy: {
-                ventas: completedToday.length,
-                ingresos: completedToday.reduce((sum, s) => sum + (s.total || 0), 0),
-                ticketPromedio: completedToday.length > 0
+            today: {
+                sales: completedToday.length,
+                revenue: completedToday.reduce((sum, s) => sum + (s.total || 0), 0),
+                averageTicket: completedToday.length > 0
                     ? completedToday.reduce((sum, s) => sum + (s.total || 0), 0) / completedToday.length
                     : 0
             },
-            semana: {
-                ventas: completedWeek.length,
-                ingresos: completedWeek.reduce((sum, s) => sum + (s.total || 0), 0),
-                ticketPromedio: completedWeek.length > 0
-                    ? completedWeek.reduce((sum, s) => sum + (s.PAYMENT_METHODStotal || 0), 0) / completedWeek.length
+            week: {
+                sales: completedWeek.length,
+                revenue: completedWeek.reduce((sum, s) => sum + (s.total || 0), 0),
+                averageTicket: completedWeek.length > 0
+                    ? completedWeek.reduce((sum, s) => sum + (s.total || 0), 0) / completedWeek.length
                     : 0
             },
-            mes: {
-                ventas: completedMonth.length,
-                ingresos: completedMonth.reduce((sum, s) => sum + (s.total || 0), 0),
-                ticketPromedio: completedMonth.length > 0
+            month: {
+                sales: completedMonth.length,
+                revenue: completedMonth.reduce((sum, s) => sum + (s.total || 0), 0),
+                averageTicket: completedMonth.length > 0
                     ? completedMonth.reduce((sum, s) => sum + (s.total || 0), 0) / completedMonth.length
                     : 0
             },
-            porEstado: counts,
-            ultimasVentas: await SaleRepository.getByStore(storeSlug, { limit: 10 })
+            byStatus: counts,
+            recentSales: await SaleRepository.getByStore(storeName, { limit: 10 }),
+            trend7Days: lastDaysSales.map(sale => ({
+                date: sale.date?.split('T')[0],
+                total: sale.total || 0,
+                folio: sale.folio
+            }))
         };
+    },
+
+    /**
+     * Generate unique ID for sale
+     */
+    _generateId() {
+        return `sale_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
 };
