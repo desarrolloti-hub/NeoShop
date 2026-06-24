@@ -1,6 +1,6 @@
 /* ============================================
    SALES LIST CONTROLLER - Listado de Ventas
-   Adaptado para AdminService y SaleService actualizados
+   COLECCIONES DINÁMICAS: sales + NombreTienda
    ============================================ */
 
 import { SaleService } from '../../../../../services/saleService.js';
@@ -15,6 +15,7 @@ const pageSize = 10;
 let totalPages = 1;
 let currentAdmin = null;
 let currentStore = null;
+let currentStoreName = null; // 🔥 NUEVO
 
 let currentFilters = {
     status: '',
@@ -88,13 +89,19 @@ function loadAdminSession() {
         return false;
     }
 
+    // 🔥 Obtener storeName de la sesión
+    currentStoreName = currentAdmin.storeName;
+
+    if (!currentStoreName) {
+        console.warn('⚠️ No hay storeName en la sesión');
+        return false;
+    }
+
     console.log('✅ Administrador autenticado:', currentAdmin.nombreCompleto);
+    console.log('✅ Tienda:', currentStoreName);
     return true;
 }
 
-/**
- * Obtener la tienda del admin actual
- */
 async function loadCurrentStore() {
     if (!currentAdmin || !currentAdmin.id) {
         console.warn('⚠️ No hay admin para obtener tienda');
@@ -114,33 +121,22 @@ async function loadCurrentStore() {
 // ========== CACHE DE ELEMENTOS ==========
 function cacheElements() {
     elements = {
-        // Tabla y cards
         salesTableBody: document.getElementById('salesTableBody'),
         salesMobileCards: document.getElementById('salesMobileCards'),
-
-        // KPIs
         totalVentasCount: document.getElementById('totalVentasCount'),
         totalIngresos: document.getElementById('totalIngresos'),
         ventasHoy: document.getElementById('ventasHoy'),
         ticketPromedio: document.getElementById('ticketPromedio'),
-
-        // Filtros
         statusFilter: document.getElementById('statusFilter'),
         startDateFilter: document.getElementById('startDateFilter'),
         endDateFilter: document.getElementById('endDateFilter'),
         applyFiltersBtn: document.getElementById('applyFiltersBtn'),
         clearFiltersBtn: document.getElementById('clearFiltersBtn'),
-
-        // Paginación
         prevPageBtn: document.getElementById('prevPageBtn'),
         nextPageBtn: document.getElementById('nextPageBtn'),
         pageInfo: document.getElementById('pageInfo'),
-
-        // Botones
         newSaleBtn: document.getElementById('newSaleBtn'),
         refreshChartBtn: document.getElementById('refreshChartBtn'),
-
-        // Gráfico
         chartBars: document.querySelectorAll('.bar-item')
     };
 }
@@ -149,7 +145,7 @@ function cacheElements() {
 function updateKPIs() {
     const completedSales = allSales.filter(s => s.status === 'completed');
     const totalVentas = completedSales.length;
-    const totalIngresos = completedSales.reduce((sum, sale) => sum + (sale._total || 0), 0);
+    const totalIngresos = completedSales.reduce((sum, sale) => sum + (sale.total || 0), 0);
     const ticketPromedio = totalVentas > 0 ? totalIngresos / totalVentas : 0;
 
     const today = new Date().toISOString().split('T')[0];
@@ -181,7 +177,7 @@ function updateWeeklyChart() {
         const saleDate = new Date(sale.date);
         if (saleDate >= startOfWeek) {
             const dayIndex = (saleDate.getDay() + 6) % 7;
-            weeklySales[dayIndex] += sale._total || 0;
+            weeklySales[dayIndex] += sale.total || 0;
         }
     });
 
@@ -224,31 +220,28 @@ function renderSalesTable() {
         return;
     }
 
-    // Renderizar tabla desktop
     elements.salesTableBody.innerHTML = pageSales.map(sale => `
         <tr data-sale-id="${sale.id}">
             <td class="sale-folio">${escapeHtml(sale.folio || 'N/A')}</td>
             <td class="sale-customer">${escapeHtml(sale.customerName || 'Cliente general')}</td>
             <td class="sale-date">${formatDate(sale.date)}</td>
-            <td class="sale-subtotal">${formatCurrency(sale._subtotal || 0)}</td>
-            <td class="sale-discount">${formatCurrency(sale._discount || 0)}</td>
-            <td class="sale-total"><strong>${formatCurrency(sale._total || 0)}</strong></td>
+            <td class="sale-subtotal">${formatCurrency(sale.subtotal || 0)}</td>
+            <td class="sale-discount">${formatCurrency(sale.discount || 0)}</td>
+            <td class="sale-total"><strong>${formatCurrency(sale.total || 0)}</strong></td>
             <td class="sale-payment">${getPaymentMethodText(sale.paymentMethod)}</td>
             <td class="sale-status">
                 <span class="status-badge ${getStatusClass(sale.status)}">${getStatusText(sale.status)}</span>
             </td>
             <td class="action-badge">
-             <a href="/detallesVenta?ID=${sale.id}">
-                <button class="btn-view" data-id="${sale.id}">
-                    <i class="fas fa-eye"></i> Ver
-                </button>
-            </a>
-                
+                <a href="/detallesVenta?ID=${sale.id}">
+                    <button class="btn-view" data-id="${sale.id}">
+                        <i class="fas fa-eye"></i> Ver
+                    </button>
+                </a>
             </td>
         </tr>
     `).join('');
 
-    // Renderizar cards móvil
     if (elements.salesMobileCards) {
         elements.salesMobileCards.innerHTML = pageSales.map(sale => `
             <div class="customer-card-item" data-id="${sale.id}">
@@ -394,18 +387,19 @@ async function loadSales() {
     `;
 
     try {
-        if (!currentStore) {
-            await loadCurrentStore();
+        // 🔥 Verificar que tengamos storeName
+        if (!currentStoreName) {
+            throw new Error('No se encontró la tienda asociada');
         }
 
-        const storeSlug = currentStore?.name || 'default-store';
-
-        // Usar el método getAllSales del SaleService
-        const sales = await SaleService.getAllSales(storeSlug, {
-            limit: 500,
+        // 🔥 PASAMOS storeName AL SERVICE
+        const sales = await SaleService.getAllSales(currentStoreName, {
             orderBy: 'date',
             orderDirection: 'desc'
         });
+
+        console.log(`✅ Ventas cargadas: ${sales.length}`);
+        console.log(`📁 Colección: sales${currentStoreName.replace(/\s/g, '')}`);
 
         allSales = sales;
         filteredSales = [...allSales];
@@ -522,6 +516,14 @@ export async function saleListController() {
         console.error('❌ No se pudo cargar la sesión');
         Swal.fire('Error', 'No se pudo cargar la sesión. Por favor inicie sesión nuevamente.', 'error');
         if (window.router) window.router.navigate('/admin/login');
+        return;
+    }
+
+    // 🔥 Verificar que tengamos storeName
+    if (!currentStoreName) {
+        console.error('❌ No se encontró storeName en la sesión');
+        Swal.fire('Error', 'No se encontró la tienda asociada a tu cuenta. Contacta al administrador.', 'error');
+        if (window.router) window.router.navigate('/inicioAdmin');
         return;
     }
 

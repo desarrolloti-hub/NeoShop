@@ -1,6 +1,7 @@
 /* ============================================
    SALE CREATE CONTROLLER - Nueva Venta con Escáner SKU
-   Con vista previa de producto, foto, selector de cantidad
+   COLECCIONES DINÁMICAS: sales + NombreTienda
+   PRECIOS CON IVA INCLUIDO - Se calcula el IVA del total
    ============================================ */
 
 import { SaleService } from '../../../../../services/saleService.js';
@@ -12,7 +13,11 @@ let cartItems = [];
 let searchTimeout = null;
 let currentAdmin = null;
 let currentStore = null;
-let currentPreviewProduct = null;  // Producto actual en vista previa
+let currentStoreName = null;
+let currentPreviewProduct = null;
+
+// ========== CONSTANTES ==========
+const IVA_RATE = 0.16; // 16% de IVA
 
 // ========== ELEMENTOS DOM ==========
 let elements = {};
@@ -34,7 +39,15 @@ function loadAdminSession() {
         return false;
     }
 
+    currentStoreName = currentAdmin.storeName;
+
+    if (!currentStoreName) {
+        console.warn('⚠️ No hay storeName en la sesión');
+        return false;
+    }
+
     console.log('✅ Admin autenticado:', currentAdmin.nombreCompleto);
+    console.log('✅ Tienda:', currentStoreName);
     return true;
 }
 
@@ -47,10 +60,6 @@ async function loadCurrentStore() {
     try {
         currentStore = await ProductService.getCurrentStore(currentAdmin.id);
         console.log('✅ Tienda actual:', currentStore.name);
-
-        if (elements.storeName) {
-            elements.storeName.textContent = currentStore.name;
-        }
         return true;
     } catch (error) {
         console.error('❌ Error obteniendo tienda:', error.message);
@@ -68,23 +77,22 @@ function updateAdminInfoInUI() {
     if (elements.adminInitials) {
         elements.adminInitials.textContent = currentAdmin.iniciales || 'A';
     }
+
+    if (elements.storeName) {
+        elements.storeName.textContent = currentStoreName || currentStore?.name || 'Mi Tienda';
+    }
 }
 
 function cacheElements() {
     elements = {
-        // Botones y navegación
         backToListBtn: document.getElementById('backToListBtn'),
         cancelSaleBtn: document.getElementById('cancelSaleBtn'),
         submitSaleBtn: document.getElementById('submitSaleBtn'),
-
-        // Escáner y búsqueda
         skuInput: document.getElementById('skuInput'),
         searchSkuBtn: document.getElementById('searchSkuBtn'),
         skuStatus: document.getElementById('skuStatus'),
         productSearchInput: document.getElementById('productSearchInput'),
         searchResults: document.getElementById('searchResults'),
-
-        // Vista previa del producto
         previewSection: document.getElementById('previewSection'),
         previewImage: document.getElementById('previewImage'),
         previewNoImage: document.getElementById('previewNoImage'),
@@ -98,30 +106,33 @@ function cacheElements() {
         previewQuantityMinus: document.getElementById('previewQuantityMinus'),
         previewQuantityPlus: document.getElementById('previewQuantityPlus'),
         closePreviewBtn: document.getElementById('closePreviewBtn'),
-
-        // Carrito
         cartItemsList: document.getElementById('cartItemsList'),
         cartCount: document.getElementById('cartCount'),
-
-        // Resumen de venta
         discount: document.getElementById('discount'),
         summarySubtotal: document.getElementById('summarySubtotal'),
         summaryTax: document.getElementById('summaryTax'),
         summaryTotal: document.getElementById('summaryTotal'),
-
-        // Datos del cliente
+        // 🔥 Asegurar que estos elementos existan en el DOM
+        summarySubtitle: document.getElementById('summarySubtitle'),
         customerName: document.getElementById('customerName'),
         customerId: document.getElementById('customerId'),
-
-        // Información del admin
         adminName: document.getElementById('adminName'),
         adminInitials: document.getElementById('adminInitials'),
         adminEmail: document.getElementById('adminEmail'),
         storeName: document.getElementById('storeName'),
-
-        // Método de pago
         paymentRadios: document.querySelectorAll('input[name="paymentMethod"]')
     };
+
+    // 🔥 Verificar que los elementos críticos existan
+    if (!elements.summarySubtotal) {
+        console.warn('⚠️ Elemento summarySubtotal no encontrado en el DOM');
+    }
+    if (!elements.summaryTax) {
+        console.warn('⚠️ Elemento summaryTax no encontrado en el DOM');
+    }
+    if (!elements.summaryTotal) {
+        console.warn('⚠️ Elemento summaryTotal no encontrado en el DOM');
+    }
 }
 
 // ========== FUNCIONES PARA LOS BOTONES DE CANTIDAD ==========
@@ -133,13 +144,11 @@ function updateQuantityInput(change) {
 
     let newValue = currentValue + change;
 
-    // Obtener stock máximo del producto actual
     let maxStock = 999;
     if (currentPreviewProduct) {
         maxStock = currentPreviewProduct.stock;
     }
 
-    // Validar límites
     if (newValue < 1) newValue = 1;
     if (newValue > maxStock) newValue = maxStock;
 
@@ -152,7 +161,6 @@ function validateQuantityInput() {
     let value = parseInt(elements.quantityInput.value);
     if (isNaN(value) || value < 1) value = 1;
 
-    // Obtener stock máximo del producto actual
     let maxStock = 999;
     if (currentPreviewProduct) {
         maxStock = currentPreviewProduct.stock;
@@ -167,13 +175,10 @@ function validateQuantityInput() {
 function showProductPreview(product) {
     if (!elements.previewSection) return;
 
-    // Guardar referencia del producto actual
     currentPreviewProduct = product;
 
-    // Mostrar la sección de preview
     elements.previewSection.style.display = 'block';
 
-    // Actualizar datos del producto
     if (elements.previewName) {
         elements.previewName.textContent = product.name;
     }
@@ -190,7 +195,6 @@ function showProductPreview(product) {
         const stockElement = elements.previewStock;
         stockElement.textContent = product.stock;
 
-        // Cambiar color según stock
         if (product.stock <= 0) {
             stockElement.className = 'stock-value out-of-stock';
         } else if (product.isLowStock) {
@@ -204,7 +208,6 @@ function showProductPreview(product) {
         elements.previewBarcode.textContent = product.barcode;
     }
 
-    // Manejo de imagen
     if (elements.previewImage && elements.previewNoImage) {
         if (product.imageUrl && product.imageUrl.startsWith('data:image')) {
             elements.previewImage.src = product.imageUrl;
@@ -216,14 +219,12 @@ function showProductPreview(product) {
         }
     }
 
-    // Configurar cantidad máxima
     if (elements.quantityInput) {
         elements.quantityInput.max = product.stock;
         elements.quantityInput.value = 1;
         elements.quantityInput.disabled = product.stock <= 0;
     }
 
-    // Configurar botón de agregar
     if (elements.addToCartBtn) {
         elements.addToCartBtn.disabled = product.stock <= 0;
         elements.addToCartBtn.dataset.productId = product.id;
@@ -241,7 +242,6 @@ function hideProductPreview() {
 function renderCart() {
     if (!elements.cartItemsList) return;
 
-    // Actualizar contador
     if (elements.cartCount) {
         elements.cartCount.textContent = cartItems.length;
     }
@@ -376,16 +376,65 @@ function removeFromCart(index) {
     renderCart();
 }
 
-// ========== CALCULAR TOTALES ==========
+// ========== CALCULAR TOTALES CON IVA INCLUIDO ==========
+/**
+ * 🔥 IMPORTANTE: El precio de los productos YA INCLUYE IVA
+ * Fórmula para calcular el IVA incluido:
+ * - IVA = Total / 1.16 * 0.16
+ * - Subtotal sin IVA = Total - IVA
+ */
 function calculateTotals() {
-    const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotalConIva = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const discount = parseFloat(elements.discount?.value) || 0;
-    const tax = subtotal * 0.16;
-    const total = subtotal - discount + tax;
 
-    if (elements.summarySubtotal) elements.summarySubtotal.textContent = formatCurrency(subtotal);
-    if (elements.summaryTax) elements.summaryTax.textContent = formatCurrency(tax);
-    if (elements.summaryTotal) elements.summaryTotal.textContent = formatCurrency(total);
+    // 🔥 Calcular el total después del descuento
+    const totalConIva = subtotalConIva - discount;
+
+    // 🔥 Calcular el IVA incluido en el total (16%)
+    // Fórmula: IVA = Total * 16 / 116 = Total / 1.16 * 0.16
+    const ivaIncluido = totalConIva * IVA_RATE / (1 + IVA_RATE);
+
+    // 🔥 Calcular el subtotal sin IVA
+    const subtotalSinIva = totalConIva - ivaIncluido;
+
+    // 🔥 Actualizar UI - Verificar que los elementos existan
+    if (elements.summarySubtotal) {
+        elements.summarySubtotal.textContent = formatCurrency(subtotalConIva);
+    }
+
+    // 🔥 Actualizar subtítulo si existe
+    if (elements.summarySubtitle) {
+        elements.summarySubtitle.textContent = '(Precios con IVA incluido)';
+    }
+
+    if (elements.summaryTax) {
+        // Mostrar el IVA calculado
+        elements.summaryTax.textContent = formatCurrency(ivaIncluido);
+        elements.summaryTax.style.fontSize = '1rem';
+        elements.summaryTax.style.color = '#456da2';
+    }
+
+    if (elements.summaryTotal) {
+        elements.summaryTotal.textContent = formatCurrency(totalConIva);
+    }
+
+    // 🔥 Guardar todos los valores calculados para usarlos en createSale
+    window._saleTotals = {
+        subtotalConIva: subtotalConIva,
+        subtotalSinIva: subtotalSinIva,
+        discount: discount,
+        iva: ivaIncluido,  // 🔥 IVA incluido en el total
+        total: totalConIva,
+        totalSinIva: subtotalSinIva,
+        priceIncludesTax: true
+    };
+
+    console.log('💰 Resumen de venta:');
+    console.log(`   Subtotal (con IVA): ${formatCurrency(subtotalConIva)}`);
+    console.log(`   Descuento: ${formatCurrency(discount)}`);
+    console.log(`   IVA (16% incluido): ${formatCurrency(ivaIncluido)}`);
+    console.log(`   Subtotal (sin IVA): ${formatCurrency(subtotalSinIva)}`);
+    console.log(`   Total a pagar: ${formatCurrency(totalConIva)}`);
 }
 
 // ========== MOSTRAR ESTADO DEL SKU ==========
@@ -532,6 +581,11 @@ async function createSale() {
             return;
         }
 
+        if (!currentStoreName) {
+            Swal.fire('Error', 'No se encontró la tienda asociada', 'error');
+            return;
+        }
+
         let paymentMethod = '';
         if (elements.paymentRadios) {
             elements.paymentRadios.forEach(radio => {
@@ -544,35 +598,53 @@ async function createSale() {
             return;
         }
 
-        const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const discount = parseFloat(elements.discount?.value) || 0;
-        const tax = subtotal * 0.16;
-        const total = subtotal - discount + tax;
+        // 🔥 Usar los valores calculados con IVA incluido
+        const totals = window._saleTotals || {
+            subtotalConIva: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+            discount: parseFloat(elements.discount?.value) || 0,
+            iva: 0,
+            total: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) - (parseFloat(elements.discount?.value) || 0),
+            priceIncludesTax: true
+        };
+
+        // 🔥 Si por alguna razón no se calculó el IVA, calcularlo aquí
+        if (totals.iva === 0 && totals.total > 0) {
+            totals.iva = totals.total * IVA_RATE / (1 + IVA_RATE);
+            totals.subtotalSinIva = totals.total - totals.iva;
+        }
 
         const productos = cartItems.map(item => ({
             productId: item.id,
             productName: item.name,
             productBarcode: item.barcode,
             quantity: item.quantity,
-            price: item.price,
-            subtotal: item.price * item.quantity
+            price: item.price, // Precio con IVA incluido
+            subtotal: item.price * item.quantity, // Subtotal con IVA incluido
+            subtotalSinIva: (item.price * item.quantity) / (1 + IVA_RATE), // Subtotal sin IVA
+            iva: (item.price * item.quantity) * IVA_RATE / (1 + IVA_RATE) // IVA del producto
         }));
 
         const saleData = {
             customerId: elements.customerId?.value || null,
             customerName: elements.customerName?.value?.trim() || 'Cliente general',
             productos: productos,
-            subtotal: subtotal,
-            discount: discount,
-            tax: tax,
-            total: total,
+            // 🔥 Guardar todos los valores con y sin IVA
+            subtotal: totals.subtotalConIva, // Total con IVA
+            subtotalSinIva: totals.subtotalSinIva || (totals.subtotalConIva - totals.iva),
+            discount: totals.discount,
+            iva: totals.iva, // 🔥 IVA incluido en el total
+            total: totals.total, // Total a pagar (con IVA incluido - descuento)
             paymentMethod: paymentMethod,
             date: new Date().toISOString(),
             userId: currentAdmin.id,
             userName: currentAdmin.nombreCompleto,
             userEmail: currentAdmin.email,
-            storeSlug: currentStore?.name || 'default-store',
-            branchId: currentStore?.id || 'default-branch'
+            storeSlug: currentStore?.name || currentStoreName || 'default-store',
+            storeId: currentStore?.id || null,
+            branchId: currentStore?.id || 'default-branch',
+            // 🔥 Flag para indicar que los precios incluyen IVA
+            priceIncludesTax: true,
+            ivaRate: IVA_RATE
         };
 
         Swal.fire({
@@ -582,8 +654,17 @@ async function createSale() {
             didOpen: () => Swal.showLoading()
         });
 
-        const result = await SaleService.createSale(saleData, currentAdmin.id);
+        const result = await SaleService.createSale(saleData, currentAdmin.id, currentStoreName);
 
+        console.log('✅ Venta creada:', result);
+        console.log('📁 Colección:', `sales${currentStoreName.replace(/\s/g, '')}`);
+        console.log('💰 Desglose:');
+        console.log(`   Subtotal (con IVA): ${formatCurrency(saleData.subtotal)}`);
+        console.log(`   Subtotal (sin IVA): ${formatCurrency(saleData.subtotalSinIva)}`);
+        console.log(`   IVA (16%): ${formatCurrency(saleData.iva)}`);
+        console.log(`   Total a pagar: ${formatCurrency(saleData.total)}`);
+
+        // Actualizar stock
         for (const item of cartItems) {
             try {
                 await ProductService.updateStock(item.id, -item.quantity, currentAdmin.id);
@@ -594,7 +675,16 @@ async function createSale() {
 
         Swal.fire({
             title: '¡Venta registrada!',
-            text: `Venta ${result.folio} registrada exitosamente`,
+            html: `
+                <div style="text-align: left;">
+                    <p><strong>Folio:</strong> ${result.folio}</p>
+                    <p><strong>Total:</strong> ${formatCurrency(result.total)}</p>
+                    <p><strong>IVA incluido:</strong> ${formatCurrency(result.iva || 0)}</p>
+                    <p style="font-size: 0.85rem; color: #64748b; margin-top: 8px;">
+                        Los precios incluyen IVA (16%)
+                    </p>
+                </div>
+            `,
             icon: 'success',
             confirmButtonText: 'Ver detalle'
         }).then((resultSwal) => {
@@ -605,6 +695,7 @@ async function createSale() {
             }
         });
 
+        // Limpiar carrito
         cartItems = [];
         if (elements.customerName) elements.customerName.value = '';
         if (elements.customerId) elements.customerId.value = '';
@@ -627,7 +718,6 @@ function escapeHtml(text) {
 
 // ========== EVENTOS ==========
 function bindEvents() {
-    // Navegación
     if (elements.backToListBtn) {
         elements.backToListBtn.addEventListener('click', () => {
             if (window.router) window.router.navigate('/admin/ventas');
@@ -640,7 +730,6 @@ function bindEvents() {
         });
     }
 
-    // Búsqueda por SKU
     if (elements.searchSkuBtn) {
         elements.searchSkuBtn.addEventListener('click', searchProductBySku);
     }
@@ -654,7 +743,6 @@ function bindEvents() {
         });
     }
 
-    // Botones de cantidad en preview
     if (elements.previewQuantityMinus) {
         elements.previewQuantityMinus.addEventListener('click', () => {
             updateQuantityInput(-1);
@@ -672,7 +760,6 @@ function bindEvents() {
         elements.quantityInput.addEventListener('input', validateQuantityInput);
     }
 
-    // Botón agregar desde preview
     if (elements.addToCartBtn) {
         elements.addToCartBtn.addEventListener('click', handleAddFromPreview);
     }
@@ -681,7 +768,6 @@ function bindEvents() {
         elements.closePreviewBtn.addEventListener('click', hideProductPreview);
     }
 
-    // Búsqueda manual
     if (elements.productSearchInput) {
         elements.productSearchInput.addEventListener('input', () => {
             clearTimeout(searchTimeout);
@@ -697,12 +783,10 @@ function bindEvents() {
         });
     }
 
-    // Descuento
     if (elements.discount) {
         elements.discount.addEventListener('input', calculateTotals);
     }
 
-    // Submit
     if (elements.submitSaleBtn) {
         elements.submitSaleBtn.addEventListener('click', async (e) => {
             e.preventDefault();
@@ -724,6 +808,13 @@ export async function saleCreateController() {
         return;
     }
 
+    if (!currentStoreName) {
+        console.error('❌ No se encontró storeName en la sesión');
+        Swal.fire('Error', 'No se encontró la tienda asociada a tu cuenta. Contacta al administrador.', 'error');
+        if (window.router) window.router.navigate('/inicioAdmin');
+        return;
+    }
+
     await loadCurrentStore();
     cacheElements();
     updateAdminInfoInUI();
@@ -736,4 +827,6 @@ export async function saleCreateController() {
     }
 
     console.log('✅ Sale Create Controller - Listo');
+    console.log('💰 Modo: Precios con IVA incluido (16%)');
+    console.log('📐 Fórmula: IVA = Total / 1.16 * 0.16');
 }
