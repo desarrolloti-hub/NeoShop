@@ -1,15 +1,52 @@
 /* ========================================
    STORE REPOSITORY - Operaciones CRUD con Firebase
-   SOLO HABLA CON LA BASE DE DATOS
+   COLECCIONES DINÁMICAS: stores + NombreTienda
    ======================================== */
 
 import { db } from '/config/firebaseConfig.js';
-import { 
+import {
     collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc,
     query, where, limit
 } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 
-const STORES_COLLECTION = 'stores';
+/**
+ * Obtiene el nombre de la colección de stores para una tienda
+ * @param {string} storeName - Nombre de la tienda (ej: "Mi Tienda")
+ * @returns {string} - Nombre de la colección (ej: "storesMiTienda")
+ */
+function getStoreCollectionName(storeName) {
+    // 🔥 VALIDACIÓN: Si storeName es undefined o null, usar "stores" por defecto
+    if (!storeName) {
+        console.warn('⚠️ getStoreCollectionName: storeName es null o undefined, usando "stores" por defecto');
+        return 'stores';
+    }
+
+    // Convertir a string por seguridad
+    const storeNameStr = String(storeName);
+
+    // Convertir a camelCase: "Mi Tienda" -> "storesMiTienda"
+    const camelCaseName = storeNameStr
+        .toLowerCase()
+        .replace(/[^a-zA-Z0-9]/g, ' ') // Reemplazar caracteres especiales con espacios
+        .trim()
+        .split(' ')
+        .filter(word => word.length > 0)
+        .map((word, index) => {
+            if (index === 0) {
+                return word; // Primera palabra en minúscula
+            }
+            return word.charAt(0).toUpperCase() + word.slice(1); // Resto con mayúscula inicial
+        })
+        .join('');
+
+    // Si después de la limpieza queda vacío, usar "stores" por defecto
+    if (!camelCaseName) {
+        console.warn('⚠️ storeName quedó vacío después de limpieza, usando "stores" por defecto');
+        return 'stores';
+    }
+
+    return `stores${camelCaseName.charAt(0).toUpperCase() + camelCaseName.slice(1)}`;
+}
 
 export const StoreRepository = {
     async save(storeData) {
@@ -37,93 +74,113 @@ export const StoreRepository = {
             createdBy: storeData.createdBy || null,
             createdByEmail: storeData.createdByEmail || null
         };
-        
-        // El ID del documento será el nombre en camelCase (ej: "miTiendaOnline")
-        const storeRef = doc(db, STORES_COLLECTION, plainData.id);
+
+        const collectionName = getStoreCollectionName(storeData.name);
+        const storeRef = doc(db, collectionName, plainData.id);
         await setDoc(storeRef, plainData);
         return { id: plainData.id, ...plainData };
     },
-    
-    async getById(storeId) {
-        const storeRef = doc(db, STORES_COLLECTION, storeId);
+
+    async getById(storeId, storeName = null) {
+        // Si no se proporciona storeName, buscar en la colección "stores" por defecto
+        const collectionName = storeName ? getStoreCollectionName(storeName) : 'stores';
+        const storeRef = doc(db, collectionName, storeId);
         const docSnap = await getDoc(storeRef);
         return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
     },
-    
-    async getByAdminId(adminId) {
+
+    /**
+     * Obtiene una tienda por adminId
+     * @param {string} adminId - ID del administrador
+     * @param {string} storeName - Nombre de la tienda (opcional, para buscar en colección específica)
+     * @returns {Promise<Object|null>} Tienda encontrada o null
+     */
+    async getByAdminId(adminId, storeName = null) {
+        // 🔥 Si no se proporciona storeName, buscar en la colección "stores" por defecto
+        const collectionName = storeName ? getStoreCollectionName(storeName) : 'stores';
+
+        console.log('🔍 StoreRepository.getByAdminId - collectionName:', collectionName);
+        console.log('🔍 StoreRepository.getByAdminId - adminId:', adminId);
+
         const q = query(
-            collection(db, STORES_COLLECTION),
+            collection(db, collectionName),
             where('adminId', '==', adminId),
             limit(1)
         );
         const querySnapshot = await getDocs(q);
         return querySnapshot.empty ? null : { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
     },
-    
-    async getByRfc(rfc) {
+
+    async getByRfc(rfc, storeName = null) {
+        const collectionName = storeName ? getStoreCollectionName(storeName) : 'stores';
         const q = query(
-            collection(db, STORES_COLLECTION),
+            collection(db, collectionName),
             where('rfc', '==', rfc.toUpperCase()),
             limit(1)
         );
         const querySnapshot = await getDocs(q);
         return querySnapshot.empty ? null : { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
     },
-    
+
     async getAll(filters = {}, limitCount = 100) {
+        // Para getAll, usamos "stores" por defecto (colección principal)
+        const collectionName = 'stores';
         let constraints = [];
-        
+
         if (filters.active !== undefined) {
             constraints.push(where('active', '==', filters.active));
         }
         if (filters.profileComplete !== undefined) {
             constraints.push(where('profileComplete', '==', filters.profileComplete));
         }
-        
+
         constraints.push(limit(limitCount));
-        
-        const q = query(collection(db, STORES_COLLECTION), ...constraints);
+
+        const q = query(collection(db, collectionName), ...constraints);
         const querySnapshot = await getDocs(q);
-        
+
         const stores = [];
         querySnapshot.forEach((doc) => {
             stores.push({ id: doc.id, ...doc.data() });
         });
-        
+
         stores.sort((a, b) => {
             const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
             const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
             return dateB - dateA;
         });
-        
+
         return stores;
     },
-    
-    async update(storeId, updateData) {
-        const storeRef = doc(db, STORES_COLLECTION, storeId);
+
+    async update(storeId, storeName = null, updateData) {
+        const collectionName = storeName ? getStoreCollectionName(storeName) : 'stores';
+        const storeRef = doc(db, collectionName, storeId);
         await updateDoc(storeRef, {
             ...updateData,
             updatedAt: new Date().toISOString()
         });
-        return await this.getById(storeId);
+        return await this.getById(storeId, storeName);
     },
-    
-    async updateAddress(storeId, addressData) {
-        const storeRef = doc(db, STORES_COLLECTION, storeId);
+
+    async updateAddress(storeId, storeName = null, addressData) {
+        const collectionName = storeName ? getStoreCollectionName(storeName) : 'stores';
+        const storeRef = doc(db, collectionName, storeId);
         await updateDoc(storeRef, {
             'address': addressData,
             updatedAt: new Date().toISOString()
         });
-        return await this.getById(storeId);
+        return await this.getById(storeId, storeName);
     },
-    
-    async delete(storeId, hardDelete = false) {
+
+    async delete(storeId, storeName = null, hardDelete = false) {
+        const collectionName = storeName ? getStoreCollectionName(storeName) : 'stores';
         if (hardDelete) {
-            const storeRef = doc(db, STORES_COLLECTION, storeId);
+            const storeRef = doc(db, collectionName, storeId);
             await deleteDoc(storeRef);
             return true;
         } else {
-            return await this.update(storeId, { active: false });
+            return await this.update(storeId, storeName, { active: false });
         }
     }
 };
