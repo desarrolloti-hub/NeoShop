@@ -12,8 +12,6 @@ let isTransitioning = false;
 let storeLogoBase64 = '';
 
 export async function createStoreController() {
-
-
     initWizard();
     initLogoUpload();
     initNavigationButtons();
@@ -213,8 +211,10 @@ function initCompleteButton() {
             return;
         }
 
+        const businessName = document.getElementById('businessName')?.value.trim();
+
         const storeData = {
-            name: document.getElementById('businessName')?.value.trim(),
+            name: businessName,
             rfc: document.getElementById('rfc')?.value.trim(),
             phone: document.getElementById('businessPhone')?.value.trim(),
             billingEmail: document.getElementById('billingEmail')?.value.trim(),
@@ -235,21 +235,26 @@ function initCompleteButton() {
         submitBtn.disabled = true;
 
         try {
-            // 1. Crear la tienda en Firestore (coleccion 'stores')
+            // 1. Crear la tienda en Firestore (coleccion dinámica 'stores + NombreTienda')
             // El ID se genera automaticamente como camelCase del nombre
             const newStore = await StoreService.create(storeData, adminId, adminSession);
 
             console.log('✅ Tienda creada con ID:', newStore.id);
+            console.log('✅ Colección creada:', `stores${businessName.replace(/\s/g, '')}`);
 
-            // 2. Actualizar el admin en Firestore con el storeId
-            await AdminRepository.update(adminId, { storeId: newStore.id });
+            // 2. Actualizar el admin en Firestore con el storeId y el nombre de la tienda
+            await AdminRepository.update(adminId, {
+                storeId: newStore.id,
+                storeName: businessName // Guardamos el nombre para futuras operaciones
+            });
 
             console.log('✅ Admin actualizado con storeId:', newStore.id);
 
-            // 3. Actualizar la sesion en localStorage con el storeId
+            // 3. Actualizar la sesion en localStorage con el storeId y storeName
             const updatedSession = {
                 ...adminSession,
-                storeId: newStore.id
+                storeId: newStore.id,
+                storeName: businessName
             };
             localStorage.setItem('admin_user', JSON.stringify(updatedSession));
 
@@ -316,9 +321,9 @@ async function loadExistingData() {
         if (!adminId) return;
 
         // Verificar si el admin ya tiene una tienda
-        const existingStore = await StoreService.getByAdminId(adminId);
+        const adminData = await AdminRepository.getById(adminId);
 
-        if (existingStore) {
+        if (adminData?.storeId) {
             // Si ya tiene tienda, redirigir al dashboard
             Swal.fire({
                 title: 'Tienda ya configurada',
@@ -333,8 +338,6 @@ async function loadExistingData() {
         }
 
         // Si no tiene tienda, cargar datos existentes del admin (si los hay)
-        const adminData = await AdminRepository.getById(adminId);
-
         if (adminData) {
             const businessNameInput = document.getElementById('businessName');
             const rfcInput = document.getElementById('rfc');
