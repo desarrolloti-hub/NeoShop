@@ -1,35 +1,52 @@
 /* ========================================
    PRODUCT SERVICE - Logica de negocio para productos
    TODAS LAS VALIDACIONES VAN AQUI
+   COLECCIONES DINÁMICAS: [NombreTienda]Products
    ======================================== */
 
 import { Product } from '/classes/productModel.js';
 import { ProductRepository } from '/repositories/productRepository.js';
 import { StoreRepository } from '/repositories/storeRepository.js';
 import { CacheService, STORES } from '/services/cacheService.js';
+import { AdminService } from '/services/adminService.js';
 
 export const ProductService = {
     /**
      * Obtiene la tienda del admin actual para saber que coleccion usar
+     * @param {string} adminId - ID del administrador
+     * @param {string} storeName - Nombre de la tienda (opcional)
+     * @returns {Promise<Object>} Tienda del admin
      */
-    async getCurrentStore(adminId) {
+    async getCurrentStore(adminId, storeName = null) {
         if (!adminId) {
             throw new Error('Admin ID no proporcionado');
         }
 
-        const store = await StoreRepository.getByAdminId(adminId);
+        console.log('🔍 getCurrentStore - adminId:', adminId);
+        console.log('🔍 getCurrentStore - storeName recibido:', storeName);
+
+        // 🔥 IMPORTANTE: Pasamos storeName a getByAdminId para buscar en la colección correcta
+        const store = await StoreRepository.getByAdminId(adminId, storeName);
 
         if (!store) {
             throw new Error('No se encontro una tienda asociada a este administrador');
         }
 
+        console.log('✅ Tienda encontrada:', store.name);
         return store;
     },
 
     /**
      * Crear nuevo producto
+     * @param {Object} productData - Datos del producto
+     * @param {string} adminId - ID del administrador
+     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
      */
-    async create(productData, adminId = null) {
+    async create(productData, adminId = null, storeName = null) {
+        console.log('🔍 ProductService.create - Iniciando...');
+        console.log('  - adminId:', adminId);
+        console.log('  - storeName recibido:', storeName);
+
         // ========== VALIDACIONES ==========
         if (!productData.name || productData.name.trim().length < 3) {
             throw new Error('El nombre del producto debe tener al menos 3 caracteres');
@@ -55,12 +72,48 @@ export const ProductService = {
             throw new Error('El stock no puede ser negativo');
         }
 
-        // Obtener la tienda del admin
-        const store = await this.getCurrentStore(adminId);
-        const storeName = store.name; // "ORIEN"
+        // 🔥 Si no se proporciona storeName, intentar obtener de la sesión
+        let finalStoreName = storeName;
+        if (!finalStoreName) {
+            try {
+                const session = AdminService.getSession();
+                finalStoreName = session?.storeName;
+                console.log('  - storeName obtenido de sesión:', finalStoreName);
+            } catch (error) {
+                console.error('  - Error obteniendo sesión:', error);
+            }
+        }
+
+        // 🔥 Si aún no tenemos storeName, intentar obtenerlo de la tienda del admin
+        if (!finalStoreName) {
+            try {
+                // Buscar en la colección "stores" por defecto (sin storeName)
+                const store = await StoreRepository.getByAdminId(adminId);
+                if (store && store.name) {
+                    finalStoreName = store.name;
+                    console.log('  - storeName obtenido de la tienda (colección stores):', finalStoreName);
+                }
+            } catch (error) {
+                console.error('  - Error obteniendo tienda por adminId:', error);
+            }
+        }
+
+        // 🔥 Verificar que tengamos storeName
+        if (!finalStoreName) {
+            console.error('❌ No se pudo obtener storeName');
+            throw new Error('Se requiere el nombre de la tienda para crear productos. Por favor, inicia sesión nuevamente.');
+        }
+
+        console.log('✅ storeName final:', finalStoreName);
+
+        // 🔥 Obtener la tienda del admin (para obtener el ID) PASANDO EL storeName
+        const store = await this.getCurrentStore(adminId, finalStoreName);
+        const storeNameClean = store.name;
+
+        console.log('✅ Tienda encontrada:', storeNameClean);
 
         // Verificar si ya existe un producto con ese codigo de barras en esta tienda
-        const existingByBarcode = await ProductRepository.getByBarcode(productData.barcode, storeName);
+        const existingByBarcode = await ProductRepository.getByBarcode(productData.barcode, storeNameClean);
         if (existingByBarcode) {
             throw new Error(`Ya existe un producto con el codigo de barras "${productData.barcode}" en esta tienda`);
         }
@@ -87,7 +140,8 @@ export const ProductService = {
         product.id = `prod_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
 
         // ========== GUARDAR EN FIRESTORE (coleccion dinamica) ==========
-        const result = await ProductRepository.save(product, storeName);
+        console.log('💾 Guardando en colección:', storeNameClean);
+        const result = await ProductRepository.save(product, storeNameClean);
 
         // Limpiar cache
         await CacheService.clearCache(STORES.PRODUCTS || 'products');
@@ -98,11 +152,20 @@ export const ProductService = {
     /**
      * Obtener producto por ID
      */
-    async getById(productId, adminId) {
-        const store = await this.getCurrentStore(adminId);
-        const storeName = store.name;
+    async getById(productId, adminId, storeName = null) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
 
-        const productData = await ProductRepository.getById(productId, storeName);
+            if (!storeName) {
+                throw new Error('Se requiere el nombre de la tienda para obtener el producto');
+            }
+        }
+
+        const store = await this.getCurrentStore(adminId, storeName);
+        const storeNameClean = store.name;
+
+        const productData = await ProductRepository.getById(productId, storeNameClean);
 
         if (productData) {
             return new Product(productData);
@@ -114,33 +177,51 @@ export const ProductService = {
     /**
      * Obtener producto por codigo de barras
      */
-    async getByBarcode(barcode, adminId) {
-        const store = await this.getCurrentStore(adminId);
-        const storeName = store.name;
+    async getByBarcode(barcode, adminId, storeName = null) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
 
-        const productData = await ProductRepository.getByBarcode(barcode, storeName);
+            if (!storeName) {
+                throw new Error('Se requiere el nombre de la tienda para obtener el producto');
+            }
+        }
+
+        const store = await this.getCurrentStore(adminId, storeName);
+        const storeNameClean = store.name;
+
+        const productData = await ProductRepository.getByBarcode(barcode, storeNameClean);
         return productData ? new Product(productData) : null;
     },
 
     /**
      * Obtener todos los productos de la tienda del admin
      */
-    async getAll(adminId, filters = {}, forceRefresh = false) {
-        const store = await this.getCurrentStore(adminId);
-        const storeName = store.name;
+    async getAll(adminId, filters = {}, forceRefresh = false, storeName = null) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Se requiere el nombre de la tienda para obtener los productos');
+            }
+        }
+
+        const store = await this.getCurrentStore(adminId, storeName);
+        const storeNameClean = store.name;
 
         if (!forceRefresh) {
-            const cacheKey = `products_${storeName}_list_${JSON.stringify(filters)}`;
+            const cacheKey = `products_${storeNameClean}_list_${JSON.stringify(filters)}`;
             const cached = await CacheService.getCache(STORES.PRODUCTS || 'products', cacheKey);
             if (cached) {
                 return cached.map(p => new Product(p));
             }
         }
 
-        const productsData = await ProductRepository.getAll(storeName, filters);
+        const productsData = await ProductRepository.getAll(storeNameClean, filters);
         const products = productsData.map(p => new Product(p));
 
-        const cacheKey = `products_${storeName}_list_${JSON.stringify(filters)}`;
+        const cacheKey = `products_${storeNameClean}_list_${JSON.stringify(filters)}`;
         await CacheService.setCache(STORES.PRODUCTS || 'products', cacheKey, productsData, 1800000);
 
         return products;
@@ -149,11 +230,20 @@ export const ProductService = {
     /**
      * Actualizar producto
      */
-    async update(productId, updateData, adminId) {
-        const store = await this.getCurrentStore(adminId);
-        const storeName = store.name;
+    async update(productId, updateData, adminId, storeName = null) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
 
-        const currentProduct = await this.getById(productId, adminId);
+            if (!storeName) {
+                throw new Error('Se requiere el nombre de la tienda para actualizar el producto');
+            }
+        }
+
+        const store = await this.getCurrentStore(adminId, storeName);
+        const storeNameClean = store.name;
+
+        const currentProduct = await this.getById(productId, adminId, storeNameClean);
 
         if (!currentProduct) {
             throw new Error('Producto no encontrado');
@@ -186,13 +276,13 @@ export const ProductService = {
 
         // Si se esta actualizando el codigo de barras, verificar que no exista ya
         if (updateData.barcode && updateData.barcode !== currentProduct.barcode) {
-            const existing = await ProductRepository.getByBarcode(updateData.barcode, storeName);
+            const existing = await ProductRepository.getByBarcode(updateData.barcode, storeNameClean);
             if (existing) {
                 throw new Error(`Ya existe un producto con el codigo de barras "${updateData.barcode}" en esta tienda`);
             }
         }
 
-        const updated = await ProductRepository.update(productId, updateData, storeName);
+        const updated = await ProductRepository.update(productId, updateData, storeNameClean);
 
         await CacheService.clearCache(STORES.PRODUCTS || 'products');
 
@@ -202,11 +292,20 @@ export const ProductService = {
     /**
      * Actualizar stock
      */
-    async updateStock(productId, quantity, adminId) {
-        const store = await this.getCurrentStore(adminId);
-        const storeName = store.name;
+    async updateStock(productId, quantity, adminId, storeName = null) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
 
-        const product = await this.getById(productId, adminId);
+            if (!storeName) {
+                throw new Error('Se requiere el nombre de la tienda para actualizar el stock');
+            }
+        }
+
+        const store = await this.getCurrentStore(adminId, storeName);
+        const storeNameClean = store.name;
+
+        const product = await this.getById(productId, adminId, storeNameClean);
 
         if (!product) {
             throw new Error('Producto no encontrado');
@@ -217,7 +316,7 @@ export const ProductService = {
             throw new Error('No se puede reducir el stock por debajo de 0');
         }
 
-        const updated = await ProductRepository.updateStock(productId, quantity, storeName);
+        const updated = await ProductRepository.updateStock(productId, quantity, storeNameClean);
 
         await CacheService.clearCache(STORES.PRODUCTS || 'products');
 
@@ -227,11 +326,20 @@ export const ProductService = {
     /**
      * Cambiar estado del producto (activar/desactivar)
      */
-    async toggleStatus(productId, active, adminId) {
-        const store = await this.getCurrentStore(adminId);
-        const storeName = store.name;
+    async toggleStatus(productId, active, adminId, storeName = null) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
 
-        const updated = await ProductRepository.update(productId, { active }, storeName);
+            if (!storeName) {
+                throw new Error('Se requiere el nombre de la tienda para cambiar el estado');
+            }
+        }
+
+        const store = await this.getCurrentStore(adminId, storeName);
+        const storeNameClean = store.name;
+
+        const updated = await ProductRepository.update(productId, { active }, storeNameClean);
 
         await CacheService.clearCache(STORES.PRODUCTS || 'products');
 
@@ -241,11 +349,20 @@ export const ProductService = {
     /**
      * Eliminar producto
      */
-    async delete(productId, adminId, hardDelete = false) {
-        const store = await this.getCurrentStore(adminId);
-        const storeName = store.name;
+    async delete(productId, adminId, hardDelete = false, storeName = null) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
 
-        const result = await ProductRepository.delete(productId, storeName, hardDelete);
+            if (!storeName) {
+                throw new Error('Se requiere el nombre de la tienda para eliminar el producto');
+            }
+        }
+
+        const store = await this.getCurrentStore(adminId, storeName);
+        const storeNameClean = store.name;
+
+        const result = await ProductRepository.delete(productId, storeNameClean, hardDelete);
 
         await CacheService.clearCache(STORES.PRODUCTS || 'products');
 
@@ -255,32 +372,41 @@ export const ProductService = {
     /**
      * Buscar productos
      */
-    async search(term, adminId, limit = 20) {
+    async search(term, adminId, limit = 20, storeName = null) {
         // ========== VALIDACION ==========
         if (!term || term.trim().length < 2) {
             throw new Error('Ingrese al menos 2 caracteres para buscar');
         }
 
-        const store = await this.getCurrentStore(adminId);
-        const storeName = store.name;
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
 
-        const productsData = await ProductRepository.search(term, storeName, limit);
+            if (!storeName) {
+                throw new Error('Se requiere el nombre de la tienda para buscar productos');
+            }
+        }
+
+        const store = await this.getCurrentStore(adminId, storeName);
+        const storeNameClean = store.name;
+
+        const productsData = await ProductRepository.search(term, storeNameClean, limit);
         return productsData.map(p => new Product(p));
     },
 
     /**
      * Obtener productos con stock bajo
      */
-    async getLowStockProducts(adminId) {
-        const products = await this.getAll(adminId, { active: true });
+    async getLowStockProducts(adminId, storeName = null) {
+        const products = await this.getAll(adminId, { active: true }, false, storeName);
         return products.filter(p => p.isLowStock);
     },
 
     /**
      * Obtener productos agotados
      */
-    async getOutOfStockProducts(adminId) {
-        const products = await this.getAll(adminId, { active: true });
+    async getOutOfStockProducts(adminId, storeName = null) {
+        const products = await this.getAll(adminId, { active: true }, false, storeName);
         return products.filter(p => p.isOutOfStock);
     }
 };
