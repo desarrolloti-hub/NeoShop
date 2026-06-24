@@ -1,7 +1,7 @@
 /* FILE: createProductController.js
    ========================================================
    CONTROLADOR PARA CREAR PRODUCTOS
-   Dependencias: ProductService, AdminService, SweetAlert2
+   COLECCIONES DINÁMICAS: [NombreTienda]Products
    ======================================================== */
 
 import { ProductService } from '/services/productService.js';
@@ -9,11 +9,80 @@ import { AdminService } from '/services/adminService.js';
 
 let isLoading = false;
 let currentImageBase64 = '';
+let currentAdmin = null;
+let currentStoreName = null;
 
 export async function createProductController() {
+  console.log('📦 Create Product Controller - Inicializado');
+
+  // 🔥 OBTENER SESIÓN Y STORE NAME
+  const sessionLoaded = loadAdminSession();
+
+  if (!sessionLoaded) {
+    console.error('❌ No se pudo cargar la sesión');
+    Swal.fire({
+      title: 'Error de sesión',
+      text: 'No se pudo cargar la sesión. Por favor inicie sesión nuevamente.',
+      icon: 'error',
+      confirmButtonText: 'Entendido',
+      confirmButtonColor: '#dc2626'
+    }).then(() => {
+      if (window.router) window.router.navigate('/admin/login');
+    });
+    return;
+  }
+
+  if (!currentStoreName) {
+    console.error('❌ No se encontró storeName en la sesión');
+    Swal.fire({
+      title: 'Error de configuración',
+      text: 'No se encontró la tienda asociada a tu cuenta. Contacta al administrador.',
+      icon: 'error',
+      confirmButtonText: 'Entendido',
+      confirmButtonColor: '#dc2626'
+    }).then(() => {
+      if (window.router) window.router.navigate('/inicioAdmin');
+    });
+    return;
+  }
+
+  console.log('✅ Admin autenticado:', currentAdmin?.nombreCompleto || currentAdmin?.email);
+  console.log('✅ Tienda:', currentStoreName);
+  console.log('📁 Colección de productos:', `${currentStoreName}Products`);
+
   animateProductCard();
   initProductImageUpload();
   initProductFormSubmit();
+}
+
+/* ========================================================
+   CARGAR SESIÓN DEL ADMIN
+   ======================================================== */
+function loadAdminSession() {
+  try {
+    currentAdmin = AdminService.getSession();
+
+    if (!currentAdmin) {
+      console.warn('⚠️ No hay administrador autenticado');
+      return false;
+    }
+
+    // 🔥 Obtener storeName de la sesión
+    currentStoreName = currentAdmin.storeName;
+
+    if (!currentStoreName) {
+      console.warn('⚠️ No hay storeName en la sesión');
+      console.warn('Sesión actual:', currentAdmin);
+      return false;
+    }
+
+    console.log('✅ Admin autenticado:', currentAdmin.nombreCompleto || currentAdmin.email);
+    console.log('✅ StoreName obtenido:', currentStoreName);
+    return true;
+  } catch (error) {
+    console.error('❌ Error cargando sesión:', error);
+    return false;
+  }
 }
 
 /* ========================================================
@@ -178,12 +247,17 @@ function initProductFormSubmit() {
       return;
     }
 
-    // Obtener adminId de la sesion
-    const adminSession = AdminService.getSession();
-    const adminId = adminSession?.id;
+    // 🔥 Obtener adminId de la sesion
+    const adminId = currentAdmin?.id;
 
     if (!adminId) {
       showSweetAlert('Error', 'No se encontro la sesion del administrador', 'error');
+      return;
+    }
+
+    // 🔥 Verificar que tengamos storeName
+    if (!currentStoreName) {
+      showSweetAlert('Error', 'No se encontró la tienda asociada', 'error');
       return;
     }
 
@@ -214,8 +288,16 @@ function initProductFormSubmit() {
     });
 
     try {
-      // El service obtiene la tienda del admin y guarda en la coleccion correspondiente
-      const result = await ProductService.create(productData, adminId);
+      // 🔥 PASAMOS adminId Y storeName AL SERVICE
+      console.log('📤 Enviando a ProductService.create:');
+      console.log('  - adminId:', adminId);
+      console.log('  - storeName:', currentStoreName);
+      console.log('  - productData:', productData);
+
+      const result = await ProductService.create(productData, adminId, currentStoreName);
+
+      console.log('✅ Producto creado:', result);
+      console.log('📁 Colección:', `${currentStoreName}Products`);
 
       Swal.close();
 
@@ -224,7 +306,7 @@ function initProductFormSubmit() {
         html: `
                     <div style="text-align: left;">
                         <p><strong>${name}</strong> ha sido registrado exitosamente</p>
-                        <p>Codigo: ${barcode.toUpperCase()}</p>
+                        <p>Código: ${barcode.toUpperCase()}</p>
                         <p>Precio: ${formatCurrency(price)}</p>
                         <p>Stock: ${stock} unidades</p>
                     </div>
@@ -276,7 +358,7 @@ function initProductFormSubmit() {
       }
 
     } catch (error) {
-      console.error('Error:', error);
+      console.error('❌ Error:', error);
       Swal.close();
 
       await Swal.fire({
