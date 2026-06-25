@@ -2,7 +2,7 @@
 
 /**
  * TicketPrinter - Componente para generar e imprimir tickets de venta
- * Soporta: window.print() (universal) y WebUSB (directo a impresoras térmicas)
+ * Soporta: window.print() (universal) y WebUSB (opcional, oculto por defecto)
  * 
  * @param {Object} saleData - Datos de la venta (venta completa + productos)
  * @param {Object} storeData - Datos de la tienda (nombre, logo, dirección, etc.)
@@ -13,13 +13,11 @@ let modalInstance = null;
 let isPrinting = false;
 
 export function showTicket(saleData, storeData, onClose) {
-    // Si ya existe un modal, cerrarlo primero
     if (modalInstance) {
         closeModal(modalInstance, null);
         modalInstance = null;
     }
 
-    // 1. Crear el modal si no existe
     let modal = document.getElementById('ticketModal');
     if (!modal) {
         modal = createModal();
@@ -27,17 +25,14 @@ export function showTicket(saleData, storeData, onClose) {
         injectStyles();
     }
 
-    // 2. Renderizar el ticket
     const container = document.getElementById('ticketContainer');
     if (container) {
         container.innerHTML = renderTicket(saleData, storeData);
     }
 
-    // 3. Mostrar el modal
     modal.style.display = 'flex';
     modalInstance = modal;
 
-    // 4. Configurar eventos
     setupEvents(modal, saleData, storeData, onClose);
 }
 
@@ -86,15 +81,13 @@ function renderTicket(saleData, storeData) {
         paymentMethod
     } = saleData;
 
-    const {
-        name = 'Mi Tienda',
-        logo = '',
-        address = '',
-        phone = '',
-        rfc = ''
-    } = storeData || {};
+    // 🔹 CORRECCIÓN: Convertir a string si son objetos
+    const name = storeData?.name || 'Mi Tienda';
+    const logo = storeData?.logo || '';
+    const address = typeof storeData?.address === 'string' ? storeData.address : '';
+    const phone = typeof storeData?.phone === 'string' ? storeData.phone : '';
+    const rfc = typeof storeData?.rfc === 'string' ? storeData.rfc : '';
 
-    // Formatear fecha
     const fecha = new Date(date);
     const fechaFormateada = fecha.toLocaleDateString('es-MX', {
         day: '2-digit',
@@ -104,7 +97,6 @@ function renderTicket(saleData, storeData) {
         minute: '2-digit'
     });
 
-    // Método de pago legible
     const metodoPago = {
         cash: 'EFECTIVO',
         card: 'TARJETA',
@@ -114,7 +106,6 @@ function renderTicket(saleData, storeData) {
         mixed: 'MIXTO'
     } [paymentMethod] || paymentMethod.toUpperCase();
 
-    // Generar filas de productos
     let productosHTML = '';
     productos.forEach(item => {
         const cantidad = item.quantity || 1;
@@ -131,10 +122,8 @@ function renderTicket(saleData, storeData) {
         `;
     });
 
-    // HTML del ticket
     return `
         <div class="ticket-paper">
-            <!-- LOGO -->
             <div class="ticket-header">
                 ${logo ? `<img src="${logo}" alt="${escapeHtml(name)}" class="ticket-logo">` : ''}
                 <div class="ticket-store-name">${escapeHtml(name)}</div>
@@ -144,7 +133,6 @@ function renderTicket(saleData, storeData) {
                 <div class="ticket-divider">─────────────────────────</div>
             </div>
 
-            <!-- INFORMACIÓN DE VENTA -->
             <div class="ticket-info">
                 <div><span class="label">FOLIO:</span> ${escapeHtml(folio)}</div>
                 <div><span class="label">FECHA:</span> ${fechaFormateada}</div>
@@ -153,7 +141,6 @@ function renderTicket(saleData, storeData) {
                 <div class="ticket-divider">─────────────────────────</div>
             </div>
 
-            <!-- PRODUCTOS -->
             <table class="ticket-products">
                 <thead>
                     <tr>
@@ -170,7 +157,6 @@ function renderTicket(saleData, storeData) {
 
             <div class="ticket-divider">─────────────────────────</div>
 
-            <!-- TOTALES -->
             <div class="ticket-totals">
                 <div class="total-row">
                     <span class="label">SUBTOTAL:</span>
@@ -196,7 +182,6 @@ function renderTicket(saleData, storeData) {
 
             <div class="ticket-divider">─────────────────────────</div>
 
-            <!-- PAGO -->
             <div class="ticket-payment">
                 <div><span class="label">MÉTODO:</span> ${metodoPago}</div>
                 ${paymentMethod === 'cash' ? `
@@ -207,10 +192,10 @@ function renderTicket(saleData, storeData) {
 
             <div class="ticket-divider">─────────────────────────</div>
 
-            <!-- PIE DE PÁGINA -->
             <div class="ticket-footer">
                 <div class="thank-you">¡GRACIAS POR SU COMPRA!</div>
                 <div class="message">Vuelva pronto</div>
+                <div class="ticket-url">https://neoshop-mx.web.app</div>
             </div>
         </div>
     `;
@@ -218,32 +203,26 @@ function renderTicket(saleData, storeData) {
 
 // ======================== CONFIGURAR EVENTOS ========================
 function setupEvents(modal, saleData, storeData, onClose) {
-    // Botón cerrar (X)
     const closeBtn = document.getElementById('closeTicketModal');
     if (closeBtn) {
         closeBtn.onclick = () => closeModal(modal, onClose);
     }
 
-    // Botón cerrar (inferior)
     const closeBtn2 = document.getElementById('closeTicketBtn');
     if (closeBtn2) {
         closeBtn2.onclick = () => closeModal(modal, onClose);
     }
 
-    // Botón imprimir (window.print) - CIERRA EL MODAL ANTES DE IMPRIMIR
     const printBtn = document.getElementById('printTicketBtn');
     if (printBtn) {
         printBtn.onclick = () => {
             if (isPrinting) return;
             isPrinting = true;
             
-            // 1. Cerrar el modal (pero guardamos el ticket en memoria)
             const ticketHTML = document.getElementById('ticketContainer').innerHTML;
             
-            // 2. Cerrar el modal visualmente
             closeModal(modal, null);
             
-            // 3. Crear un iframe oculto para imprimir
             const iframe = document.createElement('iframe');
             iframe.style.position = 'fixed';
             iframe.style.top = '-9999px';
@@ -252,7 +231,6 @@ function setupEvents(modal, saleData, storeData, onClose) {
             iframe.style.height = '0';
             document.body.appendChild(iframe);
             
-            // 4. Escribir el ticket en el iframe
             const doc = iframe.contentDocument || iframe.contentWindow.document;
             doc.open();
             doc.write(`
@@ -260,8 +238,6 @@ function setupEvents(modal, saleData, storeData, onClose) {
                 <html>
                 <head>
                     <style>
-                        /* ========== ESTILOS MEJORADOS PARA IMPRESIÓN ========== */
-                        /* Forzar texto en NEGRO y NEGRITA para mejor contraste */
                         * {
                             color: #000 !important;
                             background: transparent !important;
@@ -279,7 +255,6 @@ function setupEvents(modal, saleData, storeData, onClose) {
                             margin: 0 auto;
                         }
 
-                        /* Configuración de página para impresión */
                         @page {
                             size: 58mm 297mm;
                             margin: 0;
@@ -452,7 +427,14 @@ function setupEvents(modal, saleData, storeData, onClose) {
                             font-weight: bold !important;
                         }
 
-                        /* Ocultar elementos no deseados */
+                        .ticket-url {
+                            font-size: 8px;
+                            color: #000 !important;
+                            margin-top: 4px;
+                            font-weight: bold !important;
+                            text-decoration: none;
+                        }
+
                         .no-print {
                             display: none !important;
                         }
@@ -462,7 +444,6 @@ function setupEvents(modal, saleData, storeData, onClose) {
                     ${ticketHTML}
                     <script>
                         window.onload = function() {
-                            // Pequeño retraso para asegurar que el contenido se renderice
                             setTimeout(function() {
                                 window.print();
                                 setTimeout(function() {
@@ -478,14 +459,12 @@ function setupEvents(modal, saleData, storeData, onClose) {
             `);
             doc.close();
             
-            // Guardar referencia al iframe para cerrarlo después
             window.closeTicketIframe = () => {
                 if (iframe && iframe.parentNode) {
                     iframe.parentNode.removeChild(iframe);
                 }
                 window.closeTicketIframe = null;
                 isPrinting = false;
-                // Ejecutar callback de cierre
                 if (typeof onClose === 'function') {
                     onClose();
                 }
@@ -493,7 +472,7 @@ function setupEvents(modal, saleData, storeData, onClose) {
         };
     }
 
-    // Botón imprimir por USB (WebUSB)
+    // Botón USB (oculto, pero la lógica sigue presente)
     const usbBtn = document.getElementById('printUsbBtn');
     if (usbBtn) {
         usbBtn.onclick = async () => {
@@ -516,25 +495,24 @@ function setupEvents(modal, saleData, storeData, onClose) {
         };
     }
 
-    // Detectar si WebUSB está disponible y mostrar el botón
+    // Detección de USB (aunque el botón esté oculto, la lógica sigue disponible)
     if ('usb' in navigator) {
         checkUSBDevices().then(hasDevice => {
             if (usbBtn) {
-                usbBtn.style.display = hasDevice ? 'inline-flex' : 'none';
+                // Si quieres mostrar el botón en el futuro, cambia display: 'inline-flex'
+                usbBtn.style.display = 'none';
             }
         });
     } else {
         if (usbBtn) usbBtn.style.display = 'none';
     }
 
-    // Cerrar al hacer clic fuera del modal
     modal.onclick = (e) => {
         if (e.target === modal) {
             closeModal(modal, onClose);
         }
     };
 
-    // Cerrar con Escape
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modal.style.display === 'flex') {
             closeModal(modal, onClose);
@@ -623,12 +601,10 @@ function generateESCPOS(saleData, storeData) {
         paymentMethod
     } = saleData;
 
-    const {
-        name = 'Mi Tienda',
-        address = '',
-        phone = '',
-        rfc = ''
-    } = storeData || {};
+    const name = storeData?.name || 'Mi Tienda';
+    const address = typeof storeData?.address === 'string' ? storeData.address : '';
+    const phone = typeof storeData?.phone === 'string' ? storeData.phone : '';
+    const rfc = typeof storeData?.rfc === 'string' ? storeData.rfc : '';
 
     const encoder = new TextEncoder();
     let lines = [];
@@ -689,6 +665,7 @@ function generateESCPOS(saleData, storeData) {
     lines.push('\x1B\x61\x01');
     lines.push('¡GRACIAS POR SU COMPRA!\n');
     lines.push('Vuelva pronto\n');
+    lines.push('https://neoshop-mx.web.app\n');
     lines.push('\x1D\x56\x42\x00');
 
     let fullData = [];
@@ -714,7 +691,6 @@ function injectStyles() {
     if (document.getElementById(styleId)) return;
 
     const styles = `
-        /* ========== MODAL ========== */
         .ticket-modal {
             position: fixed;
             top: 0;
@@ -817,6 +793,12 @@ function injectStyles() {
         .ticket-footer { text-align: center; margin-top: 8px; }
         .thank-you { font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
         .message { font-size: 10px; color: #777; margin-top: 2px; }
+        .ticket-url {
+            font-size: 9px;
+            color: #555;
+            margin-top: 4px;
+            font-weight: normal;
+        }
         .ticket-actions {
             display: flex;
             gap: 10px;
