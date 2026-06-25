@@ -75,6 +75,7 @@ export const SaleService = {
             discount: saleData.discount || 0,
             tax: saleData.tax || 0,
             total: saleData.total,
+            change: saleData.change || 0,  // ✅ AGREGADO: guarda el cambio
             paymentMethod: saleData.paymentMethod,
             status: SALE_STATUS.PENDING,
             createdBy: userId
@@ -92,8 +93,12 @@ export const SaleService = {
         // Guardar en repositorio
         const result = await SaleRepository.save(sale);
 
-        // Limpiar caché
-        await CacheService.clearCache(STORES.SALES || 'sales');
+        // Limpiar caché (silenciosamente si no existe)
+        try {
+            await CacheService.clearCache(STORES.SALES || 'sales');
+        } catch (e) {
+            // Ignorar si la caché no existe
+        }
 
         return result;
     },
@@ -240,8 +245,12 @@ export const SaleService = {
 
         const result = await SaleRepository.update(saleId, updateData);
 
-        // Limpiar caché
-        await CacheService.clearCache(STORES.SALES || 'sales');
+        // Limpiar caché (silenciosamente si no existe)
+        try {
+            await CacheService.clearCache(STORES.SALES || 'sales');
+        } catch (e) {
+            // Ignorar si la caché no existe
+        }
 
         return result;
     },
@@ -272,8 +281,12 @@ export const SaleService = {
 
         const result = await SaleRepository.updateStatus(saleId, SALE_STATUS.COMPLETED);
 
-        // Limpiar caché
-        await CacheService.clearCache(STORES.SALES || 'sales');
+        // Limpiar caché (silenciosamente si no existe)
+        try {
+            await CacheService.clearCache(STORES.SALES || 'sales');
+        } catch (e) {
+            // Ignorar si la caché no existe
+        }
 
         return result;
     },
@@ -310,8 +323,12 @@ export const SaleService = {
             cancelledAt: new Date().toISOString()
         });
 
-        // Limpiar caché
-        await CacheService.clearCache(STORES.SALES || 'sales');
+        // Limpiar caché (silenciosamente si no existe)
+        try {
+            await CacheService.clearCache(STORES.SALES || 'sales');
+        } catch (e) {
+            // Ignorar si la caché no existe
+        }
 
         return result;
     },
@@ -423,12 +440,13 @@ export const SaleService = {
     _generateId() {
         return `sale_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     },
+
     /**
-         * Obtener todas las ventas de una tienda (sin límite)
-         * @param {string} storeSlug - Slug de la tienda
-         * @param {Object} options - Opciones de consulta
-         * @returns {Promise<Array>} Lista de ventas
-         */
+     * Obtener todas las ventas de una tienda (sin límite)
+     * @param {string} storeSlug - Slug de la tienda
+     * @param {Object} options - Opciones de consulta
+     * @returns {Promise<Array>} Lista de ventas
+     */
     async getAllSales(storeSlug, options = {}) {
         if (!storeSlug) {
             throw new Error('El slug de la tienda es requerido');
@@ -583,7 +601,7 @@ export const SaleService = {
                 ventas: completedWeek.length,
                 ingresos: completedWeek.reduce((sum, s) => sum + (s.total || 0), 0),
                 ticketPromedio: completedWeek.length > 0
-                    ? completedWeek.reduce((sum, s) => sum + (s.PAYMENT_METHODStotal || 0), 0) / completedWeek.length
+                    ? completedWeek.reduce((sum, s) => sum + (s.total || 0), 0) / completedWeek.length
                     : 0
             },
             mes: {

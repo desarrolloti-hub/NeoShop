@@ -26,6 +26,9 @@ export class Sale {
         this.tax = data.tax || 0;
         this.total = data.total || 0;
 
+        // ✨ NUEVO: Cambio (para pagos en efectivo)
+        this.change = data.change || 0;
+
         // Estado y método de pago
         this.paymentMethod = data.paymentMethod || '';
         this.status = data.status || 'pending';  // pending, completed, cancelled, refunded
@@ -69,6 +72,14 @@ export class Sale {
             style: 'currency',
             currency: 'MXN'
         }).format(this.tax);
+    }
+
+    // ✨ NUEVO: Cambio formateado
+    get changeFormatted() {
+        return new Intl.NumberFormat('es-MX', {
+            style: 'currency',
+            currency: 'MXN'
+        }).format(this.change);
     }
 
     // Fecha formateada para mostrar
@@ -115,7 +126,7 @@ export class Sale {
         return (this.discount / this.subtotal) * 100;
     }
 
-    // Datos resumidos para listados
+    // Datos resumidos para listados (incluye cambio)
     get datosResumidos() {
         return {
             id: this.id,
@@ -126,6 +137,8 @@ export class Sale {
             userId: this.userId,
             total: this.total,
             totalFormatted: this.totalFormatted,
+            change: this.change,
+            changeFormatted: this.changeFormatted,
             status: this.status,
             paymentMethod: this.paymentMethod
         };
@@ -163,6 +176,16 @@ export class Sale {
         return this._tax || 0;
     }
 
+    // ✨ NUEVO: Setter para change (validación)
+    set change(value) {
+        const numValue = parseFloat(value);
+        this._change = isNaN(numValue) ? 0 : numValue;
+    }
+
+    get change() {
+        return this._change || 0;
+    }
+
     // ========== MÉTODOS PRIVADOS ==========
 
     _recalculateTotal() {
@@ -188,7 +211,7 @@ export class Sale {
         return this.total;
     }
 
-    // Validar datos completos para registro
+    // Validar datos completos para registro (incluye change)
     validarParaRegistro() {
         const errores = [];
 
@@ -215,6 +238,9 @@ export class Sale {
         }
         if (this.total < 0) {
             errores.push('El total no puede ser negativo');
+        }
+        if (this.change < 0) {
+            errores.push('El cambio no puede ser negativo');
         }
         if (!this.paymentMethod || this.paymentMethod.trim().length === 0) {
             errores.push('El método de pago es requerido');

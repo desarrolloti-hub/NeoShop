@@ -4,15 +4,17 @@
    ======================================== */
 
 const DB_NAME = 'TuProyecto_Cache';
-const DB_VERSION = 4; // ✅ Subir versión para agregar CASH_SESSIONS
+const DB_VERSION = 5; // ✅ Subir versión para agregar SALES y PRODUCTS
 
 export const STORES = {
     ADMINS: 'admins',
     SUPPLIERS: 'suppliers',
-    CASH_SESSIONS: 'cash_sessions', 
-    STORES: 'stores',        // <- Agregar esta linea
+    CASH_SESSIONS: 'cash_sessions',
+    STORES: 'stores',
     TIENDAS: 'tiendas',
-    PRODUCTOS: 'productos'
+    PRODUCTOS: 'productos',
+    SALES: 'sales',       // ✅ AGREGADO: store para ventas
+    PRODUCTS: 'products'  // ✅ AGREGADO: store para productos
 };
 
 let db = null;
@@ -27,45 +29,33 @@ async function initDB() {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
         
         request.onerror = () => {
-            console.error('Error abriendo IndexedDB:', request.error);
             reject(request.error);
         };
         
         request.onsuccess = () => {
             db = request.result;
-            console.log('✅ IndexedDB inicializado');
             resolve(db);
         };
         
         request.onupgradeneeded = (event) => {
             const database = event.target.result;
             
-            // ✅ Crear todos los object stores necesarios
-            if (!database.objectStoreNames.contains(STORES.ADMINS)) {
-                database.createObjectStore(STORES.ADMINS, { keyPath: 'id' });
-                console.log('📦 Store creado:', STORES.ADMINS);
-            }
+            // Crear todos los object stores necesarios
+            const storesToCreate = [
+                STORES.ADMINS,
+                STORES.SUPPLIERS,
+                STORES.CASH_SESSIONS,
+                STORES.TIENDAS,
+                STORES.PRODUCTOS,
+                STORES.SALES,      // ✅ NUEVO
+                STORES.PRODUCTS    // ✅ NUEVO
+            ];
             
-            if (!database.objectStoreNames.contains(STORES.SUPPLIERS)) {
-                database.createObjectStore(STORES.SUPPLIERS, { keyPath: 'id' });
-                console.log('📦 Store creado:', STORES.SUPPLIERS);
-            }
-            
-            // ✅ AGREGAR CASH_SESSIONS
-            if (!database.objectStoreNames.contains(STORES.CASH_SESSIONS)) {
-                database.createObjectStore(STORES.CASH_SESSIONS, { keyPath: 'id' });
-                console.log('📦 Store creado:', STORES.CASH_SESSIONS);
-            }
-            
-            if (!database.objectStoreNames.contains(STORES.TIENDAS)) {
-                database.createObjectStore(STORES.TIENDAS, { keyPath: 'id' });
-                console.log('📦 Store creado:', STORES.TIENDAS);
-            }
-            
-            if (!database.objectStoreNames.contains(STORES.PRODUCTOS)) {
-                database.createObjectStore(STORES.PRODUCTOS, { keyPath: 'id' });
-                console.log('📦 Store creado:', STORES.PRODUCTOS);
-            }
+            storesToCreate.forEach(storeName => {
+                if (!database.objectStoreNames.contains(storeName)) {
+                    database.createObjectStore(storeName, { keyPath: 'id' });
+                }
+            });
         };
     });
 }
@@ -74,9 +64,7 @@ export async function setCache(storeName, id, data, ttl = 3600000) {
     try {
         const database = await initDB();
         
-        // ✅ Verificar que el store existe antes de intentar usarlo
         if (!database.objectStoreNames.contains(storeName)) {
-            console.warn(`⚠️ Store "${storeName}" no existe`);
             return false;
         }
         
@@ -96,7 +84,6 @@ export async function setCache(storeName, id, data, ttl = 3600000) {
             request.onerror = () => reject(request.error);
         });
     } catch (error) {
-        console.error('Error guardando en caché:', error);
         return false;
     }
 }
@@ -105,9 +92,7 @@ export async function getCache(storeName, id) {
     try {
         const database = await initDB();
         
-        // ✅ Verificar que el store existe
         if (!database.objectStoreNames.contains(storeName)) {
-            console.warn(`⚠️ Store "${storeName}" no existe`);
             return null;
         }
         
@@ -127,7 +112,6 @@ export async function getCache(storeName, id) {
             request.onerror = () => reject(request.error);
         });
     } catch (error) {
-        console.error('Error obteniendo de caché:', error);
         return null;
     }
 }
@@ -137,7 +121,6 @@ export async function clearCache(storeName) {
         const database = await initDB();
         
         if (!database.objectStoreNames.contains(storeName)) {
-            console.warn(`⚠️ Store "${storeName}" no existe, no se puede limpiar`);
             return false;
         }
         
@@ -150,7 +133,6 @@ export async function clearCache(storeName) {
             request.onerror = () => reject(request.error);
         });
     } catch (error) {
-        console.error('Error limpiando caché:', error);
         return false;
     }
 }
@@ -158,8 +140,9 @@ export async function clearCache(storeName) {
 export async function clearAllCache() {
     try {
         const database = await initDB();
+        const stores = Object.values(STORES);
         
-        for (const storeName of Object.values(STORES)) {
+        for (const storeName of stores) {
             if (database.objectStoreNames.contains(storeName)) {
                 const transaction = database.transaction([storeName], 'readwrite');
                 const store = transaction.objectStore(storeName);
@@ -168,14 +151,11 @@ export async function clearAllCache() {
                     request.onsuccess = () => resolve(true);
                     request.onerror = () => reject(request.error);
                 });
-                console.log(`🗑️ Store limpiado: ${storeName}`);
             }
         }
         
-        console.log('✅ Caché completamente limpiada');
         return true;
     } catch (error) {
-        console.error('Error limpiando caché:', error);
         return false;
     }
 }
