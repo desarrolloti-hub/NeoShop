@@ -6,13 +6,14 @@
 import { SaleService } from '../../../../../services/saleService.js';
 import { AdminService } from '../../../../../services/adminService.js';
 import { ProductService } from '../../../../../services/productService.js';
+import { showTicket } from '../../../shared/ticketPrinter/ticketPrinter.js'; // ✅ Importar componente
 
 // ========== ESTADO GLOBAL ==========
 let cartItems = [];
 let searchTimeout = null;
 let currentAdmin = null;
 let currentStore = null;
-let currentPreviewProduct = null;  // Producto actual en vista previa
+let currentPreviewProduct = null;
 
 // ========== ELEMENTOS DOM ==========
 let elements = {};
@@ -99,7 +100,6 @@ function cacheElements() {
         adminEmail: document.getElementById('adminEmail'),
         storeName: document.getElementById('storeName'),
         paymentRadios: document.querySelectorAll('input[name="paymentMethod"]'),
-        // NUEVO: elementos para efectivo e IVA
         cashAmount: document.getElementById('cashAmount'),
         changeDisplay: document.getElementById('changeDisplay'),
         cashPaymentContainer: document.getElementById('cashPaymentContainer'),
@@ -324,22 +324,18 @@ function calculateTotals() {
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const discount = parseFloat(elements.discount?.value) || 0;
 
-    // Calcular IVA solo si el checkbox está activado
     const includeTax = elements.includeTaxCheckbox?.checked || false;
     const tax = includeTax ? subtotal * 0.16 : 0;
 
     const total = subtotal - discount + tax;
 
-    // Actualizar resumen
     if (elements.summarySubtotal) elements.summarySubtotal.textContent = formatCurrency(subtotal);
     if (elements.summaryTax) elements.summaryTax.textContent = formatCurrency(tax);
     if (elements.summaryTotal) elements.summaryTotal.textContent = formatCurrency(total);
 
-    // Calcular cambio si método es efectivo y hay monto pagado
     updateChange(total);
 }
 
-// ========== ACTUALIZAR CAMBIO ==========
 function updateChange(total) {
     if (!elements.cashAmount || !elements.changeDisplay) return;
 
@@ -360,13 +356,11 @@ function updateChange(total) {
     }
 }
 
-// ========== MOSTRAR/OCULTAR CAMPO DE EFECTIVO ==========
 function toggleCashField() {
     const selectedMethod = getSelectedPaymentMethod();
     if (elements.cashPaymentContainer) {
         elements.cashPaymentContainer.style.display = (selectedMethod === 'cash') ? 'block' : 'none';
     }
-    // Recalcular si cambia el método
     calculateTotals();
 }
 
@@ -556,7 +550,7 @@ async function createSale() {
             discount: discount,
             tax: tax,
             total: total,
-            change: changeAmount,  // 🔥 GUARDAMOS EL CAMBIO
+            change: changeAmount,
             paymentMethod: paymentMethod,
             date: new Date().toISOString(),
             userId: currentAdmin.id,
@@ -575,6 +569,7 @@ async function createSale() {
 
         const result = await SaleService.createSale(saleData, currentAdmin.id);
 
+        // Actualizar stock
         for (const item of cartItems) {
             try {
                 await ProductService.updateStock(item.id, -item.quantity, currentAdmin.id);
@@ -583,19 +578,7 @@ async function createSale() {
             }
         }
 
-        Swal.fire({
-            title: '¡Venta registrada!',
-            text: `Venta ${result.folio} registrada exitosamente`,
-            icon: 'success',
-            confirmButtonText: 'Ver detalle'
-        }).then((resultSwal) => {
-            if (resultSwal.isConfirmed && window.router) {
-                window.router.navigate(`/admin/ventas/detalle/${result.id}`);
-            } else if (window.router) {
-                window.router.navigate('/admin/ventas');
-            }
-        });
-
+        // ========== LIMPIAR CARRITO Y UI ==========
         cartItems = [];
         if (elements.customerName) elements.customerName.value = '';
         if (elements.customerId) elements.customerId.value = '';
@@ -603,6 +586,33 @@ async function createSale() {
         if (elements.cashAmount) elements.cashAmount.value = '';
         renderCart();
         hideProductPreview();
+
+        // ========== PREPARAR DATOS PARA EL TICKET ==========
+        const ticketData = {
+            ...saleData,
+            id: result.id,
+            folio: result.folio,
+            date: new Date().toISOString(),
+            userName: currentAdmin.nombreCompleto,
+            customerName: saleData.customerName || 'Cliente general'
+        };
+
+        const storeData = {
+            name: currentStore?.name || 'Mi Tienda',
+            logo: currentStore?.logo || '',
+            address: currentStore?.address || '',
+            phone: currentStore?.phone || '',
+            rfc: currentStore?.rfc || ''
+        };
+
+        // ========== MOSTRAR TICKET ==========
+        showTicket(ticketData, storeData, () => {
+            // Callback al cerrar el ticket
+            if (window.router) {
+                window.router.navigate('/admin/ventas');
+            }
+        });
+
     } catch (error) {
         Swal.fire('Error', error.message, 'error');
     }
@@ -671,7 +681,7 @@ function bindEvents() {
         elements.discount.addEventListener('input', calculateTotals);
     }
 
-    // NUEVO: eventos para métodos de pago (mostrar/ocultar efectivo)
+    // Eventos para métodos de pago
     if (elements.paymentRadios) {
         elements.paymentRadios.forEach(radio => {
             radio.addEventListener('change', () => {
@@ -681,7 +691,7 @@ function bindEvents() {
         });
     }
 
-    // NUEVO: evento para monto en efectivo
+    // Evento para monto en efectivo
     if (elements.cashAmount) {
         elements.cashAmount.addEventListener('input', () => {
             const total = parseFloat(elements.summaryTotal?.textContent.replace(/[^0-9.]/g, '')) || 0;
@@ -689,7 +699,7 @@ function bindEvents() {
         });
     }
 
-    // NUEVO: evento para checkbox de IVA
+    // Evento para checkbox de IVA
     if (elements.includeTaxCheckbox) {
         elements.includeTaxCheckbox.addEventListener('change', calculateTotals);
     }
@@ -721,8 +731,6 @@ export async function saleCreateController() {
     bindEvents();
     renderCart();
     hideProductPreview();
-
-    // Ocultar campo de efectivo por defecto (si no está seleccionado)
     toggleCashField();
 
     if (elements.skuInput) {
