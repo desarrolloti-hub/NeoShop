@@ -1,8 +1,7 @@
 /* ========================================
-   REGISTER CONTROLLER - Conexion con AdminService
+   REGISTER CONTROLLER - Conexión con AdminService
    Registro de administradores con email y Google
    IMPLEMENTA SWEETALERT2 TOASTS
-   CAMPOS SEPARADOS: NOMBRE Y APELLIDO
    ======================================== */
 
 import { AdminService } from '/services/adminService.js';
@@ -10,12 +9,13 @@ import { AdminService } from '/services/adminService.js';
 let isLoading = false;
 
 export async function createAccountController() {
-    console.error('Register controller inicializado');
+    console.log('Register controller initialized');
 
     animateRegisterForm();
     initAvatarClick();
     initAvatarUpload();
     initRemoveImageButton();
+    initPasswordToggle(); // ✅ Función para el ojito
     initRegisterFormSubmit();
     initGoogleRegister();
 }
@@ -61,7 +61,7 @@ function initAvatarUpload() {
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
-            showErrorToast('Selecciona una imagen valida');
+            showErrorToast('Selecciona una imagen válida');
             return;
         }
 
@@ -112,6 +112,65 @@ function initRemoveImageButton() {
     });
 }
 
+// ✅ FUNCIÓN PARA EL OJITO DE CONTRASEÑA
+function initPasswordToggle() {
+    // Esperar a que el DOM esté listo
+    setTimeout(() => {
+        const toggleBtn = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        console.log('Toggle button found:', !!toggleBtn);
+        console.log('Password input found:', !!passwordInput);
+
+        if (!toggleBtn || !passwordInput) {
+            console.warn('Password toggle elements not found');
+            return;
+        }
+
+        // Remover event listeners anteriores
+        const newToggleBtn = toggleBtn.cloneNode(true);
+        toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
+
+        // Agregar event listener
+        newToggleBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const icon = this.querySelector('i');
+            const isPasswordVisible = passwordInput.type === 'text';
+
+            console.log('Toggle clicked, current type:', passwordInput.type);
+
+            // Cambiar tipo de input
+            passwordInput.type = isPasswordVisible ? 'password' : 'text';
+
+            // Cambiar icono
+            if (icon) {
+                icon.className = isPasswordVisible ? 'fas fa-eye' : 'fas fa-eye-slash';
+            }
+
+            // Cambiar aria-label
+            this.setAttribute(
+                'aria-label',
+                isPasswordVisible ? 'Mostrar contraseña' : 'Ocultar contraseña'
+            );
+
+            // Focus en el input después del toggle
+            passwordInput.focus();
+        });
+
+        // Soporte para teclado
+        newToggleBtn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                newToggleBtn.click();
+            }
+        });
+
+        console.log('Password toggle initialized successfully');
+    }, 100); // Pequeño delay para asegurar que el DOM está listo
+}
+
 function initRegisterFormSubmit() {
     const registerForm = document.getElementById('registerForm');
     if (!registerForm) return;
@@ -124,36 +183,28 @@ function initRegisterFormSubmit() {
 
         if (isLoading) return;
 
-        const firstName = document.getElementById('firstName')?.value.trim();
-        const lastName = document.getElementById('lastName')?.value.trim();
+        const name = document.getElementById('fullName')?.value.trim();
         const email = document.getElementById('email')?.value.trim();
         const password = document.getElementById('password')?.value;
-        
-        // ✅ NUEVO: Obtener el checkbox de términos
+
         const termsCheckbox = document.getElementById('termsCheckbox');
         const termsWrapper = document.querySelector('.terms-checkbox-wrapper');
 
-        if (!firstName || firstName.length < 2) {
-            showErrorToast('Escribe tu nombre completo (minimo 2 letras)');
-            return;
-        }
-        
-        if (!lastName || lastName.length < 2) {
-            showErrorToast('Escribe tu apellido completo (minimo 2 letras)');
-            return;
-        }
-        
-        if (!validateEmail(email)) {
-            showErrorToast('El correo no es valido. Ejemplo: nombre@correo.com');
-            return;
-        }
-        
-        if (!password || password.length < 6) {
-            showErrorToast('La contrasena es muy corta. Usa al menos 6 caracteres');
+        if (!name || name.length < 2) {
+            showErrorToast('Ingresa tu nombre completo (mínimo 2 caracteres)');
             return;
         }
 
-        // ✅ NUEVO: Validar términos y condiciones
+        if (!validateEmail(email)) {
+            showErrorToast('El correo no es válido. Ejemplo: nombre@correo.com');
+            return;
+        }
+
+        if (!password || password.length < 6) {
+            showErrorToast('La contraseña es muy corta. Usa al menos 6 caracteres');
+            return;
+        }
+
         if (!termsCheckbox || !termsCheckbox.checked) {
             if (termsWrapper) {
                 termsWrapper.classList.add('error');
@@ -163,7 +214,6 @@ function initRegisterFormSubmit() {
             return;
         }
 
-        // Remover clase de error si existe
         if (termsWrapper) {
             termsWrapper.classList.remove('error');
         }
@@ -172,14 +222,13 @@ function initRegisterFormSubmit() {
         const userPhoto = avatarPreview?.src || '';
 
         const adminData = {
-            nombre: firstName,
-            apellido: lastName,
-            telefono: '',
+            name: name,
             email: email,
+            phoneNumber: '',
             plan: null,
-            tiendas: {},
-            activo: true,
-            termsAccepted: true,  // ✅ Ya se guarda como true
+            storesId: {},
+            active: true,
+            termsAccepted: true,
             userPhoto: userPhoto
         };
 
@@ -191,16 +240,15 @@ function initRegisterFormSubmit() {
 
         try {
             const result = await AdminService.register(adminData, password);
-            
-            showSuccessToast('Cuenta creada con exito. Ahora inicia sesion');
+
+            showSuccessToast('Cuenta creada con éxito. Ahora inicia sesión');
 
             newForm.reset();
             const avatarPreviewEl = document.getElementById('avatarPreview');
             const avatarIconEl = document.getElementById('avatarIcon');
             const removeBtn = document.getElementById('removeImageBtn');
             const profileImageInput = document.getElementById('profileImage');
-            
-            // ✅ Resetear checkbox
+
             if (termsCheckbox) termsCheckbox.checked = false;
 
             if (avatarPreviewEl) {
@@ -210,6 +258,16 @@ function initRegisterFormSubmit() {
             if (avatarIconEl) avatarIconEl.style.display = 'block';
             if (removeBtn) removeBtn.style.display = 'none';
             if (profileImageInput) profileImageInput.value = '';
+
+            // Resetear el tipo de contraseña a password
+            const passwordInput = document.getElementById('password');
+            if (passwordInput) {
+                passwordInput.type = 'password';
+                const toggleIcon = document.querySelector('.password-toggle i');
+                if (toggleIcon) {
+                    toggleIcon.className = 'fas fa-eye';
+                }
+            }
 
             setTimeout(() => {
                 if (typeof window.navigateTo === 'function') {
@@ -241,7 +299,6 @@ function initGoogleRegister() {
     newGoogleBtn.addEventListener('click', async () => {
         if (isLoading) return;
 
-        // ✅ NUEVO: Validar términos para Google también
         const termsCheckbox = document.getElementById('termsCheckbox');
         const termsWrapper = document.querySelector('.terms-checkbox-wrapper');
 
@@ -261,10 +318,9 @@ function initGoogleRegister() {
 
         try {
             const result = await AdminService.login(null, null, true);
-            
+
             showSuccessToast('Cuenta creada con Google. Redirigiendo...');
 
-            // Resetear checkbox
             if (termsCheckbox) termsCheckbox.checked = false;
 
             setTimeout(() => {
@@ -289,28 +345,28 @@ function initGoogleRegister() {
 
 function getFriendlyErrorMessage(error) {
     const errorCode = error?.code || error?.message || '';
-    
+
     const errorMap = {
-        'auth/email-already-in-use': 'Este correo ya esta registrado. Usa otro correo o inicia sesion',
-        'auth/invalid-email': 'El correo no es valido. Ejemplo: nombre@correo.com',
-        'auth/weak-password': 'La contrasena es muy debil. Usa al menos 6 caracteres entre letras y numeros',
-        'auth/network-request-failed': 'Sin conexion a internet. Revisa tu red y vuelve a intentar',
-        'auth/popup-closed-by-user': 'Cerraste la ventana de Google. Da clic de nuevo en el boton de Google',
-        'auth/cancelled-popup-request': 'Cancelaste el registro con Google. Puedes usar correo y contrasena',
-        'auth/popup-blocked': 'El navegador no dejo abrir la ventana de Google. Permite ventanas emergentes',
+        'auth/email-already-in-use': 'Este correo ya está registrado. Usa otro correo o inicia sesión',
+        'auth/invalid-email': 'El correo no es válido. Ejemplo: nombre@correo.com',
+        'auth/weak-password': 'La contraseña es muy débil. Usa al menos 6 caracteres entre letras y números',
+        'auth/network-request-failed': 'Sin conexión a internet. Revisa tu red y vuelve a intentar',
+        'auth/popup-closed-by-user': 'Cerraste la ventana de Google. Haz clic de nuevo en el botón de Google',
+        'auth/cancelled-popup-request': 'Cancelaste el registro con Google. Puedes usar correo y contraseña',
+        'auth/popup-blocked': 'El navegador no dejó abrir la ventana de Google. Permite ventanas emergentes',
         'auth/too-many-requests': 'Demasiados intentos fallidos. Espera un momento y vuelve a intentar',
-        'auth/user-not-found': 'No existe cuenta con este correo. Revisa que este bien escrito',
-        'auth/wrong-password': 'La contrasena no coincide. Revisa mayusculas y minusculas'
+        'auth/user-not-found': 'No existe cuenta con este correo. Revisa que esté bien escrito',
+        'auth/wrong-password': 'La contraseña no coincide. Revisa mayúsculas y minúsculas'
     };
-    
+
     for (const [code, message] of Object.entries(errorMap)) {
         if (errorCode.includes(code)) {
             return message;
         }
     }
-    
+
     console.error('Error no mapeado:', error);
-    return 'Algo fallo. Revisa que el nombre, apellido, correo y contrasena esten bien escritos';
+    return 'Algo salió mal. Revisa que la información esté bien escrita';
 }
 
 function validateEmail(email) {
@@ -330,7 +386,7 @@ function showSuccessToast(message) {
             toast.addEventListener('mouseleave', Swal.resumeTimer);
         }
     });
-    
+
     Toast.fire({
         icon: 'success',
         title: message
@@ -349,7 +405,7 @@ function showErrorToast(message) {
             toast.addEventListener('mouseleave', Swal.resumeTimer);
         }
     });
-    
+
     Toast.fire({
         icon: 'error',
         title: message
@@ -368,7 +424,7 @@ function showInfoToast(message) {
             toast.addEventListener('mouseleave', Swal.resumeTimer);
         }
     });
-    
+
     Toast.fire({
         icon: 'info',
         title: message
@@ -376,5 +432,5 @@ function showInfoToast(message) {
 }
 
 export function cleanupRegister() {
-    console.error('Register controller cleaned up');
+    console.log('Register controller cleaned up');
 }

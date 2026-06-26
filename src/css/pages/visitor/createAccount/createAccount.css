@@ -120,7 +120,64 @@ input {
     margin-bottom: 15px;
 }
 
-/* Animaciones para los formularios */
+/* ========================================
+   PASSWORD FIELD WITH EYE ICON
+   ======================================== */
+
+.password-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 45px;
+    margin-bottom: 0;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 8px;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.password-toggle:hover {
+    color: var(--color-primary, #456da2);
+}
+
+.password-toggle:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.password-toggle:focus {
+    outline: 2px solid var(--color-primary, #456da2);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Cuando el input está enfocado, el icono se oscurece */
+.password-wrapper input:focus~.password-toggle,
+.password-wrapper input:focus+.password-toggle {
+    color: var(--color-primary, #456da2);
+}
+
+/* ========================================
+   ANIMACIONES
+   ======================================== */
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -270,13 +327,13 @@ input {
 }
 
 /* Checkbox marcado */
-.terms-label input[type="checkbox"]:checked + .checkmark {
+.terms-label input[type="checkbox"]:checked+.checkmark {
     background-color: var(--color-primary, #456da2);
     border-color: var(--color-primary, #456da2);
 }
 
 /* Checkmark icon (✓) */
-.terms-label input[type="checkbox"]:checked + .checkmark::after {
+.terms-label input[type="checkbox"]:checked+.checkmark::after {
     content: '';
     position: absolute;
     left: 5px;

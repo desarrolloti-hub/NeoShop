@@ -1,15 +1,14 @@
 /* ========================================
-   LOGIN CONTROLLER - Escucha formulario y llama a service
-   IMPLEMENTA SWEETALERT2 PARA ERRORES AMIGABLES
+   LOGIN CONTROLLER - Form listener and service integration
+   IMPLEMENTS SWEETALERT2 FOR FRIENDLY ERRORS
    ======================================== */
 
 import { AdminService } from '/services/adminService.js';
-import { AuthService, ROLES } from '/services/authService.js';
 
 let isLoading = false;
 
 export async function loginController() {
-    console.error('Login controller inicializado');
+    console.log('Login controller initialized');
 
     if (AdminService.isAuthenticated()) {
         redirectByRole();
@@ -17,6 +16,7 @@ export async function loginController() {
     }
 
     animateLoginForm();
+    initPasswordToggle(); // ✅ Función para el ojito
     initLoginForm();
     initGoogleLogin();
 }
@@ -42,11 +42,73 @@ function redirectByRole() {
     window.location.href = '/inicioAdmin';
 }
 
+// ✅ FUNCIÓN PARA EL OJITO DE CONTRASEÑA EN LOGIN
+function initPasswordToggle() {
+    // Esperar a que el DOM esté listo
+    setTimeout(() => {
+        const toggleBtn = document.getElementById('toggleLoginPassword');
+        const passwordInput = document.getElementById('loginPass');
+
+        console.log('Login toggle button found:', !!toggleBtn);
+        console.log('Login password input found:', !!passwordInput);
+
+        if (!toggleBtn || !passwordInput) {
+            console.warn('Login password toggle elements not found');
+            return;
+        }
+
+        // Remover event listeners anteriores
+        const newToggleBtn = toggleBtn.cloneNode(true);
+        toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
+
+        // Agregar event listener
+        newToggleBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const icon = this.querySelector('i');
+            const isPasswordVisible = passwordInput.type === 'text';
+
+            console.log('Login toggle clicked, current type:', passwordInput.type);
+
+            // Cambiar tipo de input
+            passwordInput.type = isPasswordVisible ? 'password' : 'text';
+
+            // Cambiar icono
+            if (icon) {
+                icon.className = isPasswordVisible ? 'fas fa-eye' : 'fas fa-eye-slash';
+            }
+
+            // Cambiar aria-label
+            this.setAttribute(
+                'aria-label',
+                isPasswordVisible ? 'Mostrar contraseña' : 'Ocultar contraseña'
+            );
+
+            // Focus en el input después del toggle
+            passwordInput.focus();
+        });
+
+        // Soporte para teclado
+        newToggleBtn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                newToggleBtn.click();
+            }
+        });
+
+        console.log('Login password toggle initialized successfully');
+    }, 100);
+}
+
 function initLoginForm() {
     const loginForm = document.getElementById('loginForm');
     if (!loginForm) return;
 
-    loginForm.addEventListener('submit', async (e) => {
+    const newForm = loginForm.cloneNode(true);
+    loginForm.parentNode.replaceChild(newForm, loginForm);
+
+    newForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (isLoading) return;
 
@@ -59,7 +121,7 @@ function initLoginForm() {
         }
 
         isLoading = true;
-        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        const submitBtn = newForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ingresando...';
         submitBtn.disabled = true;
@@ -75,6 +137,16 @@ function initLoginForm() {
             isLoading = false;
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
+
+            // Resetear el tipo de contraseña si hay error
+            const passwordInput = document.getElementById('loginPass');
+            if (passwordInput) {
+                passwordInput.type = 'password';
+                const toggleIcon = document.querySelector('#toggleLoginPassword i');
+                if (toggleIcon) {
+                    toggleIcon.className = 'fas fa-eye';
+                }
+            }
         }
     });
 }
@@ -83,25 +155,28 @@ function initGoogleLogin() {
     const googleBtn = document.getElementById('googleLoginBtn');
     if (!googleBtn) return;
 
-    googleBtn.addEventListener('click', async () => {
+    const newGoogleBtn = googleBtn.cloneNode(true);
+    googleBtn.parentNode.replaceChild(newGoogleBtn, googleBtn);
+
+    newGoogleBtn.addEventListener('click', async () => {
         if (isLoading) return;
 
         isLoading = true;
-        const originalText = googleBtn.innerHTML;
-        googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
-        googleBtn.disabled = true;
+        const originalText = newGoogleBtn.innerHTML;
+        newGoogleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+        newGoogleBtn.disabled = true;
 
         try {
             await AdminService.login(null, null, true);
-            showSuccessToast('Sesion iniciada con Google');
+            showSuccessToast('Sesión iniciada con Google');
             setTimeout(() => redirectByRole(), 1000);
         } catch (error) {
             const friendlyMessage = getFriendlyErrorMessage(error);
             showTemporaryError('Error con Google', friendlyMessage);
         } finally {
             isLoading = false;
-            googleBtn.innerHTML = originalText;
-            googleBtn.disabled = false;
+            newGoogleBtn.innerHTML = originalText;
+            newGoogleBtn.disabled = false;
         }
     });
 }
@@ -110,17 +185,17 @@ function getFriendlyErrorMessage(error) {
     const errorCode = error?.code || error?.message || '';
 
     const errorMap = {
-        'auth/invalid-login-credentials': 'Correo electronico o contrasena incorrectos. Por favor, verifica tus datos.',
-        'auth/wrong-password': 'Contrasena incorrecta. Intenta de nuevo.',
-        'auth/user-not-found': 'No encontramos una cuenta con este correo electronico.',
-        'auth/email-already-in-use': 'Este correo electronico ya esta registrado.',
-        'auth/weak-password': 'La contrasena es muy debil. Debe tener al menos 6 caracteres.',
-        'auth/invalid-email': 'El formato del correo electronico no es valido.',
+        'auth/invalid-login-credentials': 'Correo electrónico o contraseña incorrectos. Por favor, verifica tus datos.',
+        'auth/wrong-password': 'Contraseña incorrecta. Intenta de nuevo.',
+        'auth/user-not-found': 'No encontramos una cuenta con este correo electrónico.',
+        'auth/email-already-in-use': 'Este correo electrónico ya está registrado.',
+        'auth/weak-password': 'La contraseña es muy débil. Debe tener al menos 6 caracteres.',
+        'auth/invalid-email': 'El formato del correo electrónico no es válido.',
         'auth/too-many-requests': 'Demasiados intentos fallidos. Por favor, espera un momento e intenta de nuevo.',
-        'auth/network-request-failed': 'Error de conexion. Verifica tu red e intenta de nuevo.',
-        'auth/popup-closed-by-user': 'Cerraste la ventana de Google antes de completar el inicio de sesion.',
-        'auth/cancelled-popup-request': 'El inicio de sesion con Google fue cancelado.',
-        'auth/popup-blocked': 'El navegador bloqueo la ventana emergente de Google. Permite ventanas emergentes para este sitio.'
+        'auth/network-request-failed': 'Error de conexión. Verifica tu red e intenta de nuevo.',
+        'auth/popup-closed-by-user': 'Cerraste la ventana de Google antes de completar el inicio de sesión.',
+        'auth/cancelled-popup-request': 'El inicio de sesión con Google fue cancelado.',
+        'auth/popup-blocked': 'El navegador bloqueó la ventana emergente de Google. Permite ventanas emergentes para este sitio.'
     };
 
     for (const [code, message] of Object.entries(errorMap)) {
@@ -129,8 +204,8 @@ function getFriendlyErrorMessage(error) {
         }
     }
 
-    console.error('Error no mapeado:', error);
-    return 'Ocurrio un problema al iniciar sesion. Por favor, intenta de nuevo mas tarde.';
+    console.error('Unmapped error:', error);
+    return 'Ocurrió un problema al iniciar sesión. Por favor, intenta de nuevo más tarde.';
 }
 
 function showTemporaryError(title, message) {
@@ -168,5 +243,5 @@ function showSuccessToast(message) {
 }
 
 export function cleanupLogin() {
-    console.error('Login controller cleaned up');
+    console.log('Login controller cleaned up');
 }
