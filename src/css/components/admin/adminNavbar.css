@@ -40,9 +40,7 @@
 .admin-logo-img {
     height: 120px;
     width: auto;
-
     margin-top: -30%;
-
 }
 
 .admin-logo-text {
@@ -53,20 +51,27 @@
     color: var(--color-primary);
 }
 
-/* Navegación */
+/* ============================================ */
+/* NAVEGACIÓN - CORREGIDO PARA NO DESBORDAR */
+/* ============================================ */
+
 .admin-sidebar-nav {
     flex: 1;
     padding: 1.5rem 1rem;
+    overflow-x: hidden;
+    /* ✅ Evita desborde horizontal */
 }
 
 .admin-nav-menu {
     list-style: none;
     padding: 0;
     margin: 0;
+    width: 100%;
 }
 
 .admin-nav-menu li {
     margin-bottom: 0.5rem;
+    width: 100%;
 }
 
 .admin-nav-menu li a {
@@ -82,11 +87,31 @@
     transition: all 0.2s;
     background: var(--bg-white);
     box-shadow: var(--shadow-md);
+    width: 100%;
+    white-space: nowrap;
+    /* ✅ Evita que el texto se envuelva */
+    overflow: hidden;
+    /* ✅ Esconde el desborde */
+    text-overflow: ellipsis;
+    /* ✅ Muestra "..." si el texto es muy largo */
+    min-width: 0;
+    /* ✅ Permite que el flex se reduzca */
+    box-sizing: border-box;
+    /* ✅ Incluye padding en el ancho */
 }
 
 .admin-nav-menu li a i {
     width: 24px;
+    flex-shrink: 0;
+    /* ✅ Evita que el icono se encoja */
     color: var(--color-primary);
+}
+
+.admin-nav-menu li a span {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .admin-nav-menu li a:hover {
@@ -103,9 +128,10 @@
     color: white;
 }
 
-/* ============================================
-   FOOTER - Información del usuario
-   ============================================ */
+/* ============================================ */
+/* FOOTER - Información del usuario */
+/* ============================================ */
+
 .admin-sidebar-footer {
     padding: 1rem;
     border-top: 1px solid var(--border-light);
@@ -202,9 +228,10 @@
     transform: translateY(-2px);
 }
 
-/* ============================================
-   BOTÓN HAMBURGUESA
-   ============================================ */
+/* ============================================ */
+/* BOTÓN HAMBURGUESA */
+/* ============================================ */
+
 .admin-menu-toggle-btn {
     display: none;
     position: fixed;
@@ -234,9 +261,10 @@
     }
 }
 
-/* ============================================
-   OVERLAY
-   ============================================ */
+/* ============================================ */
+/* OVERLAY */
+/* ============================================ */
+
 .admin-overlay {
     display: none;
     position: fixed;
@@ -252,9 +280,10 @@
     display: block;
 }
 
-/* ============================================
-   RESPONSIVE - Móvil pequeño
-   ============================================ */
+/* ============================================ */
+/* RESPONSIVE - Móvil pequeño */
+/* ============================================ */
+
 @media (max-width: 550px) {
     .admin-menu-toggle-btn {
         width: 40px;
@@ -262,7 +291,6 @@
         top: 12px;
         left: 12px;
     }
-
 
     .admin-logo-text {
         display: none;
@@ -302,9 +330,10 @@
     }
 }
 
-/* ============================================
-   ANIMACIONES
-   ============================================ */
+/* ============================================ */
+/* ANIMACIONES */
+/* ============================================ */
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -321,11 +350,10 @@
     animation: fadeIn 0.3s ease;
 }
 
-/* ============================================
-   SCROLLBAR PERSONALIZADA - Delgada y azul
-   ============================================ */
+/* ============================================ */
+/* SCROLLBAR PERSONALIZADA */
+/* ============================================ */
 
-/* Scrollbar para el sidebar en general */
 .admin-sidebar {
     scrollbar-width: thin;
     scrollbar-color: var(--color-primary-extraligth) var(--bg-gray);
@@ -349,7 +377,6 @@
     background: var(--color-primary-dark);
 }
 
-/* Scrollbar para la navegación interna */
 .admin-sidebar-nav {
     scrollbar-width: thin;
     scrollbar-color: var(--color-primary-light) var(--bg-gray);
@@ -373,14 +400,11 @@
     background: var(--color-primary-dark);
 }
 
-/* ============================================
-   RESPONSIVE - Altura completa y scroll solo del nav
-   ============================================ */
+/* ============================================ */
+/* RESPONSIVE - Altura completa */
+/* ============================================ */
 
-/* Configuración base para móvil */
 @media (max-width: 850px) {
-
-    /* El body no debe scrollear cuando el sidebar está abierto */
     body:has(.admin-sidebar.open) {
         overflow: hidden !important;
         position: fixed;
@@ -396,20 +420,17 @@
         overflow: hidden;
     }
 
-    /* Header fijo en la parte superior */
     .admin-sidebar-header {
         flex-shrink: 0;
         padding: 1.5rem;
     }
 
-    /* Footer fijo en la parte inferior */
     .admin-sidebar-footer {
         flex-shrink: 0;
         margin-top: auto;
         padding: 1rem 1.5rem;
     }
 
-    /* Solo el nav es scrolleable */
     .admin-sidebar-nav {
         flex: 1;
         overflow-y: auto;
@@ -417,10 +438,8 @@
         padding: 1rem;
         margin: 0;
         min-height: 0;
-        /* Importante para flexbox */
     }
 
-    /* Ajuste de padding para mejor visualización */
     .admin-nav-menu {
         padding-bottom: 0.5rem;
     }
@@ -430,7 +449,6 @@
     }
 }
 
-/* Para móviles pequeños, ajustar alturas */
 @media (max-width: 550px) {
     .admin-sidebar-header {
         padding: 1rem;
@@ -449,7 +467,6 @@
     }
 }
 
-/* Ajuste del logo en móvil para mejor espacio */
 @media (max-width: 850px) {
     .admin-logo-img {
         margin-top: -15%;
@@ -461,17 +478,13 @@
     }
 }
 
-/* Opcional: para suavizar la desaparición de elementos */
 [data-module] {
     transition: opacity 0.2s ease;
 }
 
-/* Los elementos ocultos simplemente no se muestran */
-/* Agregar al final del archivo adminNavbar.css */
-
-/* ============================================
-   PROFILE PHOTO - Enhanced styles
-   ============================================ */
+/* ============================================ */
+/* PROFILE PHOTO - Enhanced styles */
+/* ============================================ */
 
 .admin-user-avatar {
     width: 40px;
@@ -498,7 +511,6 @@
     color: white;
 }
 
-/* Animación suave para la carga de la foto */
 .admin-avatar-img {
     transition: opacity 0.3s ease;
 }
@@ -511,7 +523,6 @@
     opacity: 0;
 }
 
-/* Para móviles pequeños */
 @media (max-width: 550px) {
     .admin-user-avatar {
         width: 35px;
