@@ -1,7 +1,7 @@
 /* FILE: createProductController.js
    ========================================================
-   CONTROLADOR PARA CREAR PRODUCTOS
-   COLECCIONES DINÁMICAS: [NombreTienda]Products
+   CREATE PRODUCT CONTROLLER
+   DYNAMIC COLLECTIONS: products + StoreName
    ======================================================== */
 
 import { ProductService } from '/services/productService.js';
@@ -13,18 +13,17 @@ let currentAdmin = null;
 let currentStoreName = null;
 
 export async function createProductController() {
-  console.log('📦 Create Product Controller - Inicializado');
+  console.log('📦 Create Product Controller - Initialized');
 
-  // 🔥 OBTENER SESIÓN Y STORE NAME
   const sessionLoaded = loadAdminSession();
 
   if (!sessionLoaded) {
-    console.error('❌ No se pudo cargar la sesión');
+    console.error('❌ Session could not be loaded');
     Swal.fire({
-      title: 'Error de sesión',
-      text: 'No se pudo cargar la sesión. Por favor inicie sesión nuevamente.',
+      title: 'Session Error',
+      text: 'Could not load session. Please log in again.',
       icon: 'error',
-      confirmButtonText: 'Entendido',
+      confirmButtonText: 'Understood',
       confirmButtonColor: '#dc2626'
     }).then(() => {
       if (window.router) window.router.navigate('/admin/login');
@@ -33,12 +32,12 @@ export async function createProductController() {
   }
 
   if (!currentStoreName) {
-    console.error('❌ No se encontró storeName en la sesión');
+    console.error('❌ storeName not found in session');
     Swal.fire({
-      title: 'Error de configuración',
-      text: 'No se encontró la tienda asociada a tu cuenta. Contacta al administrador.',
+      title: 'Configuration Error',
+      text: 'Store not found for your account. Contact the administrator.',
       icon: 'error',
-      confirmButtonText: 'Entendido',
+      confirmButtonText: 'Understood',
       confirmButtonColor: '#dc2626'
     }).then(() => {
       if (window.router) window.router.navigate('/inicioAdmin');
@@ -46,9 +45,9 @@ export async function createProductController() {
     return;
   }
 
-  console.log('✅ Admin autenticado:', currentAdmin?.nombreCompleto || currentAdmin?.email);
-  console.log('✅ Tienda:', currentStoreName);
-  console.log('📁 Colección de productos:', `${currentStoreName}Products`);
+  console.log('✅ Admin authenticated:', currentAdmin?.name || currentAdmin?.email);
+  console.log('✅ Store:', currentStoreName);
+  console.log('📁 Products collection:', `${currentStoreName}Products`);
 
   animateProductCard();
   initProductImageUpload();
@@ -56,37 +55,36 @@ export async function createProductController() {
 }
 
 /* ========================================================
-   CARGAR SESIÓN DEL ADMIN
+   LOAD ADMIN SESSION
    ======================================================== */
 function loadAdminSession() {
   try {
     currentAdmin = AdminService.getSession();
 
     if (!currentAdmin) {
-      console.warn('⚠️ No hay administrador autenticado');
+      console.warn('⚠️ No authenticated admin');
       return false;
     }
 
-    // 🔥 Obtener storeName de la sesión
     currentStoreName = currentAdmin.storeName;
 
     if (!currentStoreName) {
-      console.warn('⚠️ No hay storeName en la sesión');
-      console.warn('Sesión actual:', currentAdmin);
+      console.warn('⚠️ No storeName in session');
+      console.warn('Current session:', currentAdmin);
       return false;
     }
 
-    console.log('✅ Admin autenticado:', currentAdmin.nombreCompleto || currentAdmin.email);
-    console.log('✅ StoreName obtenido:', currentStoreName);
+    console.log('✅ Admin authenticated:', currentAdmin.name || currentAdmin.email);
+    console.log('✅ StoreName obtained:', currentStoreName);
     return true;
   } catch (error) {
-    console.error('❌ Error cargando sesión:', error);
+    console.error('❌ Error loading session:', error);
     return false;
   }
 }
 
 /* ========================================================
-   ANIMACION DE ENTRADA
+   ANIMATE CARD ENTRY
    ======================================================== */
 function animateProductCard() {
   const card = document.querySelector('.product-card');
@@ -101,7 +99,7 @@ function animateProductCard() {
 }
 
 /* ========================================================
-   INICIALIZA SUBIDA DE IMAGEN
+   INIT IMAGE UPLOAD
    ======================================================== */
 function initProductImageUpload() {
   const avatarWrapper = document.getElementById('productImageWrapper');
@@ -111,7 +109,7 @@ function initProductImageUpload() {
   const removeBtn = document.getElementById('removeProductImageBtn');
 
   if (!avatarWrapper || !fileInput) {
-    console.error('Elementos de imagen no encontrados');
+    console.error('Image elements not found');
     return;
   }
 
@@ -126,18 +124,28 @@ function initProductImageUpload() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      showSweetAlert('Formato no valido', 'Selecciona una imagen valida (JPG, PNG, GIF)', 'error');
+      Swal.fire({
+        title: 'Invalid format',
+        text: 'Please select a valid image (JPG, PNG, GIF)',
+        icon: 'error',
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#456da2'
+      });
       fileInput.value = '';
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      showSweetAlert('Imagen muy pesada', 'La imagen no debe superar los 2MB', 'error');
+      Swal.fire({
+        title: 'Image too large',
+        text: 'Image must not exceed 2MB',
+        icon: 'error',
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#456da2'
+      });
       fileInput.value = '';
       return;
     }
-
-    showSweetAlert('Procesando imagen', 'Espera un momento...', 'info', 1500);
 
     const reader = new FileReader();
 
@@ -161,11 +169,17 @@ function initProductImageUpload() {
         removeBtn.style.display = 'inline-block';
       }
 
-      showSweetAlert('Imagen cargada', 'La imagen se ha cargado correctamente', 'success', 1500);
+      console.log('✅ Image loaded successfully');
     };
 
     reader.onerror = () => {
-      showSweetAlert('Error', 'No se pudo procesar la imagen', 'error');
+      Swal.fire({
+        title: 'Error',
+        text: 'Could not process the image',
+        icon: 'error',
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#456da2'
+      });
       currentImageBase64 = '';
       fileInput.value = '';
     };
@@ -191,18 +205,18 @@ function initProductImageUpload() {
       removeBtn.style.display = 'none';
       currentImageBase64 = '';
 
-      showSweetAlert('Imagen eliminada', 'La imagen ha sido removida', 'info', 1500);
+      console.log('🗑️ Image removed');
     });
   }
 }
 
 /* ========================================================
-   INICIALIZA ENVIO DEL FORMULARIO
+   INIT FORM SUBMIT
    ======================================================== */
 function initProductFormSubmit() {
   const form = document.getElementById('productForm');
   if (!form) {
-    console.error('Formulario no encontrado');
+    console.error('Form not found');
     return;
   }
 
@@ -211,57 +225,89 @@ function initProductFormSubmit() {
 
     if (isLoading) return;
 
-    // Obtener valores del formulario
-    const name = document.querySelector('input[name="nombre"]')?.value.trim();
-    const barcode = document.querySelector('input[name="sku"]')?.value.trim();
-    const brand = document.querySelector('input[name="marca"]')?.value.trim();
-    const description = document.querySelector('textarea[name="descripcion"]')?.value.trim();
-    const price = parseFloat(document.querySelector('input[name="precio"]')?.value) || 0;
-    const cost = parseFloat(document.querySelector('input[name="costo"]')?.value) || 0;
+    const name = document.querySelector('input[name="name"]')?.value.trim();
+    const barcode = document.querySelector('input[name="barcode"]')?.value.trim();
+    const brand = document.querySelector('input[name="brand"]')?.value.trim();
+    const description = document.querySelector('textarea[name="description"]')?.value.trim();
+    const price = parseFloat(document.querySelector('input[name="price"]')?.value) || 0;
+    const cost = parseFloat(document.querySelector('input[name="cost"]')?.value) || 0;
     const stock = parseInt(document.querySelector('input[name="stock"]')?.value) || 0;
-    const minStock = parseInt(document.querySelector('input[name="stockMinimo"]')?.value) || 0;
-    const unitOfMeasure = document.querySelector('input[name="unidadMedida"]')?.value.trim();
+    const minStock = parseInt(document.querySelector('input[name="minStock"]')?.value) || 0;
+    const unitOfMeasure = document.querySelector('input[name="unitOfMeasure"]')?.value.trim();
 
-    // Validaciones basicas de UI
+    // Validations
     if (!name) {
-      showSweetAlert('Campo requerido', 'El nombre del producto es obligatorio', 'warning');
-      document.querySelector('input[name="nombre"]')?.focus();
+      Swal.fire({
+        title: 'Required field',
+        text: 'Product name is required',
+        icon: 'warning',
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#456da2'
+      });
+      document.querySelector('input[name="name"]')?.focus();
       return;
     }
 
     if (!barcode) {
-      showSweetAlert('Campo requerido', 'El codigo de barras es obligatorio', 'warning');
-      document.querySelector('input[name="sku"]')?.focus();
+      Swal.fire({
+        title: 'Required field',
+        text: 'Barcode is required',
+        icon: 'warning',
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#456da2'
+      });
+      document.querySelector('input[name="barcode"]')?.focus();
       return;
     }
 
     if (!brand) {
-      showSweetAlert('Campo requerido', 'La marca es obligatoria', 'warning');
-      document.querySelector('input[name="marca"]')?.focus();
+      Swal.fire({
+        title: 'Required field',
+        text: 'Brand is required',
+        icon: 'warning',
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#456da2'
+      });
+      document.querySelector('input[name="brand"]')?.focus();
       return;
     }
 
     if (price <= 0) {
-      showSweetAlert('Precio invalido', 'El precio debe ser mayor a 0', 'error');
-      document.querySelector('input[name="precio"]')?.focus();
+      Swal.fire({
+        title: 'Invalid price',
+        text: 'Price must be greater than 0',
+        icon: 'error',
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#456da2'
+      });
+      document.querySelector('input[name="price"]')?.focus();
       return;
     }
 
-    // 🔥 Obtener adminId de la sesion
     const adminId = currentAdmin?.id;
 
     if (!adminId) {
-      showSweetAlert('Error', 'No se encontro la sesion del administrador', 'error');
+      Swal.fire({
+        title: 'Error',
+        text: 'Admin session not found',
+        icon: 'error',
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#456da2'
+      });
       return;
     }
 
-    // 🔥 Verificar que tengamos storeName
     if (!currentStoreName) {
-      showSweetAlert('Error', 'No se encontró la tienda asociada', 'error');
+      Swal.fire({
+        title: 'Error',
+        text: 'Store not found',
+        icon: 'error',
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#456da2'
+      });
       return;
     }
 
-    // Preparar datos para el servicio
     const productData = {
       name: name,
       barcode: barcode.toUpperCase(),
@@ -271,7 +317,7 @@ function initProductFormSubmit() {
       cost: cost,
       stock: stock,
       minStock: minStock,
-      unitOfMeasure: unitOfMeasure || 'pieza',
+      unitOfMeasure: unitOfMeasure || 'piece',
       imageUrl: currentImageBase64
     };
 
@@ -280,46 +326,42 @@ function initProductFormSubmit() {
     const originalText = submitBtn.innerHTML;
 
     Swal.fire({
-      title: 'Registrando producto...',
-      text: 'Por favor espera un momento',
+      title: 'Registering product...',
+      text: 'Please wait a moment',
       allowOutsideClick: false,
-      didOpen: () => { Swal.showLoading(); },
-      customClass: { popup: 'swal2-popup' }
+      didOpen: () => { Swal.showLoading(); }
     });
 
     try {
-      // 🔥 PASAMOS adminId Y storeName AL SERVICE
-      console.log('📤 Enviando a ProductService.create:');
+      console.log('📤 Sending to ProductService.create:');
       console.log('  - adminId:', adminId);
       console.log('  - storeName:', currentStoreName);
       console.log('  - productData:', productData);
 
       const result = await ProductService.create(productData, adminId, currentStoreName);
 
-      console.log('✅ Producto creado:', result);
-      console.log('📁 Colección:', `${currentStoreName}Products`);
+      console.log('✅ Product created:', result);
+      console.log('📁 Collection:', `${currentStoreName}Products`);
 
       Swal.close();
 
       await Swal.fire({
-        title: 'Producto registrado',
+        title: 'Product registered',
         html: `
                     <div style="text-align: left;">
-                        <p><strong>${name}</strong> ha sido registrado exitosamente</p>
-                        <p>Código: ${barcode.toUpperCase()}</p>
-                        <p>Precio: ${formatCurrency(price)}</p>
-                        <p>Stock: ${stock} unidades</p>
+                        <p><strong>${name}</strong> has been registered successfully</p>
+                        <p>Code: ${barcode.toUpperCase()}</p>
+                        <p>Price: ${formatCurrency(price)}</p>
+                        <p>Stock: ${stock} units</p>
                     </div>
                 `,
         icon: 'success',
-        confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#22c55e',
-        customClass: { confirmButton: 'swal2-confirm' }
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#22c55e'
       });
 
       form.reset();
 
-      // Limpiar imagen
       const avatarPreview = document.getElementById('productAvatarPreview');
       const avatarIcon = document.getElementById('productAvatarIcon');
       const removeBtn = document.getElementById('removeProductImageBtn');
@@ -336,25 +378,21 @@ function initProductFormSubmit() {
       currentImageBase64 = '';
 
       const resultConfirm = await Swal.fire({
-        title: 'Que deseas hacer ahora',
-        text: 'Puedes registrar otro producto o ver el listado',
+        title: 'What would you like to do now?',
+        text: 'You can register another product or view the list',
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: 'Ver listado',
-        cancelButtonText: 'Registrar otro',
+        confirmButtonText: 'View list',
+        cancelButtonText: 'Register another',
         confirmButtonColor: '#456da2',
         cancelButtonColor: '#64748b',
-        reverseButtons: true,
-        customClass: {
-          confirmButton: 'swal2-confirm',
-          cancelButton: 'swal2-cancel'
-        }
+        reverseButtons: true
       });
 
       if (resultConfirm.isConfirmed) {
         window.location.href = '/productos';
       } else {
-        document.querySelector('input[name="nombre"]')?.focus();
+        document.querySelector('input[name="name"]')?.focus();
       }
 
     } catch (error) {
@@ -362,12 +400,11 @@ function initProductFormSubmit() {
       Swal.close();
 
       await Swal.fire({
-        title: 'Error al registrar',
-        html: `<p>${error.message || 'Intenta nuevamente'}</p>`,
+        title: 'Registration error',
+        html: `<p>${error.message || 'Please try again'}</p>`,
         icon: 'error',
-        confirmButtonText: 'Entendido',
-        confirmButtonColor: '#dc2626',
-        customClass: { confirmButton: 'swal2-confirm' }
+        confirmButtonText: 'Understood',
+        confirmButtonColor: '#dc2626'
       });
     } finally {
       isLoading = false;
@@ -378,28 +415,7 @@ function initProductFormSubmit() {
 }
 
 /* ========================================================
-   FUNCION PARA SWEET ALERT DE VALIDACION
-   ======================================================== */
-function showSweetAlert(title, message, type = 'info', timer = null) {
-  const config = {
-    title: title,
-    text: message,
-    icon: type,
-    confirmButtonText: 'Aceptar',
-    confirmButtonColor: '#456da2',
-    customClass: { confirmButton: 'swal2-confirm' }
-  };
-
-  if (timer) {
-    config.timer = timer;
-    config.showConfirmButton = false;
-  }
-
-  Swal.fire(config);
-}
-
-/* ========================================================
-   FORMATEA MONEDA
+   FORMAT CURRENCY
    ======================================================== */
 function formatCurrency(value) {
   return new Intl.NumberFormat('es-MX', {
@@ -409,9 +425,6 @@ function formatCurrency(value) {
   }).format(value);
 }
 
-/* ========================================================
-   LIMPIEZA DEL CONTROLADOR
-   ======================================================== */
 export function cleanupCreateProduct() {
-  // Limpieza si es necesaria
+  // Cleanup if needed
 }

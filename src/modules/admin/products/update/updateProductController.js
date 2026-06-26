@@ -1,9 +1,7 @@
 /* FILE: updateProductController.js
    ========================================================
-   CONTROLADOR PARA ACTUALIZAR PRODUCTOS
-   Dependencias: ProductService, AdminService, SweetAlert2
-   Funcionalidad: Carga los datos de un producto existente,
-                  permite editarlos y guardar los cambios
+   UPDATE PRODUCT CONTROLLER
+   DYNAMIC COLLECTIONS: products + StoreName
    ======================================================== */
 
 import { ProductService } from '/services/productService.js';
@@ -13,10 +11,9 @@ let isLoading = false;
 let currentImageBase64 = '';
 let originalProductData = null;
 
-/* ========================================================
-   FUNCION PRINCIPAL - EXPORTADA
-   ======================================================== */
 export async function updateProductController() {
+  console.log('📝 updateProductController initialized');
+
   await loadProductData();
   animateProductCard();
   initProductImageUpload();
@@ -25,7 +22,7 @@ export async function updateProductController() {
 }
 
 /* ========================================================
-   OBTIENE EL ID DEL PRODUCTO DESDE LA URL
+   GET PRODUCT ID FROM URL
    ======================================================== */
 function getProductIdFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -33,7 +30,7 @@ function getProductIdFromUrl() {
 }
 
 /* ========================================================
-   CARGA LOS DATOS DEL PRODUCTO
+   LOAD PRODUCT DATA
    ======================================================== */
 async function loadProductData() {
   const productId = getProductIdFromUrl();
@@ -41,47 +38,42 @@ async function loadProductData() {
   if (!productId) {
     await Swal.fire({
       title: 'Error',
-      text: 'ID de producto no especificado',
+      text: 'Product ID not specified',
       icon: 'error',
-      confirmButtonText: 'Aceptar',
-      confirmButtonColor: '#dc2626',
-      customClass: { confirmButton: 'swal2-confirm' }
+      confirmButtonText: 'Accept',
+      confirmButtonColor: '#dc2626'
     });
     window.location.href = '/productos';
     return;
   }
 
   try {
-    showToast('Cargando producto...', 'info');
-
     const adminSession = AdminService.getSession();
     const adminId = adminSession?.id;
 
     if (!adminId) {
-      throw new Error('No se encontro la sesion del administrador');
+      throw new Error('Admin session not found');
     }
 
     const product = await ProductService.getById(productId, adminId);
 
     if (!product) {
-      throw new Error('Producto no encontrado');
+      throw new Error('Product not found');
     }
 
     originalProductData = product;
 
-    // Poblar formulario (usando nombres del modelo en ingles)
     document.getElementById('productId').value = product.id;
-    document.getElementById('nombre').value = product.name || '';
-    document.getElementById('sku').value = product.barcode || '';
-    document.getElementById('marca').value = product.brand || '';
-    document.getElementById('descripcion').value = product.description || '';
-    document.getElementById('precio').value = product.price || 0;
-    document.getElementById('costo').value = product.cost || 0;
+    document.getElementById('name').value = product.name || '';
+    document.getElementById('barcode').value = product.barcode || '';
+    document.getElementById('brand').value = product.brand || '';
+    document.getElementById('description').value = product.description || '';
+    document.getElementById('price').value = product.price || 0;
+    document.getElementById('cost').value = product.cost || 0;
     document.getElementById('stock').value = product.stock || 0;
-    document.getElementById('stockMinimo').value = product.minStock || 0;
-    document.getElementById('unidadMedida').value = product.unitOfMeasure || '';
+    document.getElementById('minStock').value = product.minStock || 0;
+    document.getElementById('unitOfMeasure').value = product.unitOfMeasure || '';
 
-    // Cargar imagen si existe
     if (product.imageUrl && product.imageUrl.startsWith('data:image')) {
       currentImageBase64 = product.imageUrl;
       const avatarPreview = document.getElementById('productAvatarPreview');
@@ -100,24 +92,23 @@ async function loadProductData() {
       if (removeBtn) removeBtn.style.display = 'inline-block';
     }
 
-    showToast('Producto cargado correctamente', 'success');
+    console.log('✅ Product loaded successfully');
 
   } catch (error) {
-    console.error('Error al cargar producto:', error);
+    console.error('Error loading product:', error);
     await Swal.fire({
       title: 'Error',
-      text: error.message || 'No se pudo cargar el producto',
+      text: error.message || 'Could not load product',
       icon: 'error',
-      confirmButtonText: 'Aceptar',
-      confirmButtonColor: '#dc2626',
-      customClass: { confirmButton: 'swal2-confirm' }
+      confirmButtonText: 'Accept',
+      confirmButtonColor: '#dc2626'
     });
     window.location.href = '/productos';
   }
 }
 
 /* ========================================================
-   ANIMACION DE ENTRADA
+   ANIMATE CARD
    ======================================================== */
 function animateProductCard() {
   const card = document.querySelector('.product-card');
@@ -132,7 +123,7 @@ function animateProductCard() {
 }
 
 /* ========================================================
-   INICIALIZA SUBIDA DE IMAGEN
+   IMAGE UPLOAD
    ======================================================== */
 function initProductImageUpload() {
   const avatarWrapper = document.getElementById('productImageWrapper');
@@ -154,18 +145,28 @@ function initProductImageUpload() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      showSweetAlert('Formato no valido', 'Selecciona una imagen valida (JPG, PNG, GIF)', 'error');
+      Swal.fire({
+        title: 'Invalid format',
+        text: 'Please select a valid image (JPG, PNG, GIF)',
+        icon: 'error',
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#456da2'
+      });
       fileInput.value = '';
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      showSweetAlert('Imagen muy pesada', 'La imagen no debe superar los 2MB', 'error');
+      Swal.fire({
+        title: 'Image too large',
+        text: 'Image must not exceed 2MB',
+        icon: 'error',
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#456da2'
+      });
       fileInput.value = '';
       return;
     }
-
-    showSweetAlert('Procesando imagen', 'Espera un momento...', 'info', 1500);
 
     const reader = new FileReader();
 
@@ -184,11 +185,17 @@ function initProductImageUpload() {
       if (avatarIcon) avatarIcon.style.display = 'none';
       if (removeBtn) removeBtn.style.display = 'inline-block';
 
-      showSweetAlert('Imagen cargada', 'La imagen se ha cargado correctamente', 'success', 1500);
+      console.log('✅ Image loaded successfully');
     };
 
     reader.onerror = () => {
-      showSweetAlert('Error', 'No se pudo procesar la imagen', 'error');
+      Swal.fire({
+        title: 'Error',
+        text: 'Could not process the image',
+        icon: 'error',
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#456da2'
+      });
       currentImageBase64 = '';
       fileInput.value = '';
     };
@@ -211,13 +218,13 @@ function initProductImageUpload() {
       removeBtn.style.display = 'none';
       currentImageBase64 = '';
 
-      showSweetAlert('Imagen eliminada', 'La imagen ha sido removida', 'info', 1500);
+      console.log('🗑️ Image removed');
     });
   }
 }
 
 /* ========================================================
-   INICIALIZA ENVIO DEL FORMULARIO
+   FORM SUBMIT
    ======================================================== */
 function initProductFormSubmit() {
   const form = document.getElementById('productForm');
@@ -229,47 +236,69 @@ function initProductFormSubmit() {
     if (isLoading) return;
 
     const productId = document.getElementById('productId')?.value;
-    const name = document.getElementById('nombre')?.value.trim();
-    const barcode = document.getElementById('sku')?.value.trim();
-    const brand = document.getElementById('marca')?.value.trim();
-    const description = document.getElementById('descripcion')?.value.trim();
-    const price = parseFloat(document.getElementById('precio')?.value) || 0;
-    const cost = parseFloat(document.getElementById('costo')?.value) || 0;
+    const name = document.getElementById('name')?.value.trim();
+    const barcode = document.getElementById('barcode')?.value.trim();
+    const brand = document.getElementById('brand')?.value.trim();
+    const description = document.getElementById('description')?.value.trim();
+    const price = parseFloat(document.getElementById('price')?.value) || 0;
+    const cost = parseFloat(document.getElementById('cost')?.value) || 0;
     const stock = parseInt(document.getElementById('stock')?.value) || 0;
-    const minStock = parseInt(document.getElementById('stockMinimo')?.value) || 0;
-    const unitOfMeasure = document.getElementById('unidadMedida')?.value.trim();
+    const minStock = parseInt(document.getElementById('minStock')?.value) || 0;
+    const unitOfMeasure = document.getElementById('unitOfMeasure')?.value.trim();
 
-    // Validaciones
     if (!name) {
-      showSweetAlert('Campo requerido', 'El nombre del producto es obligatorio', 'warning');
-      document.getElementById('nombre')?.focus();
+      Swal.fire({
+        title: 'Required field',
+        text: 'Product name is required',
+        icon: 'warning',
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#456da2'
+      });
+      document.getElementById('name')?.focus();
       return;
     }
 
     if (!barcode) {
-      showSweetAlert('Campo requerido', 'El codigo de barras es obligatorio', 'warning');
-      document.getElementById('sku')?.focus();
+      Swal.fire({
+        title: 'Required field',
+        text: 'Barcode is required',
+        icon: 'warning',
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#456da2'
+      });
+      document.getElementById('barcode')?.focus();
       return;
     }
 
     if (!brand) {
-      showSweetAlert('Campo requerido', 'La marca es obligatoria', 'warning');
-      document.getElementById('marca')?.focus();
+      Swal.fire({
+        title: 'Required field',
+        text: 'Brand is required',
+        icon: 'warning',
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#456da2'
+      });
+      document.getElementById('brand')?.focus();
       return;
     }
 
     if (price <= 0) {
-      showSweetAlert('Precio invalido', 'El precio debe ser mayor a 0', 'error');
-      document.getElementById('precio')?.focus();
+      Swal.fire({
+        title: 'Invalid price',
+        text: 'Price must be greater than 0',
+        icon: 'error',
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#456da2'
+      });
+      document.getElementById('price')?.focus();
       return;
     }
 
-    // Obtener adminId
     const adminSession = AdminService.getSession();
     const adminId = adminSession?.id;
 
     if (!adminId) {
-      throw new Error('No se encontro la sesion del administrador');
+      throw new Error('Admin session not found');
     }
 
     const updateData = {
@@ -281,11 +310,10 @@ function initProductFormSubmit() {
       cost: cost,
       stock: stock,
       minStock: minStock,
-      unitOfMeasure: unitOfMeasure || 'pieza',
+      unitOfMeasure: unitOfMeasure || 'piece',
       active: originalProductData?.active !== undefined ? originalProductData.active : true
     };
 
-    // Solo incluir imagen si hubo cambios
     if (currentImageBase64 && currentImageBase64 !== originalProductData?.imageUrl) {
       updateData.imageUrl = currentImageBase64;
     } else if (currentImageBase64 === '' && originalProductData?.imageUrl) {
@@ -297,11 +325,10 @@ function initProductFormSubmit() {
     const originalText = submitBtn.innerHTML;
 
     Swal.fire({
-      title: 'Actualizando producto...',
-      text: 'Por favor espera un momento',
+      title: 'Updating product...',
+      text: 'Please wait a moment',
       allowOutsideClick: false,
-      didOpen: () => { Swal.showLoading(); },
-      customClass: { popup: 'swal2-popup' }
+      didOpen: () => { Swal.showLoading(); }
     });
 
     try {
@@ -310,19 +337,18 @@ function initProductFormSubmit() {
       Swal.close();
 
       await Swal.fire({
-        title: 'Producto actualizado',
+        title: 'Product updated',
         html: `
                     <div style="text-align: left;">
-                        <p><strong>${name}</strong> ha sido actualizado exitosamente</p>
-                        <p>Codigo: ${barcode.toUpperCase()}</p>
-                        <p>Precio: ${formatCurrency(price)}</p>
-                        <p>Stock: ${stock} unidades</p>
+                        <p><strong>${name}</strong> has been updated successfully</p>
+                        <p>Code: ${barcode.toUpperCase()}</p>
+                        <p>Price: ${formatCurrency(price)}</p>
+                        <p>Stock: ${stock} units</p>
                     </div>
                 `,
         icon: 'success',
-        confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#22c55e',
-        customClass: { confirmButton: 'swal2-confirm' }
+        confirmButtonText: 'Accept',
+        confirmButtonColor: '#22c55e'
       });
 
       window.location.href = '/productos';
@@ -332,12 +358,11 @@ function initProductFormSubmit() {
       Swal.close();
 
       await Swal.fire({
-        title: 'Error al actualizar',
-        html: `<p>${error.message || 'Intenta nuevamente'}</p>`,
+        title: 'Update error',
+        html: `<p>${error.message || 'Please try again'}</p>`,
         icon: 'error',
-        confirmButtonText: 'Entendido',
-        confirmButtonColor: '#dc2626',
-        customClass: { confirmButton: 'swal2-confirm' }
+        confirmButtonText: 'Understood',
+        confirmButtonColor: '#dc2626'
       });
     } finally {
       isLoading = false;
@@ -348,7 +373,7 @@ function initProductFormSubmit() {
 }
 
 /* ========================================================
-   BOTON VOLVER AL LISTADO
+   BACK BUTTON
    ======================================================== */
 function initBackButton() {
   const backBtn = document.getElementById('backToListBtn');
@@ -361,56 +386,7 @@ function initBackButton() {
 }
 
 /* ========================================================
-   FUNCION PARA SWEET ALERT DE VALIDACION
-   ======================================================== */
-function showSweetAlert(title, message, type = 'info', timer = null) {
-  const config = {
-    title: title,
-    text: message,
-    icon: type,
-    confirmButtonText: 'Aceptar',
-    confirmButtonColor: '#456da2',
-    customClass: { confirmButton: 'swal2-confirm' }
-  };
-
-  if (timer) {
-    config.timer = timer;
-    config.showConfirmButton = false;
-  }
-
-  Swal.fire(config);
-}
-
-/* ========================================================
-   TOAST NOTIFICATION
-   ======================================================== */
-function showToast(message, type = 'info') {
-  const Toast = Swal.mixin({
-    toast: true,
-    position: 'top-end',
-    showConfirmButton: false,
-    timer: 2500,
-    timerProgressBar: true,
-    didOpen: (toast) => {
-      toast.addEventListener('mouseenter', Swal.stopTimer);
-      toast.addEventListener('mouseleave', Swal.resumeTimer);
-    },
-    customClass: {
-      popup: 'swal2-popup',
-      timerProgressBar: 'swal2-timer-progress-bar'
-    }
-  });
-
-  let icon = 'info';
-  if (type === 'success') icon = 'success';
-  if (type === 'error') icon = 'error';
-  if (type === 'warning') icon = 'warning';
-
-  Toast.fire({ icon: icon, title: message });
-}
-
-/* ========================================================
-   FORMATEA MONEDA
+   FORMAT CURRENCY
    ======================================================== */
 function formatCurrency(value) {
   return new Intl.NumberFormat('es-MX', {
@@ -420,9 +396,6 @@ function formatCurrency(value) {
   }).format(value);
 }
 
-/* ========================================================
-   LIMPIEZA DEL CONTROLADOR
-   ======================================================== */
 export function cleanupUpdateProduct() {
-  // Limpieza si es necesaria
+  // Cleanup if needed
 }
