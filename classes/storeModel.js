@@ -1,21 +1,21 @@
 /* ========================================
-   STORE MODEL - Estructura de datos de la tienda/negocio
-   Cada administrador puede tener UNA sola tienda
+   STORE MODEL - Store/Business data structure
+   Each administrator can have ONE store
    ======================================== */
 
 export class Store {
     constructor(data = {}) {
-        // Identificacion
+        // Identification
         this.id = data.id || null;
-        
-        // ========== PASO 1: Datos del negocio ==========
-        this.name = data.name || '';                       // Nombre del negocio
+
+        // ========== STEP 1: Business Data ==========
+        this.name = data.name || '';                       // Business name
         this.rfc = data.rfc || '';                         // RFC
-        this.phone = data.phone || '';                     // Telefono
-        this.billingEmail = data.billingEmail || '';       // Correo para facturacion
-        this.logo = data.logo || '';                       // Logo en base64
-        
-        // ========== PASO 2: Ubicacion ==========
+        this.phone = data.phone || '';                     // Phone
+        this.billingEmail = data.billingEmail || '';       // Billing email
+        this.logo = data.logo || '';                       // Logo in base64
+
+        // ========== STEP 2: Location ==========
         this.address = {
             street: data.address?.street || '',
             neighborhood: data.address?.neighborhood || '',
@@ -24,22 +24,22 @@ export class Store {
             state: data.address?.state || '',
             references: data.address?.references || ''
         };
-        
-        // ========== Estado ==========
+
+        // ========== Status ==========
         this.active = data.active !== undefined ? data.active : true;
         this.profileComplete = data.profileComplete !== undefined ? data.profileComplete : false;
-        
+
         // ========== Metadata ==========
         this.createdAt = data.createdAt || new Date().toISOString();
         this.updatedAt = data.updatedAt || null;
-        this.adminId = data.adminId || null;               // ID del administrador dueno
-        this.createdBy = data.createdBy || null;           // Nombre del admin que creo
-        this.createdByEmail = data.createdByEmail || null; // Email del admin que creo
+        this.adminId = data.adminId || null;               // Administrator ID (owner)
+        this.createdBy = data.createdBy || null;           // Admin name who created
+        this.createdByEmail = data.createdByEmail || null; // Admin email who created
     }
-    
+
     // ========== GETTERS ==========
-    
-    // Direccion formateada
+
+    // Formatted address
     get formattedAddress() {
         const addr = this.address;
         const parts = [
@@ -48,11 +48,11 @@ export class Store {
             `${addr.city}, ${addr.state}`,
             addr.postalCode
         ].filter(p => p && p.trim() !== '');
-        
+
         return parts.join(', ');
     }
-    
-    // Direccion completa para facturacion
+
+    // Complete billing address
     get billingAddress() {
         const addr = this.address;
         return {
@@ -64,18 +64,18 @@ export class Store {
             references: addr.references
         };
     }
-    
-    // RFC formateado (mayusculas, sin espacios)
+
+    // Formatted RFC (uppercase, no spaces)
     get cleanRfc() {
         return this.rfc?.toUpperCase().replace(/\s/g, '') || '';
     }
-    
-    // Tiene logo?
+
+    // Has logo?
     get hasLogo() {
         return !!this.logo;
     }
-    
-    // Tiene direccion completa?
+
+    // Has complete address?
     get hasFullAddress() {
         const addr = this.address;
         return !!(
@@ -84,13 +84,13 @@ export class Store {
             addr.state
         );
     }
-    
-    // Perfil completado?
+
+    // Profile completed?
     get isProfileComplete() {
         return !!(this.name && this.rfc && this.phone && this.hasFullAddress);
     }
-    
-    // Fecha de creacion formateada
+
+    // Formatted creation date
     get formattedCreatedAt() {
         if (!this.createdAt) return '--/--/----';
         const date = new Date(this.createdAt);
@@ -100,8 +100,8 @@ export class Store {
             day: 'numeric'
         });
     }
-    
-    // Datos resumidos para UI
+
+    // Summary data for UI
     get summary() {
         return {
             id: this.id,
@@ -116,8 +116,8 @@ export class Store {
             adminId: this.adminId
         };
     }
-    
-    // Datos para facturacion
+
+    // Billing data
     get billingData() {
         return {
             name: this.name,
@@ -126,17 +126,17 @@ export class Store {
             address: this.billingAddress
         };
     }
-    
-    // ========== METODOS ==========
-    
-    // Marcar perfil como completo
+
+    // ========== METHODS ==========
+
+    // Mark profile as complete
     completeProfile() {
         this.profileComplete = true;
         this.updatedAt = new Date().toISOString();
         return this;
     }
-    
-    // Actualizar direccion
+
+    // Update address
     updateAddress(addressData) {
         this.address = {
             ...this.address,
@@ -145,37 +145,37 @@ export class Store {
         this.updatedAt = new Date().toISOString();
         return this;
     }
-    
-    // Actualizar logo
+
+    // Update logo
     updateLogo(logoBase64) {
         this.logo = logoBase64;
         this.updatedAt = new Date().toISOString();
         return this;
     }
-    
-    // Validar datos para registro
+
+    // Validate data for registration
     validateForRegistration() {
         const errors = [];
-        
+
         if (!this.name || this.name.trim().length < 3) {
-            errors.push('El nombre del negocio debe tener al menos 3 caracteres');
+            errors.push('Business name must be at least 3 characters long');
         }
         if (!this.rfc || this.rfc.trim().length < 12) {
-            errors.push('RFC invalido (minimo 12 caracteres)');
+            errors.push('Invalid RFC (minimum 12 characters)');
         }
         if (!this.phone || this.phone.trim().length < 10) {
-            errors.push('Telefono invalido (minimo 10 digitos)');
+            errors.push('Invalid phone (minimum 10 digits)');
         }
         if (!this.address.street) {
-            errors.push('La calle es requerida');
+            errors.push('Street is required');
         }
         if (!this.address.city) {
-            errors.push('La ciudad es requerida');
+            errors.push('City is required');
         }
         if (!this.address.state) {
-            errors.push('El estado es requerido');
+            errors.push('State is required');
         }
-        
+
         return {
             valid: errors.length === 0,
             errors

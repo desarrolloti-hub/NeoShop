@@ -1,6 +1,6 @@
 /* ========================================
-   STORE REPOSITORY - Operaciones CRUD con Firebase
-   COLECCIONES DINÁMICAS: stores + NombreTienda
+   STORE REPOSITORY - CRUD Operations with Firebase
+   DYNAMIC COLLECTIONS: stores + StoreName
    ======================================== */
 
 import { db } from '/config/firebaseConfig.js';
@@ -10,38 +10,34 @@ import {
 } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 
 /**
- * Obtiene el nombre de la colección de stores para una tienda
- * @param {string} storeName - Nombre de la tienda (ej: "Mi Tienda")
- * @returns {string} - Nombre de la colección (ej: "storesMiTienda")
+ * Gets the collection name for stores
+ * @param {string} storeName - Store name (e.g., "Mi Tienda")
+ * @returns {string} - Collection name (e.g., "storesMiTienda")
  */
 function getStoreCollectionName(storeName) {
-    // 🔥 VALIDACIÓN: Si storeName es undefined o null, usar "stores" por defecto
     if (!storeName) {
-        console.warn('⚠️ getStoreCollectionName: storeName es null o undefined, usando "stores" por defecto');
+        console.warn('⚠️ getStoreCollectionName: storeName is null or undefined, using "stores" as default');
         return 'stores';
     }
 
-    // Convertir a string por seguridad
     const storeNameStr = String(storeName);
 
-    // Convertir a camelCase: "Mi Tienda" -> "storesMiTienda"
     const camelCaseName = storeNameStr
         .toLowerCase()
-        .replace(/[^a-zA-Z0-9]/g, ' ') // Reemplazar caracteres especiales con espacios
+        .replace(/[^a-zA-Z0-9]/g, ' ')
         .trim()
         .split(' ')
         .filter(word => word.length > 0)
         .map((word, index) => {
             if (index === 0) {
-                return word; // Primera palabra en minúscula
+                return word;
             }
-            return word.charAt(0).toUpperCase() + word.slice(1); // Resto con mayúscula inicial
+            return word.charAt(0).toUpperCase() + word.slice(1);
         })
         .join('');
 
-    // Si después de la limpieza queda vacío, usar "stores" por defecto
     if (!camelCaseName) {
-        console.warn('⚠️ storeName quedó vacío después de limpieza, usando "stores" por defecto');
+        console.warn('⚠️ storeName became empty after cleanup, using "stores" as default');
         return 'stores';
     }
 
@@ -50,7 +46,6 @@ function getStoreCollectionName(storeName) {
 
 export const StoreRepository = {
     async save(storeData) {
-        // El ID ya viene generado desde el service (camelCase)
         const plainData = {
             id: storeData.id,
             name: storeData.name || '',
@@ -82,21 +77,13 @@ export const StoreRepository = {
     },
 
     async getById(storeId, storeName = null) {
-        // Si no se proporciona storeName, buscar en la colección "stores" por defecto
         const collectionName = storeName ? getStoreCollectionName(storeName) : 'stores';
         const storeRef = doc(db, collectionName, storeId);
         const docSnap = await getDoc(storeRef);
         return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
     },
 
-    /**
-     * Obtiene una tienda por adminId
-     * @param {string} adminId - ID del administrador
-     * @param {string} storeName - Nombre de la tienda (opcional, para buscar en colección específica)
-     * @returns {Promise<Object|null>} Tienda encontrada o null
-     */
     async getByAdminId(adminId, storeName = null) {
-        // 🔥 Si no se proporciona storeName, buscar en la colección "stores" por defecto
         const collectionName = storeName ? getStoreCollectionName(storeName) : 'stores';
 
         console.log('🔍 StoreRepository.getByAdminId - collectionName:', collectionName);
@@ -122,9 +109,8 @@ export const StoreRepository = {
         return querySnapshot.empty ? null : { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
     },
 
-    async getAll(filters = {}, limitCount = 100) {
-        // Para getAll, usamos "stores" por defecto (colección principal)
-        const collectionName = 'stores';
+    async getAll(storeName = null, filters = {}, limitCount = 100) {
+        const collectionName = storeName ? getStoreCollectionName(storeName) : 'stores';
         let constraints = [];
 
         if (filters.active !== undefined) {

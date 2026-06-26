@@ -1,7 +1,7 @@
 /* ========================================
-   STORE SERVICE - Logica de negocio para tiendas
-   Validacion: un admin solo puede tener UNA tienda
-   AHORA CON COLECCIONES DINÁMICAS: stores + NombreTienda
+   STORE SERVICE - Business logic for stores
+   Validation: one admin can only have ONE store
+   NOW WITH DYNAMIC COLLECTIONS: stores + StoreName
    ======================================== */
 
 import { Store } from '/classes/storeModel.js';
@@ -10,40 +10,37 @@ import { CacheService, STORES } from '/services/cacheService.js';
 import { AdminService } from '/services/adminService.js';
 
 /**
- * Convierte un string a camelCase con primera letra mayuscula
- * Ejemplo: "mi tienda orient" -> "MiTiendaOrient"
- * Ejemplo: "ORIENT" -> "Orient"
+ * Converts a string to camelCase with first letter capitalized
+ * Example: "mi tienda orient" -> "MiTiendaOrient"
+ * Example: "ORIENT" -> "Orient"
  */
 function toCapitalizedCamelCase(str) {
-    // Convertir a camelCase (primera letra de cada palabra en mayuscula)
+    if (!str) return 'Store';
+
     const camelCase = str
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, ' ')
         .trim()
         .split(' ')
+        .filter(word => word.length > 0)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join('');
 
-    return camelCase;
+    return camelCase || 'Store';
 }
 
 /**
- * Genera un ID único basado en el nombre de la tienda
- * Formato: NombreEnCamelCase (ej: "OrienTienda", "Bimbo")
- * NOTA: Ya no se antepone "store" porque la colección ya tiene "stores"
+ * Generates a unique ID based on store name
+ * Format: CamelCaseName (e.g., "OrienTienda", "Bimbo")
  */
 async function generateStoreId(baseName, repository) {
-    // Convertir el nombre a camelCase con primera letra mayuscula
     const capitalizedName = toCapitalizedCamelCase(baseName);
     let finalId = capitalizedName;
     let counter = 1;
 
-    // Verificar si el ID ya existe en la colección específica
-    // Nota: Necesitamos el nombre de la tienda para saber qué colección consultar
     let exists = true;
     while (exists) {
         try {
-            // Intentamos obtener por ID en la colección correspondiente
             const existing = await repository.getById(finalId, baseName);
             if (!existing) {
                 exists = false;
@@ -52,7 +49,6 @@ async function generateStoreId(baseName, repository) {
                 counter++;
             }
         } catch (error) {
-            // Si hay error, asumimos que no existe
             exists = false;
         }
     }
@@ -62,59 +58,58 @@ async function generateStoreId(baseName, repository) {
 
 export const StoreService = {
     /**
-     * Crear nueva tienda para un administrador
-     * La colección será: stores + NombreTienda (ej: "storesOrienTienda")
-     * El ID del documento será: NombreEnCamelCase (ej: "OrienTienda")
+     * Create new store for an administrator
+     * Collection will be: stores + StoreName (e.g., "storesOrienTienda")
+     * Document ID will be: CamelCaseName (e.g., "OrienTienda")
      */
     async create(storeData, adminId = null, adminData = null) {
-        // ========== VALIDACIONES ==========
+        // ========== VALIDATIONS ==========
         if (!storeData.name || storeData.name.trim().length < 3) {
-            throw new Error('El nombre del negocio debe tener al menos 3 caracteres');
+            throw new Error('Business name must be at least 3 characters long');
         }
 
         if (!storeData.rfc || storeData.rfc.trim().length < 12) {
-            throw new Error('El RFC debe tener al menos 12 caracteres');
+            throw new Error('RFC must be at least 12 characters long');
         }
 
         if (!storeData.phone || storeData.phone.trim().length < 10) {
-            throw new Error('El telefono debe tener al menos 10 digitos');
+            throw new Error('Phone must have at least 10 digits');
         }
 
         if (!storeData.address?.street) {
-            throw new Error('La calle es requerida');
+            throw new Error('Street is required');
         }
 
         if (!storeData.address?.city) {
-            throw new Error('La ciudad es requerida');
+            throw new Error('City is required');
         }
 
         if (!storeData.address?.state) {
-            throw new Error('El estado es requerido');
+            throw new Error('State is required');
         }
 
         const cleanName = storeData.name.trim();
 
-        // Verificar si ya existe una tienda con ese RFC
-        // IMPORTANTE: Necesitamos el nombre para la colección
+        // Check if a store with this RFC already exists
         const existingByRfc = await StoreRepository.getByRfc(storeData.rfc, cleanName);
         if (existingByRfc) {
-            throw new Error(`Ya existe una tienda con el RFC "${storeData.rfc}"`);
+            throw new Error(`A store with RFC "${storeData.rfc}" already exists`);
         }
 
-        // Verificar si el admin ya tiene una tienda
+        // Check if admin already has a store
         if (adminId) {
             const existingByAdmin = await StoreRepository.getByAdminId(adminId, cleanName);
             if (existingByAdmin) {
-                throw new Error('Este administrador ya tiene una tienda registrada');
+                throw new Error('This administrator already has a registered store');
             }
         }
 
-        // ========== GENERAR ID BASADO EN EL NOMBRE ==========
+        // ========== GENERATE ID BASED ON NAME ==========
         const storeId = await generateStoreId(cleanName, StoreRepository);
 
-        // ========== CREAR MODELO ==========
+        // ========== CREATE MODEL ==========
         const store = new Store({
-            id: storeId,  // ← El ID será el nombre en camelCase (ej: "OrienTienda")
+            id: storeId,
             name: cleanName,
             rfc: storeData.rfc.trim().toUpperCase(),
             phone: storeData.phone.trim(),
@@ -131,33 +126,33 @@ export const StoreService = {
             profileComplete: true,
             active: true,
             adminId: adminId,
-            createdBy: adminData?.nombreCompleto || adminData?.nombre || null,
+            // ✅ UPDATED: Using Admin's new field names
+            createdBy: adminData?.fullName || adminData?.name || null,
             createdByEmail: adminData?.email || null
         });
 
-        // ========== GUARDAR EN FIRESTORE (Colección dinámica) ==========
+        // ========== SAVE TO FIRESTORE (Dynamic collection) ==========
         const result = await StoreRepository.save(store);
 
-        // Limpiar cache
+        // Clear cache
         await CacheService.clearCache(STORES.STORES || 'stores');
 
         return new Store(result);
     },
 
     /**
-     * Obtener tienda por ID
-     * @param {string} storeId - ID de la tienda
-     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
-     * @param {boolean} forceRefresh - Forzar actualización desde BD
+     * Get store by ID
+     * @param {string} storeId - Store ID
+     * @param {string} storeName - Store name (required for collection)
+     * @param {boolean} forceRefresh - Force refresh from database
      */
     async getById(storeId, storeName, forceRefresh = false) {
         if (!storeName) {
-            // Intentar obtener de la sesión
             const session = AdminService.getSession();
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para obtener los datos');
+                throw new Error('Store name is required to get store data');
             }
         }
 
@@ -179,19 +174,18 @@ export const StoreService = {
     },
 
     /**
-     * Obtener tienda por ID de administrador
-     * @param {string} adminId - ID del administrador
-     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
-     * @param {boolean} forceRefresh - Forzar actualización desde BD
+     * Get store by administrator ID
+     * @param {string} adminId - Administrator ID
+     * @param {string} storeName - Store name (required for collection)
+     * @param {boolean} forceRefresh - Force refresh from database
      */
     async getByAdminId(adminId, storeName = null, forceRefresh = false) {
-        // Si no se proporciona storeName, intentar obtener de la sesión
         if (!storeName) {
             const session = AdminService.getSession();
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para obtener los datos');
+                throw new Error('Store name is required to get store data');
             }
         }
 
@@ -213,19 +207,18 @@ export const StoreService = {
     },
 
     /**
-     * Obtener todas las tiendas de una colección específica
-     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
-     * @param {object} filters - Filtros a aplicar
-     * @param {boolean} forceRefresh - Forzar actualización desde BD
+     * Get all stores
+     * @param {string} storeName - Store name (required for collection)
+     * @param {object} filters - Filters to apply
+     * @param {boolean} forceRefresh - Force refresh from database
      */
     async getAll(storeName, filters = {}, forceRefresh = false) {
         if (!storeName) {
-            // Intentar obtener de la sesión
             const session = AdminService.getSession();
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para obtener los datos');
+                throw new Error('Store name is required to get store data');
             }
         }
 
@@ -247,39 +240,38 @@ export const StoreService = {
     },
 
     /**
-     * Actualizar tienda
-     * @param {string} storeId - ID de la tienda
-     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
-     * @param {object} updateData - Datos a actualizar
+     * Update store
+     * @param {string} storeId - Store ID
+     * @param {string} storeName - Store name (required for collection)
+     * @param {object} updateData - Data to update
      */
     async update(storeId, storeName, updateData) {
         if (!storeName) {
-            // Intentar obtener de la sesión
             const session = AdminService.getSession();
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para actualizar los datos');
+                throw new Error('Store name is required to update store data');
             }
         }
 
         const currentStore = await this.getById(storeId, storeName, true);
 
         if (!currentStore) {
-            throw new Error('Tienda no encontrada');
+            throw new Error('Store not found');
         }
 
-        // Validaciones
+        // Validations
         if (updateData.name && updateData.name.length < 3) {
-            throw new Error('El nombre debe tener al menos 3 caracteres');
+            throw new Error('Name must be at least 3 characters long');
         }
 
         if (updateData.rfc && updateData.rfc.length < 12) {
-            throw new Error('RFC invalido');
+            throw new Error('Invalid RFC');
         }
 
         if (updateData.phone && updateData.phone.length < 10) {
-            throw new Error('El telefono debe tener al menos 10 digitos');
+            throw new Error('Phone must have at least 10 digits');
         }
 
         const updated = await StoreRepository.update(storeId, storeName, updateData);
@@ -290,10 +282,10 @@ export const StoreService = {
     },
 
     /**
-     * Actualizar direccion
-     * @param {string} storeId - ID de la tienda
-     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
-     * @param {object} addressData - Datos de la dirección
+     * Update address
+     * @param {string} storeId - Store ID
+     * @param {string} storeName - Store name (required for collection)
+     * @param {object} addressData - Address data
      */
     async updateAddress(storeId, storeName, addressData) {
         if (!storeName) {
@@ -301,14 +293,14 @@ export const StoreService = {
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para actualizar la dirección');
+                throw new Error('Store name is required to update address');
             }
         }
 
         const currentStore = await this.getById(storeId, storeName, true);
 
         if (!currentStore) {
-            throw new Error('Tienda no encontrada');
+            throw new Error('Store not found');
         }
 
         const updated = await StoreRepository.updateAddress(storeId, storeName, addressData);
@@ -319,10 +311,10 @@ export const StoreService = {
     },
 
     /**
-     * Actualizar logo
-     * @param {string} storeId - ID de la tienda
-     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
-     * @param {string} logoBase64 - Logo en base64
+     * Update logo
+     * @param {string} storeId - Store ID
+     * @param {string} storeName - Store name (required for collection)
+     * @param {string} logoBase64 - Logo in base64
      */
     async updateLogo(storeId, storeName, logoBase64) {
         if (!storeName) {
@@ -330,14 +322,14 @@ export const StoreService = {
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para actualizar el logo');
+                throw new Error('Store name is required to update logo');
             }
         }
 
         const currentStore = await this.getById(storeId, storeName, true);
 
         if (!currentStore) {
-            throw new Error('Tienda no encontrada');
+            throw new Error('Store not found');
         }
 
         const updated = await StoreRepository.update(storeId, storeName, { logo: logoBase64 });
@@ -348,10 +340,10 @@ export const StoreService = {
     },
 
     /**
-     * Cambiar estado de la tienda
-     * @param {string} storeId - ID de la tienda
-     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
-     * @param {boolean} active - Estado activo/inactivo
+     * Toggle store status
+     * @param {string} storeId - Store ID
+     * @param {string} storeName - Store name (required for collection)
+     * @param {boolean} active - Active/inactive status
      */
     async toggleStatus(storeId, storeName, active) {
         if (!storeName) {
@@ -359,7 +351,7 @@ export const StoreService = {
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para cambiar el estado');
+                throw new Error('Store name is required to change status');
             }
         }
 
@@ -371,9 +363,9 @@ export const StoreService = {
     },
 
     /**
-     * Verificar si un admin ya tiene tienda
-     * @param {string} adminId - ID del administrador
-     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
+     * Check if admin already has a store
+     * @param {string} adminId - Administrator ID
+     * @param {string} storeName - Store name (required for collection)
      */
     async adminHasStore(adminId, storeName = null) {
         if (!storeName) {
@@ -381,7 +373,7 @@ export const StoreService = {
             storeName = session?.storeName;
 
             if (!storeName) {
-                return false; // Si no hay storeName, asumimos que no tiene tienda
+                return false;
             }
         }
 
