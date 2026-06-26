@@ -1,204 +1,260 @@
 /* FILE: supplierForm.css */
-/* Supplier form styles - matching createAccount.css design system */
+/* Supplier form styles - matching createPartner design system */
 
-.supplier-card {
+
+.supplier-create-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.supplier-create-form-container {
     background: var(--bg-white);
-    max-width: 500px;
-    width: 90%;
-    border-radius: var(--border-radius-md);
-    padding: 2.5rem var(--spacing-xl);
+    border-radius: var(--border-radius-xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+/* ======================================================== */
+/* HEADER - Mismo estilo que createPartner */
+/* ======================================================== */
+
+.supplier-create-header {
+    background: var(--color-primary);
+    color: white;
+    padding: var(--spacing-lg);
+}
+
+.supplier-create-header h2 {
+    color: white;
+    margin: 0;
+    font-size: var(--font-size-xl);
+}
+
+.supplier-create-header h2 i {
+    margin-right: var(--spacing-sm);
+}
+
+.supplier-create-header p {
+    color: rgba(255, 255, 255, 0.8);
+    margin: var(--spacing-xs) 0 0;
+    font-size: var(--font-size-sm);
+}
+
+/* ======================================================== */
+/* BODY - Mismo estilo que createPartner */
+/* ======================================================== */
+
+.supplier-create-body {
+    padding: var(--spacing-xl);
+}
+
+/* ======================================================== */
+/* FOTO UPLOAD - Mismo estilo que createPartner */
+/* ======================================================== */
+
+.create-photo-section {
+    margin-bottom: var(--spacing-lg);
     text-align: center;
-    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
-    margin: 30px auto;
 }
 
-/* Avatar / image wrapper (reusing same style as createAccount) */
-.avatar-wrapper {
-    position: relative;
-    width: 110px;
-    height: 110px;
-    margin: 0 auto var(--spacing-sm);
-    cursor: pointer;
-}
-
-.avatar-circle {
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
+.create-photo-preview {
+    width: 120px;
+    height: 120px;
+    border-radius: var(--border-radius-xl);
+    background: var(--bg-gray);
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 0 auto var(--spacing-md);
     overflow: hidden;
-    border: 3px solid var(--color-primary);
-    transition: var(--transition-fast);
-    background: var(--bg-gray);
+    border: 2px dashed var(--border-light);
+    cursor: pointer;
+    transition: all var(--transition-fast);
 }
 
-.avatar-circle i {
-    font-size: var(--font-size-3xl);
-    color: var(--color-primary);
+.create-photo-preview:hover {
+    border-color: var(--color-primary);
+    background: var(--bg-blue-light);
 }
 
-.avatar-circle img {
+.create-photo-preview img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: none;
-    border-radius: 50%;
 }
 
-.avatar-overlay {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: rgba(69, 109, 162, 0.5);
+.create-photo-preview i {
+    font-size: 2rem;
+    color: var(--text-muted);
+}
+
+.create-photo-input {
+    display: none;
+}
+
+.btn-upload {
+    font-size: 0.8rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.photo-help {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin: var(--spacing-xs) 0;
+}
+
+.photo-url-input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-sm);
+    margin-top: var(--spacing-xs);
+}
+
+.photo-url-input:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(69, 109, 162, 0.2);
+}
+
+/* ======================================================== */
+/* FORM - Mismo estilo que createPartner */
+/* ======================================================== */
+
+.create-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.create-form-row .full-width {
+    grid-column: span 2;
+}
+
+.form-group {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-primary-dark);
+    margin-bottom: var(--spacing-xs);
+}
+
+.form-group label i {
+    margin-right: var(--spacing-xs);
+    color: var(--color-primary);
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-sm);
+    font-family: var(--font-family);
+    background: var(--bg-white);
+    transition: all var(--transition-fast);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(69, 109, 162, 0.2);
+}
+
+/* ======================================================== */
+/* ACCIONES - Mismo estilo que createPartner */
+/* ======================================================== */
+
+.create-form-actions {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: var(--transition-fast);
+    gap: var(--spacing-md);
+    justify-content: flex-end;
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--border-light);
 }
 
-.avatar-wrapper:hover .avatar-overlay {
-    opacity: 1;
-}
-
-.avatar-overlay i {
-    color: white;
-    font-size: var(--font-size-xl);
-}
-
-#supplierImageInput {
-    display: none;
-}
-
-/* Remove image button */
-#removeSupplierImageBtn {
-    display: none;
-    margin: var(--spacing-xs) auto 0;
-    padding: 6px 16px;
-    border: none;
+.create-form-actions .btn-primary,
+.create-form-actions .btn-secondary {
+    padding: 12px 28px;
     border-radius: var(--border-radius-md);
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-    cursor: pointer;
+    font-weight: 600;
     font-size: var(--font-size-sm);
-    font-weight: 500;
-    transition: var(--transition-normal);
-}
-
-#removeSupplierImageBtn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(220, 38, 38, 0.4);
-}
-
-.supplier-card h2 {
-    color: var(--color-primary);
-    margin: var(--spacing-sm) 0 var(--spacing-lg);
-    font-size: var(--font-size-xl);
-    font-weight: 700;
-}
-
-.supplier-links {
-    margin-top: var(--spacing-lg);
-    font-size: var(--font-size-sm);
-    color: #6b7280;
-}
-
-.supplier-links span {
-    color: var(--color-primary);
     cursor: pointer;
-    font-weight: bold;
-}
-
-.supplier-links span:hover {
-    text-decoration: underline;
-}
-
-a {
-    text-decoration: none;
-    color: var(--color-primary);
-}
-
-/* Form inputs spacing */
-.supplier-card input {
-    margin-bottom: 15px;
-    width: 100%;
-}
-
-/* Button extends from global buttons.css but ensure full width on small */
-.supplier-card .btn-primary {
-    width: 100%;
-    justify-content: center;
-}
-
-/* Animation same as createAccount */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideOutRight {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-}
-
-/* Responsive */
-@media (max-width: 550px) {
-    .supplier-card {
-        padding: 2rem var(--spacing-lg);
-        width: 95%;
-    }
-}
-/* Asegurar que la preview se vea bien */
-.avatar-circle {
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
-    display: flex;
+    transition: all var(--transition-fast);
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    border: 3px solid var(--color-primary);
-    transition: var(--transition-fast);
+    gap: var(--spacing-sm);
+    border: none;
+}
+
+.create-form-actions .btn-primary {
+    background: var(--color-primary);
+    color: white;
+}
+
+.create-form-actions .btn-primary:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-primary);
+}
+
+.create-form-actions .btn-secondary {
+    background: var(--bg-white);
+    color: var(--color-primary);
+    border: 1px solid var(--border-light);
+}
+
+.create-form-actions .btn-secondary:hover {
+    border-color: var(--color-primary);
     background: var(--bg-gray);
-    position: relative;
+    transform: translateY(-2px);
 }
 
-.avatar-circle img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
+/* ======================================================== */
+/* RESPONSIVE */
+/* ======================================================== */
 
-#supplierAvatarPreview {
-    display: none;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
+@media (max-width: 600px) {
+    .credContainer {
+        padding: var(--spacing-md);
+    }
+
+    .supplier-create-header {
+        padding: var(--spacing-lg);
+    }
+
+    .supplier-create-header h2 {
+        font-size: var(--font-size-lg);
+    }
+
+    .supplier-create-body {
+        padding: var(--spacing-lg);
+    }
+
+    .create-form-row {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+
+    .create-form-row .full-width {
+        grid-column: span 1;
+    }
+
+    .create-form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .create-form-actions button {
+        width: 100%;
+        justify-content: center;
+    }
 }

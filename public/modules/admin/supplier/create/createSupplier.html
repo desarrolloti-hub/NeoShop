@@ -1,40 +1,84 @@
-<div class="auth-container">
-    <div class="supplier-card">
-        <!-- ✅ Contenedor para imagen -->
-        <div class="avatar-wrapper" id="supplierImageWrapper" style="cursor: pointer;">
-            <div class="avatar-circle" id="supplierAvatarCircle">
-                <i class="fas fa-store" id="supplierAvatarIcon"></i>
-                <img id="supplierAvatarPreview" alt="Imagen del proveedor" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+<div class="credContainer">
+    <div class="supplier-create-container">
+        <div class="supplier-create-form-container">
+            <!-- Header - Mismo estilo que createPartner -->
+            <div class="supplier-create-header">
+                <h2>
+                    <i class="fas fa-truck"></i>
+                    Nuevo Proveedor
+                </h2>
+                <p>Registra un nuevo proveedor para tu negocio</p>
             </div>
-            <div class="avatar-overlay">
-                <i class="fas fa-camera"></i>
+
+            <div class="supplier-create-body">
+                <form id="supplierForm">
+                    <!-- Foto del proveedor -->
+                    <div class="create-photo-section">
+                        <div class="create-photo-preview" id="supplierPhotoPreview">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <input type="file" id="supplierImageInput" class="create-photo-input"
+                            accept="image/jpeg,image/png,image/jpg,image/webp">
+                        <button type="button" id="uploadPhotoBtn" class="btn-secondary btn-upload">
+                            <i class="fas fa-upload"></i> Subir foto
+                        </button>
+                        <p class="photo-help">Opcional. Puedes subir una foto o usar una URL</p>
+                        <input type="text" id="photoUrl" placeholder="O pega una URL de imagen aquí"
+                            class="photo-url-input">
+                    </div>
+
+                    <!-- Datos del proveedor -->
+                    <div class="create-form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-user"></i> Nombre *</label>
+                            <input type="text" id="name" required placeholder="Nombre del responsable">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-building"></i> Razón social *</label>
+                            <input type="text" id="businessName" required placeholder="Denominación o razón social">
+                        </div>
+                    </div>
+
+                    <div class="create-form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-id-card"></i> RFC *</label>
+                            <input type="text" id="rfc" required placeholder="XAXX010101XXX" maxlength="13">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-phone"></i> Teléfono *</label>
+                            <input type="tel" id="phone" required placeholder="55 1234 5678">
+                        </div>
+                    </div>
+
+                    <div class="create-form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-phone"></i> Teléfono alterno</label>
+                            <input type="tel" id="alternatePhone" placeholder="55 8765 4321">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-envelope"></i> Correo electrónico *</label>
+                            <input type="email" id="email" required placeholder="proveedor@mail.com">
+                        </div>
+                    </div>
+
+                    <div class="create-form-row">
+                        <div class="form-group full-width">
+                            <label><i class="fas fa-map-marker-alt"></i> Dirección fiscal *</label>
+                            <input type="text" id="fiscalAddress" required placeholder="Calle, número, colonia, ciudad">
+                        </div>
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="create-form-actions">
+                        <button type="button" id="cancelCreateBtn" class="btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button type="submit" id="submitCreateBtn" class="btn-primary">
+                            <i class="fas fa-save"></i> Crear proveedor
+                        </button>
+                    </div>
+                </form>
             </div>
-        </div>
-
-        <input type="file" id="supplierImageInput" accept="image/*" style="display: none;">
-        
-        <button type="button" id="removeSupplierImageBtn" style="display: none; margin-top: 10px;">
-            <i class="fas fa-trash"></i> Eliminar imagen
-        </button>
-
-        <h2>Registrar proveedor</h2>
-
-        <form id="supplierForm">
-            <input type="text" name="nombre" placeholder="Nombre" required>
-            <input type="text" name="razonSocial" placeholder="Denominación o razón social" required>
-            <input type="tel" name="telefono" placeholder="Teléfono" required>
-            <input type="tel" name="telefonoAlterno" placeholder="Teléfono alterno">
-            <input type="text" name="direccionFiscal" placeholder="Dirección fiscal" required>
-            <input type="email" name="correo" placeholder="Correo electrónico" required>
-            <input type="text" name="rfc" placeholder="RFC" required>
-
-            <button type="submit" class="btn btn-primary">
-                Registrar proveedor <i class="fas fa-arrow-right"></i>
-            </button>
-        </form>
-
-        <div class="supplier-links">
-            <p>¿Ya tienes proveedores registrados? <span><a href="proveedores">Ver listado</a></span></p>
         </div>
     </div>
 </div>

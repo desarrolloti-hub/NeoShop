@@ -1,6 +1,6 @@
 /* ========================================
-   CREATE SUPPLIER CONTROLLER (CON SWEET ALERT)
-   COLECCIONES DINÁMICAS: suppliers + NombreTienda
+   CREATE SUPPLIER CONTROLLER (WITH SWEET ALERT)
+   DYNAMIC COLLECTIONS: suppliers + StoreName
    ======================================== */
 
 import { SupplierService } from '/services/supplierService.js';
@@ -10,12 +10,11 @@ let isLoading = false;
 let currentImageBase64 = '';
 
 export async function createSupplierController() {
-    console.log('📝 Supplier controller inicializado con SweetAlert');
+    console.log('📝 Supplier controller initialized with SweetAlert');
 
-    // Verificar que exista sesión y storeName
     const session = AdminService.getSession();
     if (!session?.storeName) {
-        console.error('❌ No se encontró la tienda asociada al administrador');
+        console.error('❌ No store found for administrator');
         await Swal.fire({
             title: 'Error de configuración',
             text: 'No se encontró la tienda asociada a tu cuenta. Contacta al administrador.',
@@ -23,7 +22,6 @@ export async function createSupplierController() {
             confirmButtonText: 'Entendido',
             confirmButtonColor: '#dc2626'
         });
-        // Redirigir al dashboard o a configuración de tienda
         if (typeof window.navigateTo === 'function') {
             window.navigateTo('/inicioAdmin');
         } else {
@@ -35,10 +33,11 @@ export async function createSupplierController() {
     animateSupplierCard();
     initSupplierImageUpload();
     initSupplierFormSubmit();
+    initCancelButton();
 }
 
 function animateSupplierCard() {
-    const card = document.querySelector('.supplier-card');
+    const card = document.querySelector('.supplier-create-form-container');
     if (!card) return;
 
     card.style.opacity = '0';
@@ -49,106 +48,132 @@ function animateSupplierCard() {
     card.style.transform = 'translateY(0)';
 }
 
+/* ========================================================
+   IMAGE UPLOAD - Mismo estilo que createPartner
+   ======================================================== */
 function initSupplierImageUpload() {
-    const avatarWrapper = document.getElementById('supplierImageWrapper');
+    const photoPreview = document.getElementById('supplierPhotoPreview');
     const fileInput = document.getElementById('supplierImageInput');
-    const avatarPreview = document.getElementById('supplierAvatarPreview');
-    const avatarIcon = document.getElementById('supplierAvatarIcon');
-    const removeBtn = document.getElementById('removeSupplierImageBtn');
+    const uploadBtn = document.getElementById('uploadPhotoBtn');
+    const photoUrlInput = document.getElementById('photoUrl');
 
-    if (!avatarWrapper || !fileInput) {
-        console.error('❌ Elementos de imagen no encontrados');
+    if (!photoPreview || !fileInput) {
+        console.error('❌ Image elements not found');
         return;
     }
 
-    avatarWrapper.addEventListener('click', (e) => {
+    // Click en preview para subir
+    photoPreview.addEventListener('click', (e) => {
         e.stopPropagation();
         fileInput.click();
     });
 
+    // Click en botón subir
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fileInput.click();
+        });
+    }
+
+    // Input file change
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
-
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
-            showSweetAlert('Formato no válido', 'Selecciona una imagen válida (JPG, PNG, GIF)', 'error');
+            showToast('Selecciona una imagen válida (JPG, PNG, GIF)', 'error');
             fileInput.value = '';
             return;
         }
 
         if (file.size > 2 * 1024 * 1024) {
-            showSweetAlert('Imagen muy pesada', 'La imagen no debe superar los 2MB', 'error');
+            showToast('La imagen no debe superar los 2MB', 'error');
             fileInput.value = '';
             return;
         }
 
-        showSweetAlert('Procesando imagen', 'Espera un momento...', 'info', 1500);
-
         const reader = new FileReader();
-
         reader.onload = (event) => {
-            const base64String = event.target.result;
-            currentImageBase64 = base64String;
-
-            if (avatarPreview) {
-                avatarPreview.src = base64String;
-                avatarPreview.style.display = 'block';
-                avatarPreview.style.width = '100%';
-                avatarPreview.style.height = '100%';
-                avatarPreview.style.objectFit = 'cover';
-                avatarPreview.style.borderRadius = '50%';
-            }
-
-            if (avatarIcon) {
-                avatarIcon.style.display = 'none';
-            }
-
-            if (removeBtn) {
-                removeBtn.style.display = 'inline-block';
-            }
-
-            console.log('✅ Imagen convertida a base64');
-            showSweetAlert('¡Imagen cargada!', 'La imagen se ha cargado correctamente', 'success', 1500);
+            currentImageBase64 = event.target.result;
+            showImagePreview(currentImageBase64);
+            showToast('Imagen cargada correctamente', 'success');
         };
-
-        reader.onerror = (error) => {
-            console.error('❌ Error al leer la imagen:', error);
-            showSweetAlert('Error', 'No se pudo procesar la imagen', 'error');
+        reader.onerror = () => {
+            showToast('Error al procesar la imagen', 'error');
             currentImageBase64 = '';
             fileInput.value = '';
         };
-
         reader.readAsDataURL(file);
     });
 
-    if (removeBtn) {
-        removeBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-
-            fileInput.value = '';
-
-            if (avatarPreview) {
-                avatarPreview.src = '';
-                avatarPreview.style.display = 'none';
+    // URL input para imagen externa
+    if (photoUrlInput) {
+        photoUrlInput.addEventListener('change', (e) => {
+            const url = e.target.value.trim();
+            if (url) {
+                // Validar que sea una URL de imagen
+                const img = new Image();
+                img.onload = () => {
+                    currentImageBase64 = url;
+                    showImagePreview(url);
+                    showToast('Imagen cargada desde URL', 'success');
+                };
+                img.onerror = () => {
+                    showToast('URL de imagen inválida', 'error');
+                    photoUrlInput.value = '';
+                };
+                img.src = url;
+            } else {
+                // Si el campo está vacío, limpiar la imagen
+                currentImageBase64 = '';
+                hideImagePreview();
             }
-
-            if (avatarIcon) {
-                avatarIcon.style.display = 'block';
-            }
-
-            removeBtn.style.display = 'none';
-            currentImageBase64 = '';
-
-            showSweetAlert('Imagen eliminada', 'La imagen ha sido removida', 'info', 1500);
         });
     }
 }
 
+function showImagePreview(imageSrc) {
+    const photoPreview = document.getElementById('supplierPhotoPreview');
+    if (!photoPreview) return;
+
+    // Eliminar icono existente
+    const icon = photoPreview.querySelector('i');
+    if (icon) icon.style.display = 'none';
+
+    // Crear o actualizar imagen
+    let img = photoPreview.querySelector('img');
+    if (!img) {
+        img = document.createElement('img');
+        photoPreview.appendChild(img);
+    }
+    img.src = imageSrc;
+    img.style.display = 'block';
+    photoPreview.style.borderStyle = 'solid';
+    photoPreview.style.borderColor = 'var(--color-primary)';
+}
+
+function hideImagePreview() {
+    const photoPreview = document.getElementById('supplierPhotoPreview');
+    if (!photoPreview) return;
+
+    const img = photoPreview.querySelector('img');
+    if (img) img.style.display = 'none';
+
+    const icon = photoPreview.querySelector('i');
+    if (icon) icon.style.display = 'block';
+
+    photoPreview.style.borderStyle = 'dashed';
+    photoPreview.style.borderColor = 'var(--border-light)';
+}
+
+/* ========================================================
+   FORM SUBMIT
+   ======================================================== */
 function initSupplierFormSubmit() {
     const form = document.getElementById('supplierForm');
     if (!form) {
-        console.error('❌ Formulario no encontrado');
+        console.error('❌ Form not found');
         return;
     }
 
@@ -157,77 +182,78 @@ function initSupplierFormSubmit() {
 
         if (isLoading) return;
 
-        // Obtener storeName de la sesión
         const session = AdminService.getSession();
         const storeName = session?.storeName;
         const adminId = session?.id;
 
         if (!storeName) {
-            showSweetAlert('Error de configuración', 'No se encontró la tienda asociada. Contacta al administrador.', 'error');
+            showToast('No se encontró la tienda asociada', 'error');
             return;
         }
 
-        const nombre = document.querySelector('input[name="nombre"]')?.value.trim();
-        const razonSocial = document.querySelector('input[name="razonSocial"]')?.value.trim();
-        const telefono = document.querySelector('input[name="telefono"]')?.value.trim();
-        const telefonoAlterno = document.querySelector('input[name="telefonoAlterno"]')?.value.trim();
-        const direccionFiscal = document.querySelector('input[name="direccionFiscal"]')?.value.trim();
-        const correo = document.querySelector('input[name="correo"]')?.value.trim();
-        const rfc = document.querySelector('input[name="rfc"]')?.value.trim();
+        // Obtener valores del formulario
+        const name = document.getElementById('name')?.value.trim();
+        const businessName = document.getElementById('businessName')?.value.trim();
+        const rfc = document.getElementById('rfc')?.value.trim();
+        const phone = document.getElementById('phone')?.value.trim();
+        const alternatePhone = document.getElementById('alternatePhone')?.value.trim();
+        const email = document.getElementById('email')?.value.trim();
+        const fiscalAddress = document.getElementById('fiscalAddress')?.value.trim();
 
-        // 🔥 VALIDACIONES CON SWEET ALERT
-        if (!nombre) {
-            showSweetAlert('¡Oye pai! 👀', 'El nombre del proveedor es requerido', 'warning');
-            document.querySelector('input[name="nombre"]')?.focus();
+        // Validaciones
+        if (!name || name.length < 2) {
+            showToast('El nombre debe tener al menos 2 caracteres', 'warning');
+            document.getElementById('name')?.focus();
             return;
         }
 
-        if (!razonSocial) {
-            showSweetAlert('¡Oye pai! 👀', 'La razón social es requerida', 'warning');
-            document.querySelector('input[name="razonSocial"]')?.focus();
+        if (!businessName || businessName.length < 3) {
+            showToast('La razón social debe tener al menos 3 caracteres', 'warning');
+            document.getElementById('businessName')?.focus();
             return;
         }
 
         if (!rfc || rfc.length < 12) {
-            showSweetAlert('RFC inválido', 'El RFC debe tener al menos 12 caracteres', 'error');
-            document.querySelector('input[name="rfc"]')?.focus();
+            showToast('RFC inválido (mínimo 12 caracteres)', 'error');
+            document.getElementById('rfc')?.focus();
             return;
         }
 
-        if (!telefono || telefono.length < 10) {
-            showSweetAlert('Teléfono inválido', 'El teléfono debe tener al menos 10 dígitos', 'error');
-            document.querySelector('input[name="telefono"]')?.focus();
+        if (!phone || phone.length < 10) {
+            showToast('Teléfono inválido (mínimo 10 dígitos)', 'error');
+            document.getElementById('phone')?.focus();
             return;
         }
 
-        if (!correo || !validateEmail(correo)) {
-            showSweetAlert('Correo inválido', 'Ingresa un correo electrónico válido (ej: proveedor@mail.com)', 'error');
-            document.querySelector('input[name="correo"]')?.focus();
+        if (!email || !validateEmail(email)) {
+            showToast('Correo electrónico inválido', 'error');
+            document.getElementById('email')?.focus();
             return;
         }
 
-        if (!direccionFiscal) {
-            showSweetAlert('¡Oye pai! 👀', 'La dirección fiscal es requerida', 'warning');
-            document.querySelector('input[name="direccionFiscal"]')?.focus();
+        if (!fiscalAddress || fiscalAddress.length < 5) {
+            showToast('La dirección fiscal es requerida', 'warning');
+            document.getElementById('fiscalAddress')?.focus();
             return;
         }
 
         const supplierData = {
-            nombre,
-            razonSocial,
+            name,
+            businessName,
             rfc: rfc.toUpperCase(),
-            telefono,
-            telefonoAlterno: telefonoAlterno || '',
-            direccionFiscal,
-            correo: correo.toLowerCase(),
-            imagen: currentImageBase64,
-            createdBy: adminId,
-            storeId: session?.storeId || null
+            phone,
+            alternatePhone: alternatePhone || '',
+            fiscalAddress,
+            email: email.toLowerCase(),
+            image: currentImageBase64,
+            createdById: adminId
         };
 
         isLoading = true;
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
+        submitBtn.disabled = true;
 
         // Mostrar loading
         Swal.fire({
@@ -236,64 +262,44 @@ function initSupplierFormSubmit() {
             allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading();
-            },
-            customClass: {
-                popup: 'swal2-popup',
-                confirmButton: 'swal2-confirm'
             }
         });
 
         try {
-            // 🔥 PASAMOS storeName AL SERVICE
             const result = await SupplierService.create(supplierData, storeName, adminId);
 
-            console.log('✅ Proveedor creado:', result);
-            console.log('✅ Colección:', `suppliers${storeName.replace(/\s/g, '')}`);
+            console.log('✅ Supplier created:', result);
+            console.log('✅ Collection:', `suppliers${storeName.replace(/\s/g, '')}`);
 
-            // Cerrar loading
             Swal.close();
 
-            // Mostrar éxito
             await Swal.fire({
                 title: '¡Proveedor registrado! 🎉',
                 html: `
                     <div style="text-align: left;">
-                        <p><i class="fas fa-check-circle" style="color: #456da2;"></i> <strong>${nombre}</strong> ha sido registrado exitosamente</p>
+                        <p><i class="fas fa-check-circle" style="color: #456da2;"></i> <strong>${name}</strong> ha sido registrado exitosamente</p>
                         <p><i class="fas fa-id-card"></i> <strong>RFC:</strong> ${rfc.toUpperCase()}</p>
-                        <p><i class="fas fa-envelope"></i> <strong>Correo:</strong> ${correo}</p>
-                        <p><i class="fas fa-phone"></i> <strong>Teléfono:</strong> ${telefono}</p>
+                        <p><i class="fas fa-envelope"></i> <strong>Correo:</strong> ${email}</p>
+                        <p><i class="fas fa-phone"></i> <strong>Teléfono:</strong> ${phone}</p>
                         <hr style="margin: 10px 0; border-color: #e2e8f0;">
                         <p style="color: #64748b; font-size: 0.8rem;">El proveedor ya está disponible en el sistema</p>
-                        <p style="color: #64748b; font-size: 0.7rem;">📁 Colección: suppliers${storeName.replace(/\s/g, '')}</p>
                     </div>
                 `,
                 icon: 'success',
                 confirmButtonText: '¡Excelente!',
-                confirmButtonColor: '#456da2',
-                customClass: {
-                    confirmButton: 'swal2-confirm'
-                }
+                confirmButtonColor: '#456da2'
             });
 
-            // Limpiar formulario
+            // Resetear formulario
             form.reset();
-
-            const avatarPreview = document.getElementById('supplierAvatarPreview');
-            const avatarIcon = document.getElementById('supplierAvatarIcon');
-            const removeBtn = document.getElementById('removeSupplierImageBtn');
-            const fileInput = document.getElementById('supplierImageInput');
-
-            if (avatarPreview) {
-                avatarPreview.src = '';
-                avatarPreview.style.display = 'none';
-            }
-            if (avatarIcon) avatarIcon.style.display = 'block';
-            if (removeBtn) removeBtn.style.display = 'none';
-            if (fileInput) fileInput.value = '';
-
+            hideImagePreview();
             currentImageBase64 = '';
+            const fileInput = document.getElementById('supplierImageInput');
+            if (fileInput) fileInput.value = '';
+            const photoUrlInput = document.getElementById('photoUrl');
+            if (photoUrlInput) photoUrlInput.value = '';
 
-            // Preguntar si quiere ver el listado
+            // Preguntar qué hacer
             const resultConfirm = await Swal.fire({
                 title: '¿Qué deseas hacer ahora?',
                 text: 'Puedes registrar otro proveedor o ver el listado completo',
@@ -303,18 +309,13 @@ function initSupplierFormSubmit() {
                 cancelButtonText: 'Registrar otro',
                 confirmButtonColor: '#456da2',
                 cancelButtonColor: '#64748b',
-                reverseButtons: true,
-                customClass: {
-                    confirmButton: 'swal2-confirm',
-                    cancelButton: 'swal2-cancel'
-                }
+                reverseButtons: true
             });
 
             if (resultConfirm.isConfirmed) {
                 window.location.href = '/proveedores';
             } else {
-                // Limpiar campos y enfocar nombre
-                document.querySelector('input[name="nombre"]')?.focus();
+                document.getElementById('name')?.focus();
             }
 
         } catch (error) {
@@ -329,10 +330,7 @@ function initSupplierFormSubmit() {
                 `,
                 icon: 'error',
                 confirmButtonText: 'Entendido',
-                confirmButtonColor: '#dc2626',
-                customClass: {
-                    confirmButton: 'swal2-confirm'
-                }
+                confirmButtonColor: '#dc2626'
             });
         } finally {
             isLoading = false;
@@ -342,27 +340,58 @@ function initSupplierFormSubmit() {
     });
 }
 
-/**
- * 🔥 FUNCIÓN PARA SWEET ALERT DE VALIDACIÓN (pequeños avisos)
- */
-function showSweetAlert(title, message, type = 'info', timer = null) {
-    const config = {
-        title: title,
-        text: message,
-        icon: type,
-        confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#456da2',
-        customClass: {
-            confirmButton: 'swal2-confirm'
+/* ========================================================
+   CANCEL BUTTON
+   ======================================================== */
+function initCancelButton() {
+    const cancelBtn = document.getElementById('cancelCreateBtn');
+    if (!cancelBtn) return;
+
+    cancelBtn.addEventListener('click', async () => {
+        const result = await Swal.fire({
+            title: '¿Cancelar registro?',
+            text: 'Los datos ingresados se perderán',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, cancelar',
+            cancelButtonText: 'Seguir editando',
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#64748b',
+            reverseButtons: true
+        });
+
+        if (result.isConfirmed) {
+            if (typeof window.navigateTo === 'function') {
+                window.navigateTo('/proveedores');
+            } else {
+                window.location.href = '/proveedores';
+            }
         }
-    };
+    });
+}
 
-    if (timer) {
-        config.timer = timer;
-        config.showConfirmButton = false;
-    }
+/* ========================================================
+   UTILITY FUNCTIONS
+   ======================================================== */
+function showToast(message, type = 'info') {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
 
-    Swal.fire(config);
+    let icon = 'info';
+    if (type === 'success') icon = 'success';
+    if (type === 'error') icon = 'error';
+    if (type === 'warning') icon = 'warning';
+
+    Toast.fire({ icon, title: message });
 }
 
 function validateEmail(email) {
