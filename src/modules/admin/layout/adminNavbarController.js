@@ -10,7 +10,7 @@ import { AuthService } from '../../../../services/authService.js';
 const PLANS = {
     BASIC: 'basic',
     PREMIUM: 'premium',
-    FULL_PREMIUM: 'full',
+    FULL_PREMIUM: 'full-free',
     SPECIAL: 'special'
 };
 
