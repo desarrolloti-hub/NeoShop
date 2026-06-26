@@ -1,48 +1,103 @@
-<!-- FILE: updateSupplier.html -->
-<!-- Supplier update form view - visual match with createAccount style -->
-<div class="auth-container">
-    <div class="supplier-card">
-        <!-- Image upload section -->
-        <div class="avatar-wrapper" id="supplierImageWrapper">
-            <div class="avatar-circle" id="supplierAvatarCircle">
-                <i class="fas fa-store" id="supplierAvatarIcon"></i>
-                <img id="supplierAvatarPreview" alt="Imagen del proveedor">
+<div class="credContainer">
+    <div class="supplier-create-container">
+        <div class="supplier-create-form-container">
+            <!-- Header - Mismo estilo que createSupplier -->
+            <div class="supplier-create-header">
+                <h2>
+                    <i class="fas fa-edit"></i>
+                    Editar Proveedor
+                </h2>
+                <p>Actualiza los datos del proveedor</p>
             </div>
-            <div class="avatar-overlay">
-                <i class="fas fa-camera"></i>
+
+            <div class="supplier-create-body">
+                <form id="updateSupplierForm">
+                    <!-- Foto del proveedor -->
+                    <div class="create-photo-section">
+                        <div class="create-photo-preview" id="supplierPhotoPreview">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <input type="file" id="supplierImageInput" class="create-photo-input"
+                            accept="image/jpeg,image/png,image/jpg,image/webp">
+                        <button type="button" id="uploadPhotoBtn" class="btn-secondary btn-upload">
+                            <i class="fas fa-upload"></i> Subir foto
+                        </button>
+                        <p class="photo-help">Opcional. Puedes subir una foto o usar una URL</p>
+                        <input type="text" id="photoUrl" placeholder="O pega una URL de imagen aquí"
+                            class="photo-url-input">
+                    </div>
+
+                    <!-- ID oculto -->
+                    <input type="hidden" id="supplierId">
+
+                    <!-- Datos del proveedor -->
+                    <div class="create-form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-user"></i> Nombre *</label>
+                            <input type="text" id="name" required placeholder="Nombre del responsable">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-building"></i> Razón social *</label>
+                            <input type="text" id="businessName" required placeholder="Denominación o razón social">
+                        </div>
+                    </div>
+
+                    <div class="create-form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-id-card"></i> RFC *</label>
+                            <input type="text" id="rfc" required placeholder="XAXX010101XXX" maxlength="13">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-phone"></i> Teléfono *</label>
+                            <input type="tel" id="phone" required placeholder="55 1234 5678">
+                        </div>
+                    </div>
+
+                    <div class="create-form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-phone"></i> Teléfono alterno</label>
+                            <input type="tel" id="alternatePhone" placeholder="55 8765 4321">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-envelope"></i> Correo electrónico *</label>
+                            <input type="email" id="email" required placeholder="proveedor@mail.com">
+                        </div>
+                    </div>
+
+                    <div class="create-form-row">
+                        <div class="form-group full-width">
+                            <label><i class="fas fa-map-marker-alt"></i> Dirección fiscal *</label>
+                            <input type="text" id="fiscalAddress" required placeholder="Calle, número, colonia, ciudad">
+                        </div>
+                    </div>
+
+                    <!-- Estado del proveedor -->
+                    <div class="create-form-row">
+                        <div class="form-group full-width">
+                            <label><i class="fas fa-toggle-on"></i> Estado del proveedor</label>
+                            <div class="status-toggle-wrapper">
+                                <span class="status-label" id="statusLabelInactive">Inactivo</span>
+                                <div class="status-filter-switch" id="statusToggle">
+                                    <div class="status-filter-slider"></div>
+                                </div>
+                                <span class="status-label active" id="statusLabelActive">Activo</span>
+                            </div>
+                            <small class="field-note">Cambia el estado para habilitar o deshabilitar el proveedor en el
+                                sistema</small>
+                        </div>
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="create-form-actions">
+                        <button type="button" id="cancelUpdateBtn" class="btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button type="submit" id="submitUpdateBtn" class="btn-primary">
+                            <i class="fas fa-save"></i> Actualizar proveedor
+                        </button>
+                    </div>
+                </form>
             </div>
-        </div>
-
-        <input type="file" id="supplierImageInput" accept="image/*">
-        <button type="button" id="removeSupplierImageBtn">
-            <i class="fas fa-trash"></i> Eliminar imagen
-        </button>
-
-        <h2>Actualizar proveedor</h2>
-
-        <form id="updateSupplierForm">
-            <input type="hidden" name="id" id="supplierId">
-            
-            <input type="text" name="nombre" id="nombre" placeholder="Nombre" required>
-            <input type="text" name="razonSocial" id="razonSocial" placeholder="Denominación o razón social" required>
-            <input type="tel" name="telefono" id="telefono" placeholder="Teléfono" required>
-            <input type="tel" name="telefonoAlterno" id="telefonoAlterno" placeholder="Teléfono alterno">
-            <input type="text" name="direccionFiscal" id="direccionFiscal" placeholder="Dirección fiscal" required>
-            <input type="email" name="correo" id="correo" placeholder="Correo electrónico" required>
-            <input type="text" name="rfc" id="rfc" placeholder="RFC" required>
-
-            <div class="form-buttons">
-                <button type="submit" class="btn btn-primary">
-                    Actualizar proveedor <i class="fas fa-save"></i>
-                </button>
-                <button type="button" id="cancelUpdateBtn" class="btn btn-secondary">
-                    Cancelar <i class="fas fa-times"></i>
-                </button>
-            </div>
-        </form>
-
-        <div class="supplier-links">
-            <p><a href="/proveedores">← Volver al listado de proveedores</a></p>
         </div>
     </div>
 </div>

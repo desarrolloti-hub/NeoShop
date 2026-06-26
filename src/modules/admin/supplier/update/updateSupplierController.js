@@ -1,7 +1,7 @@
 /* FILE: updateSupplierController.js
    ========================================================
-   CONTROLADOR PARA ACTUALIZAR PROVEEDORES
-   COLECCIONES DINÁMICAS: suppliers + NombreTienda
+   UPDATE SUPPLIER CONTROLLER
+   DYNAMIC COLLECTIONS: suppliers + StoreName
    ======================================================== */
 
 import { SupplierService } from '/services/supplierService.js';
@@ -11,17 +11,19 @@ let isLoading = false;
 let currentImageBase64 = '';
 let originalSupplierData = null;
 let currentStoreName = null;
+let currentStatus = true;
 
 /* ========================================================
-   FUNCION PRINCIPAL - EXPORTADA
+   MAIN EXPORTED FUNCTION
    ======================================================== */
 export async function updateSupplierController() {
-    // Obtener storeName de la sesión
+    console.log('📝 updateSupplierController initialized');
+
     const session = AdminService.getSession();
     currentStoreName = session?.storeName;
 
     if (!currentStoreName) {
-        console.error('❌ No se encontró la tienda asociada');
+        console.error('❌ No store found');
         await Swal.fire({
             title: 'Error de configuración',
             text: 'No se encontró la tienda asociada a tu cuenta. Contacta al administrador.',
@@ -38,19 +40,15 @@ export async function updateSupplierController() {
     }
 
     animateSupplierCard();
-    initSupplierImageClick();
     initSupplierImageUpload();
-    initRemoveSupplierImage();
     initSupplierFormSubmit();
     initCancelButton();
+    initStatusToggle();
     await loadSupplierData();
 }
 
-/* ========================================================
-   ANIMACION DE ENTRADA PARA LA TARJETA DEL FORMULARIO
-   ======================================================== */
 function animateSupplierCard() {
-    const card = document.querySelector('.supplier-card');
+    const card = document.querySelector('.supplier-create-form-container');
     if (!card) return;
 
     card.style.opacity = '0';
@@ -64,110 +62,158 @@ function animateSupplierCard() {
 }
 
 /* ========================================================
-   INICIALIZA CLICK EN EL AVATAR PARA ABRIR SELECTOR DE IMAGEN
+   STATUS TOGGLE
    ======================================================== */
-function initSupplierImageClick() {
-    const avatarWrapper = document.querySelector('#supplierImageWrapper');
-    const fileInput = document.getElementById('supplierImageInput');
+function initStatusToggle() {
+    const toggleSwitch = document.getElementById('statusToggle');
+    const activeLabel = document.getElementById('statusLabelActive');
+    const inactiveLabel = document.getElementById('statusLabelInactive');
 
-    if (avatarWrapper && fileInput) {
-        avatarWrapper.addEventListener('click', (e) => {
+    if (!toggleSwitch) return;
+
+    toggleSwitch.addEventListener('click', () => {
+        const isActive = toggleSwitch.classList.contains('active');
+
+        if (isActive) {
+            toggleSwitch.classList.remove('active');
+            if (activeLabel) activeLabel.classList.remove('active');
+            if (inactiveLabel) inactiveLabel.classList.add('active');
+            currentStatus = false;
+        } else {
+            toggleSwitch.classList.add('active');
+            if (activeLabel) activeLabel.classList.add('active');
+            if (inactiveLabel) inactiveLabel.classList.remove('active');
+            currentStatus = true;
+        }
+    });
+}
+
+/* ========================================================
+   IMAGE UPLOAD
+   ======================================================== */
+function initSupplierImageUpload() {
+    const photoPreview = document.getElementById('supplierPhotoPreview');
+    const fileInput = document.getElementById('supplierImageInput');
+    const uploadBtn = document.getElementById('uploadPhotoBtn');
+    const photoUrlInput = document.getElementById('photoUrl');
+
+    if (!photoPreview || !fileInput) {
+        console.error('❌ Image elements not found');
+        return;
+    }
+
+    photoPreview.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.click();
+    });
+
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             fileInput.click();
         });
     }
-}
-
-/* ========================================================
-   MANEJA LA CARGA Y PREVISUALIZACION DE LA IMAGEN
-   Convierte la imagen a base64 y la muestra en el avatar
-   ======================================================== */
-function initSupplierImageUpload() {
-    const fileInput = document.getElementById('supplierImageInput');
-    if (!fileInput) return;
 
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Validar tipo de archivo
         if (!file.type.startsWith('image/')) {
-            showToast('Selecciona una imagen valida (JPG, PNG, GIF)', 'error');
+            showToast('Selecciona una imagen válida (JPG, PNG, GIF)', 'error');
+            fileInput.value = '';
             return;
         }
 
-        // Validar tamaño maximo 2MB
         if (file.size > 2 * 1024 * 1024) {
             showToast('La imagen no debe superar los 2MB', 'error');
+            fileInput.value = '';
             return;
         }
 
         const reader = new FileReader();
-        const avatarPreview = document.getElementById('supplierAvatarPreview');
-        const avatarIcon = document.getElementById('supplierAvatarIcon');
-        const removeBtn = document.getElementById('removeSupplierImageBtn');
-
-        reader.onload = (e) => {
-            currentImageBase64 = e.target.result;
-
-            if (avatarPreview) {
-                avatarPreview.src = currentImageBase64;
-                avatarPreview.style.display = 'block';
-            }
-            if (avatarIcon) avatarIcon.style.display = 'none';
-            if (removeBtn) removeBtn.style.display = 'inline-block';
-
-            showToast('Imagen actualizada', 'success');
+        reader.onload = (event) => {
+            currentImageBase64 = event.target.result;
+            showImagePreview(currentImageBase64);
+            showToast('Imagen cargada correctamente', 'success');
         };
-
+        reader.onerror = () => {
+            showToast('Error al procesar la imagen', 'error');
+            currentImageBase64 = '';
+            fileInput.value = '';
+        };
         reader.readAsDataURL(file);
     });
+
+    if (photoUrlInput) {
+        photoUrlInput.addEventListener('change', (e) => {
+            const url = e.target.value.trim();
+            if (url) {
+                const img = new Image();
+                img.onload = () => {
+                    currentImageBase64 = url;
+                    showImagePreview(url);
+                    showToast('Imagen cargada desde URL', 'success');
+                };
+                img.onerror = () => {
+                    showToast('URL de imagen inválida', 'error');
+                    photoUrlInput.value = '';
+                };
+                img.src = url;
+            } else {
+                currentImageBase64 = '';
+                hideImagePreview();
+            }
+        });
+    }
+}
+
+function showImagePreview(imageSrc) {
+    const photoPreview = document.getElementById('supplierPhotoPreview');
+    if (!photoPreview) return;
+
+    const icon = photoPreview.querySelector('i');
+    if (icon) icon.style.display = 'none';
+
+    let img = photoPreview.querySelector('img');
+    if (!img) {
+        img = document.createElement('img');
+        photoPreview.appendChild(img);
+    }
+    img.src = imageSrc;
+    img.style.display = 'block';
+    photoPreview.style.borderStyle = 'solid';
+    photoPreview.style.borderColor = 'var(--color-primary)';
+}
+
+function hideImagePreview() {
+    const photoPreview = document.getElementById('supplierPhotoPreview');
+    if (!photoPreview) return;
+
+    const img = photoPreview.querySelector('img');
+    if (img) img.style.display = 'none';
+
+    const icon = photoPreview.querySelector('i');
+    if (icon) icon.style.display = 'block';
+
+    photoPreview.style.borderStyle = 'dashed';
+    photoPreview.style.borderColor = 'var(--border-light)';
 }
 
 /* ========================================================
-   MANEJA LA ELIMINACION DE LA IMAGEN DEL PROVEEDOR
-   Limpia el input file y oculta la previsualizacion
-   ======================================================== */
-function initRemoveSupplierImage() {
-    const removeBtn = document.getElementById('removeSupplierImageBtn');
-    if (!removeBtn) return;
-
-    removeBtn.addEventListener('click', () => {
-        const fileInput = document.getElementById('supplierImageInput');
-        const avatarPreview = document.getElementById('supplierAvatarPreview');
-        const avatarIcon = document.getElementById('supplierAvatarIcon');
-
-        if (fileInput) fileInput.value = '';
-        if (avatarPreview) {
-            avatarPreview.src = '';
-            avatarPreview.style.display = 'none';
-        }
-        if (avatarIcon) avatarIcon.style.display = 'block';
-        removeBtn.style.display = 'none';
-
-        currentImageBase64 = '';
-        showToast('Imagen eliminada', 'info');
-    });
-}
-
-/* ========================================================
-   CARGA LOS DATOS DEL PROVEEDOR DESDE EL SERVICIO
-   Obtiene el ID de la URL y popula el formulario
+   LOAD SUPPLIER DATA - SIN TOAST DE CARGA
    ======================================================== */
 async function loadSupplierData() {
     try {
         const urlParams = new URLSearchParams(window.location.search);
         const supplierId = urlParams.get('id');
 
-        // Validar que el ID exista en la URL
         if (!supplierId) {
             await Swal.fire({
                 title: 'Error',
                 text: 'ID de proveedor no especificado',
                 icon: 'error',
                 confirmButtonText: 'Aceptar',
-                confirmButtonColor: '#dc2626',
-                customClass: { confirmButton: 'swal2-confirm' }
+                confirmButtonColor: '#dc2626'
             });
             setTimeout(() => {
                 window.location.href = '/proveedores';
@@ -175,65 +221,68 @@ async function loadSupplierData() {
             return;
         }
 
-        showToast('Cargando datos del proveedor...', 'info');
-
-        // 🔥 PASAMOS storeName AL SERVICE
         const supplier = await SupplierService.getById(supplierId, currentStoreName, true);
 
-        // Validar que el proveedor exista
         if (!supplier) {
             await Swal.fire({
                 title: 'Proveedor no encontrado',
                 text: 'El proveedor que buscas no existe o fue eliminado',
                 icon: 'error',
                 confirmButtonText: 'Volver al listado',
-                confirmButtonColor: '#dc2626',
-                customClass: { confirmButton: 'swal2-confirm' }
+                confirmButtonColor: '#dc2626'
             });
             window.location.href = '/proveedores';
             return;
         }
 
-        // Guardar datos originales para comparar cambios
         originalSupplierData = supplier;
 
-        // Poblar campos del formulario
+        // Poblar campos
         document.getElementById('supplierId').value = supplier.id;
-        document.getElementById('nombre').value = supplier.nombre || '';
-        document.getElementById('razonSocial').value = supplier.razonSocial || '';
-        document.getElementById('telefono').value = supplier.telefono || '';
-        document.getElementById('telefonoAlterno').value = supplier.telefonoAlterno || '';
-        document.getElementById('direccionFiscal').value = supplier.direccionFiscal || '';
-        document.getElementById('correo').value = supplier.correo || '';
+        document.getElementById('name').value = supplier.name || '';
+        document.getElementById('businessName').value = supplier.businessName || '';
+        document.getElementById('phone').value = supplier.phone || '';
+        document.getElementById('alternatePhone').value = supplier.alternatePhone || '';
+        document.getElementById('fiscalAddress').value = supplier.fiscalAddress || '';
+        document.getElementById('email').value = supplier.email || '';
         document.getElementById('rfc').value = supplier.rfc || '';
 
-        // Cargar imagen si existe
-        if (supplier.imagen && supplier.imagen.startsWith('data:image')) {
-            currentImageBase64 = supplier.imagen;
+        // Estado actual
+        currentStatus = supplier.active !== undefined ? supplier.active : true;
 
-            const avatarPreview = document.getElementById('supplierAvatarPreview');
-            const avatarIcon = document.getElementById('supplierAvatarIcon');
-            const removeBtn = document.getElementById('removeSupplierImageBtn');
+        // Actualizar toggle de estado
+        const toggleSwitch = document.getElementById('statusToggle');
+        const activeLabel = document.getElementById('statusLabelActive');
+        const inactiveLabel = document.getElementById('statusLabelInactive');
 
-            if (avatarPreview) {
-                avatarPreview.src = supplier.imagen;
-                avatarPreview.style.display = 'block';
+        if (toggleSwitch) {
+            if (currentStatus) {
+                toggleSwitch.classList.add('active');
+                if (activeLabel) activeLabel.classList.add('active');
+                if (inactiveLabel) inactiveLabel.classList.remove('active');
+            } else {
+                toggleSwitch.classList.remove('active');
+                if (activeLabel) activeLabel.classList.remove('active');
+                if (inactiveLabel) inactiveLabel.classList.add('active');
             }
-            if (avatarIcon) avatarIcon.style.display = 'none';
-            if (removeBtn) removeBtn.style.display = 'inline-block';
         }
 
-        showToast('Datos cargados correctamente', 'success');
+        // Cargar imagen
+        if (supplier.image && supplier.image.startsWith('data:image')) {
+            currentImageBase64 = supplier.image;
+            showImagePreview(supplier.image);
+        }
+
+        console.log('✅ Supplier data loaded successfully');
 
     } catch (error) {
         console.error('Error al cargar proveedor:', error);
-        showToast('Error al cargar los datos', 'error');
+        // ✅ Sin toast de error, solo console.log
     }
 }
 
 /* ========================================================
-   INICIALIZA EL EVENTO DE ENVIO DEL FORMULARIO
-   Valida los campos, prepara los datos y envia la actualizacion
+   FORM SUBMIT
    ======================================================== */
 function initSupplierFormSubmit() {
     const form = document.getElementById('updateSupplierForm');
@@ -246,119 +295,112 @@ function initSupplierFormSubmit() {
 
         const supplierId = document.getElementById('supplierId')?.value;
 
-        // Validar ID del proveedor
         if (!supplierId) {
             showToast('ID de proveedor no encontrado', 'error');
             return;
         }
 
-        // Obtener valores del formulario
-        const nombre = document.getElementById('nombre')?.value.trim();
-        const razonSocial = document.getElementById('razonSocial')?.value.trim();
-        const telefono = document.getElementById('telefono')?.value.trim();
-        const telefonoAlterno = document.getElementById('telefonoAlterno')?.value.trim();
-        const direccionFiscal = document.getElementById('direccionFiscal')?.value.trim();
-        const correo = document.getElementById('correo')?.value.trim();
+        const name = document.getElementById('name')?.value.trim();
+        const businessName = document.getElementById('businessName')?.value.trim();
+        const phone = document.getElementById('phone')?.value.trim();
+        const alternatePhone = document.getElementById('alternatePhone')?.value.trim();
+        const fiscalAddress = document.getElementById('fiscalAddress')?.value.trim();
+        const email = document.getElementById('email')?.value.trim();
         const rfc = document.getElementById('rfc')?.value.trim();
 
-        // Validaciones de campos obligatorios
-        if (!nombre || nombre.length < 2) {
-            showSweetAlert('Nombre invalido', 'El nombre debe tener al menos 2 caracteres', 'warning');
-            document.getElementById('nombre')?.focus();
+        // Validaciones
+        if (!name || name.length < 2) {
+            showToast('El nombre debe tener al menos 2 caracteres', 'warning');
+            document.getElementById('name')?.focus();
             return;
         }
 
-        if (!razonSocial || razonSocial.length < 3) {
-            showSweetAlert('Razon social invalida', 'La razon social debe tener al menos 3 caracteres', 'warning');
-            document.getElementById('razonSocial')?.focus();
+        if (!businessName || businessName.length < 3) {
+            showToast('La razón social debe tener al menos 3 caracteres', 'warning');
+            document.getElementById('businessName')?.focus();
             return;
         }
 
         if (!rfc || rfc.length < 12) {
-            showSweetAlert('RFC invalido', 'El RFC debe tener al menos 12 caracteres', 'error');
+            showToast('RFC inválido (mínimo 12 caracteres)', 'error');
             document.getElementById('rfc')?.focus();
             return;
         }
 
-        if (!telefono || telefono.length < 10) {
-            showSweetAlert('Telefono invalido', 'El telefono debe tener al menos 10 digitos', 'error');
-            document.getElementById('telefono')?.focus();
+        if (!phone || phone.length < 10) {
+            showToast('Teléfono inválido (mínimo 10 dígitos)', 'error');
+            document.getElementById('phone')?.focus();
             return;
         }
 
-        if (!correo || !validateEmail(correo)) {
-            showSweetAlert('Correo invalido', 'Ingresa un correo electronico valido', 'error');
-            document.getElementById('correo')?.focus();
+        if (!email || !validateEmail(email)) {
+            showToast('Correo electrónico inválido', 'error');
+            document.getElementById('email')?.focus();
             return;
         }
 
-        if (!direccionFiscal) {
-            showSweetAlert('Direccion requerida', 'La direccion fiscal es requerida', 'warning');
-            document.getElementById('direccionFiscal')?.focus();
+        if (!fiscalAddress || fiscalAddress.length < 5) {
+            showToast('La dirección fiscal es requerida', 'warning');
+            document.getElementById('fiscalAddress')?.focus();
             return;
         }
 
-        // Preparar datos para actualizar
         const updateData = {
-            nombre,
-            razonSocial,
+            name,
+            businessName,
             rfc: rfc.toUpperCase(),
-            telefono,
-            telefonoAlterno: telefonoAlterno || '',
-            direccionFiscal,
-            correo: correo.toLowerCase()
+            phone,
+            alternatePhone: alternatePhone || '',
+            fiscalAddress,
+            email: email.toLowerCase(),
+            active: currentStatus
         };
 
-        // Solo incluir imagen si hubo cambios
-        if (currentImageBase64 && currentImageBase64 !== originalSupplierData?.imagen) {
-            updateData.imagen = currentImageBase64;
-        } else if (currentImageBase64 === '' && originalSupplierData?.imagen) {
-            updateData.imagen = '';
+        if (currentImageBase64 && currentImageBase64 !== originalSupplierData?.image) {
+            updateData.image = currentImageBase64;
+        } else if (currentImageBase64 === '' && originalSupplierData?.image) {
+            updateData.image = '';
         }
 
         isLoading = true;
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
+        submitBtn.disabled = true;
 
-        // Mostrar loading mientras se procesa
         Swal.fire({
             title: 'Actualizando proveedor...',
             text: 'Por favor espera un momento',
             allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); },
-            customClass: { popup: 'swal2-popup' }
+            didOpen: () => { Swal.showLoading(); }
         });
 
         try {
-            // 🔥 PASAMOS storeName AL SERVICE
             const result = await SupplierService.update(supplierId, currentStoreName, updateData);
             Swal.close();
 
-            // Mostrar confirmacion de exito
             await Swal.fire({
                 title: 'Proveedor actualizado',
                 html: `
                     <div style="text-align: left;">
-                        <p><strong>${nombre}</strong> ha sido actualizado</p>
+                        <p><strong>${name}</strong> ha sido actualizado</p>
                         <p>RFC: ${rfc.toUpperCase()}</p>
-                        <p>Correo: ${correo}</p>
+                        <p>Correo: ${email}</p>
+                        <p>Estado: ${currentStatus ? '✅ Activo' : '❌ Inactivo'}</p>
                         <hr style="margin: 10px 0; border-color: #e2e8f0;">
-                        <p style="color: #64748b; font-size: 0.8rem;">Los cambios ya estan guardados</p>
+                        <p style="color: #64748b; font-size: 0.8rem;">Los cambios ya están guardados</p>
                     </div>
                 `,
                 icon: 'success',
                 confirmButtonText: 'Aceptar',
-                confirmButtonColor: '#456da2',
-                customClass: { confirmButton: 'swal2-confirm' }
+                confirmButtonColor: '#456da2'
             });
 
-            // Actualizar datos originales
             originalSupplierData = result;
-            currentImageBase64 = result.imagen || '';
+            currentImageBase64 = result.image || '';
 
-            // Preguntar que desea hacer el usuario
             const resultConfirm = await Swal.fire({
-                title: 'Que deseas hacer ahora',
+                title: '¿Qué deseas hacer ahora?',
                 text: 'Puedes seguir editando o ir al listado de proveedores',
                 icon: 'question',
                 showCancelButton: true,
@@ -366,11 +408,7 @@ function initSupplierFormSubmit() {
                 cancelButtonText: 'Seguir editando',
                 confirmButtonColor: '#456da2',
                 cancelButtonColor: '#64748b',
-                reverseButtons: true,
-                customClass: {
-                    confirmButton: 'swal2-confirm',
-                    cancelButton: 'swal2-cancel'
-                }
+                reverseButtons: true
             });
 
             if (resultConfirm.isConfirmed) {
@@ -383,11 +421,10 @@ function initSupplierFormSubmit() {
 
             await Swal.fire({
                 title: 'Error al actualizar',
-                html: `<p>Ocurrio un problema</p><p style="font-size: 0.85rem; color: #64748b;">${error.message || 'Intenta nuevamente'}</p>`,
+                html: `<p>Ocurrió un problema</p><p style="font-size: 0.85rem; color: #64748b;">${error.message || 'Intenta nuevamente'}</p>`,
                 icon: 'error',
                 confirmButtonText: 'Entendido',
-                confirmButtonColor: '#dc2626',
-                customClass: { confirmButton: 'swal2-confirm' }
+                confirmButtonColor: '#dc2626'
             });
         } finally {
             isLoading = false;
@@ -398,8 +435,7 @@ function initSupplierFormSubmit() {
 }
 
 /* ========================================================
-   INICIALIZA EL BOTON DE CANCELAR
-   Muestra confirmacion antes de salir sin guardar
+   CANCEL BUTTON
    ======================================================== */
 function initCancelButton() {
     const cancelBtn = document.getElementById('cancelUpdateBtn');
@@ -407,19 +443,15 @@ function initCancelButton() {
 
     cancelBtn.addEventListener('click', async () => {
         const result = await Swal.fire({
-            title: 'Cancelar edicion',
-            text: 'Los cambios no guardados se perderan',
+            title: '¿Cancelar edición?',
+            text: 'Los cambios no guardados se perderán',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Si, cancelar',
+            confirmButtonText: 'Sí, cancelar',
             cancelButtonText: 'Seguir editando',
             confirmButtonColor: '#dc2626',
             cancelButtonColor: '#64748b',
-            reverseButtons: true,
-            customClass: {
-                confirmButton: 'swal2-confirm',
-                cancelButton: 'swal2-cancel'
-            }
+            reverseButtons: true
         });
 
         if (result.isConfirmed) {
@@ -429,62 +461,30 @@ function initCancelButton() {
 }
 
 /* ========================================================
-   TOAST NOTIFICATION - POSICION ARRIBA DERECHA
-   Utilizada para notificaciones rapidas y no intrusivas
+   UTILITY FUNCTIONS
    ======================================================== */
 function showToast(message, type = 'info') {
     const Toast = Swal.mixin({
         toast: true,
         position: 'top-end',
         showConfirmButton: false,
-        timer: 2500,
+        timer: 3000,
         timerProgressBar: true,
         didOpen: (toast) => {
             toast.addEventListener('mouseenter', Swal.stopTimer);
             toast.addEventListener('mouseleave', Swal.resumeTimer);
-        },
-        customClass: {
-            popup: 'swal2-popup',
-            timerProgressBar: 'swal2-timer-progress-bar'
         }
     });
 
-    let icon = 'info';
-    if (type === 'success') icon = 'success';
-    if (type === 'error') icon = 'error';
-    if (type === 'warning') icon = 'warning';
-
-    Toast.fire({ icon: icon, title: message });
+    const iconMap = { success: 'success', error: 'error', warning: 'warning', info: 'info' };
+    Toast.fire({ icon: iconMap[type] || 'info', title: message });
 }
 
-/* ========================================================
-   SWEET ALERT PARA VALIDACIONES
-   Muestra un modal centrado con un boton de aceptar
-   ======================================================== */
-function showSweetAlert(title, message, type = 'info') {
-    Swal.fire({
-        title: title,
-        text: message,
-        icon: type,
-        confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#456da2',
-        customClass: { confirmButton: 'swal2-confirm' }
-    });
-}
-
-/* ========================================================
-   VALIDA EL FORMATO DE UN CORREO ELECTRONICO
-   Retorna true si el formato es valido, false en caso contrario
-   ======================================================== */
 function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
 }
 
-/* ========================================================
-   LIMPIEZA DEL CONTROLADOR (OPCIONAL)
-   Se ejecuta al salir de la vista para evitar memory leaks
-   ======================================================== */
 export function cleanupUpdateSupplier() {
-    // No hay limpieza especifica necesaria por ahora
+    // Cleanup if needed
 }
