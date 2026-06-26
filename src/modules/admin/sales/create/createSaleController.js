@@ -11,8 +11,9 @@ import { ProductService } from '../../../../../services/productService.js';
 let cartItems = [];
 let searchTimeout = null;
 let currentAdmin = null;
-let currentStore = null;
-let currentPreviewProduct = null;  // Producto actual en vista previa
+let currentStoreName = null;
+let currentStoreId = null;
+let currentPreviewProduct = null;
 
 // ========== ELEMENTOS DOM ==========
 let elements = {};
@@ -28,38 +29,27 @@ function formatCurrency(value) {
 
 function loadAdminSession() {
     currentAdmin = AdminService.getSession();
-    return currentAdmin ? true : false;
-}
-
-async function loadCurrentStore() {
-    if (!currentAdmin || !currentAdmin.id) {
-        if (elements.storeName) {
-            elements.storeName.textContent = '⚠️ Admin sin tienda';
-        }
-        return false;
-    }
-
-    try {
-        currentStore = await ProductService.getCurrentStore(currentAdmin.id);
-        if (elements.storeName) {
-            elements.storeName.textContent = currentStore?.name || '⚠️ Tienda sin nombre';
-        }
+    if (currentAdmin) {
+        currentStoreName = currentAdmin.storeName || 'default-store';
+        currentStoreId = currentAdmin.storeId || 'default-branch';
+        console.log('✅ Admin session loaded:', currentAdmin.name);
+        console.log('✅ Store name:', currentStoreName);
+        console.log('✅ Store ID:', currentStoreId);
         return true;
-    } catch (error) {
-        if (elements.storeName) {
-            elements.storeName.textContent = '⚠️ Error al cargar tienda';
-        }
-        return false;
     }
+    return false;
 }
 
 function updateAdminInfoInUI() {
     if (!currentAdmin) return;
     if (elements.adminName) {
-        elements.adminName.textContent = currentAdmin.nombreCompleto || currentAdmin.email;
+        elements.adminName.textContent = currentAdmin.fullName || currentAdmin.name || currentAdmin.email;
     }
     if (elements.adminInitials) {
-        elements.adminInitials.textContent = currentAdmin.iniciales || 'A';
+        elements.adminInitials.textContent = currentAdmin.initials || 'A';
+    }
+    if (elements.storeName) {
+        elements.storeName.textContent = currentStoreName || 'Sin tienda';
     }
 }
 
@@ -99,7 +89,6 @@ function cacheElements() {
         adminEmail: document.getElementById('adminEmail'),
         storeName: document.getElementById('storeName'),
         paymentRadios: document.querySelectorAll('input[name="paymentMethod"]'),
-        // NUEVO: elementos para efectivo e IVA
         cashAmount: document.getElementById('cashAmount'),
         changeDisplay: document.getElementById('changeDisplay'),
         cashPaymentContainer: document.getElementById('cashPaymentContainer'),
@@ -319,23 +308,20 @@ function removeFromCart(index) {
     renderCart();
 }
 
-// ========== CALCULAR TOTALES (incluye IVA opcional y cambio) ==========
+// ========== CALCULAR TOTALES ==========
 function calculateTotals() {
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const discount = parseFloat(elements.discount?.value) || 0;
 
-    // Calcular IVA solo si el checkbox está activado
     const includeTax = elements.includeTaxCheckbox?.checked || false;
     const tax = includeTax ? subtotal * 0.16 : 0;
 
     const total = subtotal - discount + tax;
 
-    // Actualizar resumen
     if (elements.summarySubtotal) elements.summarySubtotal.textContent = formatCurrency(subtotal);
     if (elements.summaryTax) elements.summaryTax.textContent = formatCurrency(tax);
     if (elements.summaryTotal) elements.summaryTotal.textContent = formatCurrency(total);
 
-    // Calcular cambio si método es efectivo y hay monto pagado
     updateChange(total);
 }
 
@@ -366,7 +352,6 @@ function toggleCashField() {
     if (elements.cashPaymentContainer) {
         elements.cashPaymentContainer.style.display = (selectedMethod === 'cash') ? 'block' : 'none';
     }
-    // Recalcular si cambia el método
     calculateTotals();
 }
 
@@ -522,7 +507,6 @@ async function createSale() {
             return;
         }
 
-        // Validar que si es efectivo, haya monto suficiente
         const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         const discount = parseFloat(elements.discount?.value) || 0;
         const includeTax = elements.includeTaxCheckbox?.checked || false;
@@ -556,14 +540,15 @@ async function createSale() {
             discount: discount,
             tax: tax,
             total: total,
-            change: changeAmount,  // 🔥 GUARDAMOS EL CAMBIO
+            change: changeAmount,
             paymentMethod: paymentMethod,
             date: new Date().toISOString(),
             userId: currentAdmin.id,
-            userName: currentAdmin.nombreCompleto,
+            userName: currentAdmin.fullName || currentAdmin.name,
             userEmail: currentAdmin.email,
-            storeSlug: currentStore?.name || 'default-store',
-            branchId: currentStore?.id || 'default-branch'
+            // ✅ Usar storeName y storeId de la sesión
+            storeSlug: currentStoreName || 'default-store',
+            branchId: currentStoreId || 'default-branch'
         };
 
         Swal.fire({
@@ -585,7 +570,7 @@ async function createSale() {
 
         Swal.fire({
             title: '¡Venta registrada!',
-            text: `Venta ${result.folio} registrada exitosamente`,
+            text: `Venta ${result.folio || 'registrada'} exitosamente`,
             icon: 'success',
             confirmButtonText: 'Ver detalle'
         }).then((resultSwal) => {
@@ -671,7 +656,6 @@ function bindEvents() {
         elements.discount.addEventListener('input', calculateTotals);
     }
 
-    // NUEVO: eventos para métodos de pago (mostrar/ocultar efectivo)
     if (elements.paymentRadios) {
         elements.paymentRadios.forEach(radio => {
             radio.addEventListener('change', () => {
@@ -681,7 +665,6 @@ function bindEvents() {
         });
     }
 
-    // NUEVO: evento para monto en efectivo
     if (elements.cashAmount) {
         elements.cashAmount.addEventListener('input', () => {
             const total = parseFloat(elements.summaryTotal?.textContent.replace(/[^0-9.]/g, '')) || 0;
@@ -689,7 +672,6 @@ function bindEvents() {
         });
     }
 
-    // NUEVO: evento para checkbox de IVA
     if (elements.includeTaxCheckbox) {
         elements.includeTaxCheckbox.addEventListener('change', calculateTotals);
     }
@@ -712,17 +694,11 @@ export async function saleCreateController() {
     }
 
     cacheElements();
-    await loadCurrentStore();
-    if (elements.storeName && !elements.storeName.textContent) {
-        elements.storeName.textContent = 'Tienda no asignada';
-    }
-
     updateAdminInfoInUI();
     bindEvents();
     renderCart();
     hideProductPreview();
 
-    // Ocultar campo de efectivo por defecto (si no está seleccionado)
     toggleCashField();
 
     if (elements.skuInput) {

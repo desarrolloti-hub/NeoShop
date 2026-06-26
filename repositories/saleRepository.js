@@ -18,15 +18,15 @@ const getSaleCollectionName = (storeName) => {
     // Convertir a camelCase: "Mi Tienda Online" -> "salesMiTiendaOnline"
     const camelCaseName = storeName
         .toLowerCase()
-        .replace(/[^a-zA-Z0-9]/g, ' ') // Reemplazar caracteres especiales con espacios
+        .replace(/[^a-zA-Z0-9]/g, ' ')
         .trim()
         .split(' ')
         .filter(word => word.length > 0)
         .map((word, index) => {
             if (index === 0) {
-                return word; // Primera palabra en minúscula
+                return word;
             }
-            return word.charAt(0).toUpperCase() + word.slice(1); // Resto con mayúscula inicial
+            return word.charAt(0).toUpperCase() + word.slice(1);
         })
         .join('');
 
