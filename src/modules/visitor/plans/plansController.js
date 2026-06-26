@@ -49,7 +49,7 @@ function initBillingToggle() {
     }
 }
 
-// 2. BOTONES DE PLANES (redirigen a login con parámetros)
+// 2. BOTONES DE PLANES (redirigen a iniciarSesion con parámetros)
 function initPlanButtons() {
     const planButtons = document.querySelectorAll('.pricing-card .btn, .btn[data-plan]');
 
@@ -80,7 +80,8 @@ function initPlanButtons() {
 
             setTimeout(() => {
                 removeLoadingEffect(newBtn);
-                const loginUrl = `/login?plan=${plan}&period=${period}`;
+                // ✅ RUTA CORRECTA SEGÚN TU routes.js
+                const loginUrl = `/iniciarSesion?plan=${plan}&period=${period}`;
                 if (typeof window.navigateTo === 'function') {
                     window.navigateTo(loginUrl);
                 } else {
@@ -135,7 +136,7 @@ function initCustomPlanButton() {
 
         setTimeout(() => {
             removeLoadingEffect(newBtn);
-            const loginUrl = `/login?plan=custom`;
+            const loginUrl = `/iniciarSesion?plan=custom`;
             if (typeof window.navigateTo === 'function') {
                 window.navigateTo(loginUrl);
             } else {
@@ -202,17 +203,4 @@ function removeLoadingEffect(button) {
     if (spinner) spinner.remove();
 }
 
-// Exportar utilidades si se necesitan
-export function updatePlansPeriod(period) {
-    document.querySelectorAll('.amount').forEach(amount => {
-        const monthly = amount.getAttribute('data-monthly');
-        const yearly = amount.getAttribute('data-yearly');
-        amount.textContent = period === 'monthly' ? monthly : yearly;
-    });
-}
-
-export function getSelectedPlan() {
-    const monthlyOption = document.querySelector('.billing-option[data-period="monthly"]');
-    const period = monthlyOption?.classList.contains('active') ? 'monthly' : 'yearly';
-    return { period };
-}
+export default plansController;
