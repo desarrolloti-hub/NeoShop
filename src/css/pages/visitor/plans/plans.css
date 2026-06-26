@@ -81,7 +81,7 @@
     margin: var(--spacing-xl) auto;
     padding: 0 var(--spacing-xl);
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: var(--spacing-xl);
 }
 
@@ -92,6 +92,10 @@
     position: relative;
     transition: transform var(--transition-fast), box-shadow var(--transition-fast);
     box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Asegura que todas las tarjetas tengan la misma altura */
+    min-height: 500px; /* Ajusta según necesidad */
 }
 
 .pricing-card:hover {
@@ -118,6 +122,12 @@
 
 .plan-badge.recommended {
     background: var(--color-primary);
+    color: white;
+}
+
+/* Badge específico para prueba gratuita */
+.plan-badge.trial {
+    background: #2ecc71;
     color: white;
 }
 
@@ -157,6 +167,7 @@
 .features-list {
     list-style: none;
     margin: var(--spacing-lg) 0;
+    flex: 1; /* Hace que la lista ocupe el espacio restante, empujando el botón hacia abajo */
 }
 
 .features-list li {
@@ -172,6 +183,50 @@
     color: #22c55e;
     font-size: var(--font-size-md);
     width: 20px;
+}
+
+/* Botones - todos iguales */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 1rem;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    text-decoration: none;
+    width: 100%;
+    min-height: 50px; /* Misma altura para todos */
+    background: var(--color-primary);
+    color: white;
+}
+
+.btn:hover {
+    background: #1d4ed8;
+    transform: scale(0.98);
+}
+
+/* Botón para el plan trial (verde) */
+.pricing-card[data-plan="trial"] .btn {
+    background: #2ecc71;
+    color: white;
+}
+
+.pricing-card[data-plan="trial"] .btn:hover {
+    background: #27ae60;
+}
+
+.btn-secondary {
+    background: var(--bg-gray);
+    color: var(--color-secondary);
+}
+
+.btn-secondary:hover {
+    background: var(--border-light);
 }
 
 /* FAQ */
@@ -256,4 +311,15 @@
 .cta-content p {
     color: var(--text-light);
     margin-bottom: var(--spacing-lg);
+}
+
+/* Ajuste responsive */
+@media (max-width: 768px) {
+    .pricing-grid {
+        grid-template-columns: 1fr;
+        padding: 0 var(--spacing-md);
+    }
+    .pricing-card {
+        min-height: auto;
+    }
 }
