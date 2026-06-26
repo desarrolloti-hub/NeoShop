@@ -1,105 +1,105 @@
 /* ========================================
-   SUPPLIER MODEL - Estructura de datos del proveedor
+   SUPPLIER MODEL - Supplier data structure
    ======================================== */
 
 export class Supplier {
     constructor(data = {}) {
-        // Identificación
+        // Identification
         this.id = data.id || null;
-        
-        // Datos del proveedor
-        this.nombre = data.nombre || '';
-        this.razonSocial = data.razonSocial || '';
-        this.rfc = data.rfc || '';
-        
-        // Contacto
-        this.telefono = data.telefono || '';
-        this.telefonoAlterno = data.telefonoAlterno || '';
-        this.correo = data.correo || '';
-        
-        // Dirección
-        this.direccionFiscal = data.direccionFiscal || '';
-        
-        // Imagen (base64)
-        this.imagen = data.imagen || '';
-        
-        // Estado
-        this.activo = data.activo !== undefined ? data.activo : true;
-        
+
+        // Supplier information
+        this.name = data.name || '';                    // Nombre del responsable
+        this.businessName = data.businessName || '';    // Razón o denominación social
+        this.rfc = data.rfc || '';                      // RFC
+
+        // Contact
+        this.phone = data.phone || '';                  // Teléfono principal
+        this.alternatePhone = data.alternatePhone || ''; // Teléfono alterno
+        this.email = data.email || '';                  // Correo electrónico
+
+        // Address
+        this.fiscalAddress = data.fiscalAddress || '';  // Dirección fiscal
+
+        // Image (base64)
+        this.image = data.image || '';
+
+        // Status
+        this.active = data.active !== undefined ? data.active : true;
+
         // Metadata
         this.createdAt = data.createdAt || new Date().toISOString();
         this.updatedAt = data.updatedAt || null;
-        this.createdBy = data.createdBy || null;  // ID del admin que lo creó
+        this.createdById = data.createdById || null;    // ID del admin que lo creó
     }
-    
+
     // ========== GETTERS ==========
-    
-    // Nombre comercial completo
-    get nombreCompleto() {
-        return `${this.nombre}${this.razonSocial ? ` (${this.razonSocial})` : ''}`;
+
+    // Full commercial name
+    get fullName() {
+        return `${this.name}${this.businessName ? ` (${this.businessName})` : ''}`;
     }
-    
-    // RFC formateado (sin espacios)
-    get rfcLimpio() {
+
+    // Clean RFC (no spaces, uppercase)
+    get cleanRfc() {
         return this.rfc?.toUpperCase().replace(/\s/g, '') || '';
     }
-    
-    // Teléfono principal
-    get telefonoPrincipal() {
-        return this.telefono;
+
+    // Main phone number
+    get mainPhone() {
+        return this.phone;
     }
-    
-    // ¿Tiene teléfono alterno?
-    get tieneTelefonoAlterno() {
-        return !!this.telefonoAlterno;
+
+    // Has alternate phone?
+    get hasAlternatePhone() {
+        return !!this.alternatePhone;
     }
-    
-    // Datos resumidos para listados
-    get datosResumidos() {
+
+    // Summary data for listings
+    get summary() {
         return {
             id: this.id,
-            nombre: this.nombre,
-            razonSocial: this.razonSocial,
+            name: this.name,
+            businessName: this.businessName,
             rfc: this.rfc,
-            telefono: this.telefono,
-            correo: this.correo,
-            activo: this.activo,
-            imagen: this.imagen
+            phone: this.phone,
+            email: this.email,
+            active: this.active,
+            image: this.image
         };
     }
-    
-    // ========== MÉTODOS ==========
-    
-    // Validar datos completos para registro
-    validarParaRegistro() {
-        const errores = [];
-        
-        if (!this.nombre || this.nombre.trim().length < 2) {
-            errores.push('El nombre debe tener al menos 2 caracteres');
+
+    // ========== METHODS ==========
+
+    // Validate complete data for registration
+    validateForRegistration() {
+        const errors = [];
+
+        if (!this.name || this.name.trim().length < 2) {
+            errors.push('Name must be at least 2 characters long');
         }
-        if (!this.razonSocial || this.razonSocial.trim().length < 3) {
-            errores.push('La razón social debe tener al menos 3 caracteres');
+        if (!this.businessName || this.businessName.trim().length < 3) {
+            errors.push('Business name must be at least 3 characters long');
         }
         if (!this.rfc || this.rfc.trim().length < 12) {
-            errores.push('RFC inválido (mínimo 12 caracteres)');
+            errors.push('Invalid RFC (minimum 12 characters)');
         }
-        if (!this.telefono || this.telefono.trim().length < 10) {
-            errores.push('Teléfono inválido (mínimo 10 dígitos)');
+        if (!this.phone || this.phone.trim().length < 10) {
+            errors.push('Invalid phone number (minimum 10 digits)');
         }
-        if (!this.correo || !this._validateEmail(this.correo)) {
-            errores.push('Correo electrónico inválido');
+        if (!this.email || !this._validateEmail(this.email)) {
+            errors.push('Invalid email address');
         }
-        if (!this.direccionFiscal || this.direccionFiscal.trim().length < 5) {
-            errores.push('Dirección fiscal requerida');
+        if (!this.fiscalAddress || this.fiscalAddress.trim().length < 5) {
+            errors.push('Fiscal address is required');
         }
-        
+
         return {
-            valido: errores.length === 0,
-            errores
+            valid: errors.length === 0,
+            errors
         };
     }
-    
-    // Validar email
+
+    // Validate email
     _validateEmail(email) {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return re.test(email);

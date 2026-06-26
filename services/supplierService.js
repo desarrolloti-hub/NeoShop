@@ -1,6 +1,6 @@
 /* ========================================
-   SUPPLIER SERVICE - Lógica de negocio para proveedores
-   COLECCIONES DINÁMICAS: suppliers + NombreTienda
+   SUPPLIER SERVICE - Business logic for suppliers
+   DYNAMIC COLLECTIONS: suppliers + StoreName
    ======================================== */
 
 import { Supplier } from '/classes/supplierModel.js';
@@ -10,91 +10,90 @@ import { AdminService } from '/services/adminService.js';
 
 export const SupplierService = {
     /**
-     * Crear nuevo proveedor
-     * @param {object} supplierData - Datos del proveedor
-     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
-     * @param {string} adminUserId - ID del administrador que crea
+     * Create new supplier
+     * @param {object} supplierData - Supplier data
+     * @param {string} storeName - Store name (required for collection)
+     * @param {string} adminUserId - ID of the admin who creates it
      */
     async create(supplierData, storeName, adminUserId = null) {
-        // Si no se proporciona storeName, intentar obtener de la sesión
+        // If storeName is not provided, try to get it from session
         if (!storeName) {
             const session = AdminService.getSession();
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para crear proveedores');
+                throw new Error('Store name is required to create suppliers');
             }
         }
 
-        // ========== VALIDACIONES ==========
-        if (!supplierData.nombre || supplierData.nombre.trim().length < 2) {
-            throw new Error('El nombre debe tener al menos 2 caracteres');
+        // ========== VALIDATIONS ==========
+        if (!supplierData.name || supplierData.name.trim().length < 2) {
+            throw new Error('Name must be at least 2 characters long');
         }
 
-        if (!supplierData.razonSocial || supplierData.razonSocial.trim().length < 3) {
-            throw new Error('La razón social debe tener al menos 3 caracteres');
+        if (!supplierData.businessName || supplierData.businessName.trim().length < 3) {
+            throw new Error('Business name must be at least 3 characters long');
         }
 
         if (!supplierData.rfc || supplierData.rfc.trim().length < 12) {
-            throw new Error('El RFC debe tener al menos 12 caracteres');
+            throw new Error('RFC must be at least 12 characters long');
         }
 
-        if (!supplierData.telefono || supplierData.telefono.trim().length < 10) {
-            throw new Error('El teléfono debe tener al menos 10 dígitos');
+        if (!supplierData.phone || supplierData.phone.trim().length < 10) {
+            throw new Error('Phone must be at least 10 digits');
         }
 
-        if (!supplierData.correo || !this._validateEmail(supplierData.correo)) {
-            throw new Error('Correo electrónico inválido');
+        if (!supplierData.email || !this._validateEmail(supplierData.email)) {
+            throw new Error('Invalid email address');
         }
 
-        if (!supplierData.direccionFiscal || supplierData.direccionFiscal.trim().length < 5) {
-            throw new Error('La dirección fiscal es requerida');
+        if (!supplierData.fiscalAddress || supplierData.fiscalAddress.trim().length < 5) {
+            throw new Error('Fiscal address is required');
         }
 
-        // Verificar si ya existe un proveedor con ese RFC en esta tienda
+        // Check if a supplier with this RFC already exists in this store
         const existingByRfc = await SupplierRepository.getByRfc(supplierData.rfc, storeName);
         if (existingByRfc) {
-            throw new Error(`Ya existe un proveedor con el RFC "${supplierData.rfc}" en esta tienda`);
+            throw new Error(`A supplier with RFC "${supplierData.rfc}" already exists in this store`);
         }
 
-        // Verificar si ya existe un proveedor con ese correo en esta tienda
-        const existingByEmail = await SupplierRepository.getByEmail(supplierData.correo, storeName);
+        // Check if a supplier with this email already exists in this store
+        const existingByEmail = await SupplierRepository.getByEmail(supplierData.email, storeName);
         if (existingByEmail) {
-            throw new Error(`Ya existe un proveedor con el correo "${supplierData.correo}" en esta tienda`);
+            throw new Error(`A supplier with email "${supplierData.email}" already exists in this store`);
         }
 
-        // ========== CREAR MODELO ==========
+        // ========== CREATE MODEL ==========
         const supplier = new Supplier({
-            nombre: supplierData.nombre.trim(),
-            razonSocial: supplierData.razonSocial.trim(),
+            name: supplierData.name.trim(),
+            businessName: supplierData.businessName.trim(),
             rfc: supplierData.rfc.trim().toUpperCase(),
-            telefono: supplierData.telefono.trim(),
-            telefonoAlterno: supplierData.telefonoAlterno?.trim() || '',
-            correo: supplierData.correo.toLowerCase().trim(),
-            direccionFiscal: supplierData.direccionFiscal.trim(),
-            imagen: supplierData.imagen || '',
-            activo: true,
-            createdBy: adminUserId,
-            storeId: supplierData.storeId || null
+            phone: supplierData.phone.trim(),
+            alternatePhone: supplierData.alternatePhone?.trim() || '',
+            email: supplierData.email.toLowerCase().trim(),
+            fiscalAddress: supplierData.fiscalAddress.trim(),
+            image: supplierData.image || '',
+            active: true,
+            createdById: adminUserId
         });
 
-        // Generar ID único
+        // Generate unique ID
         supplier.id = `supp_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
 
-        // ========== GUARDAR EN FIRESTORE (Colección dinámica) ==========
+        // ========== SAVE TO FIRESTORE (Dynamic collection) ==========
         const result = await SupplierRepository.save(supplier, storeName);
 
-        // Limpiar caché
+        // Clear cache
         await CacheService.clearCache(STORES.SUPPLIERS || 'suppliers');
 
         return new Supplier(result);
     },
 
     /**
-     * Obtener proveedor por ID
-     * @param {string} supplierId - ID del proveedor
-     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
-     * @param {boolean} forceRefresh - Forzar actualización desde BD
+     * Get supplier by ID
+     * @param {string} supplierId - Supplier ID
+     * @param {string} storeName - Store name (required for collection)
+     * @param {boolean} forceRefresh - Force refresh from database
      */
     async getById(supplierId, storeName = null, forceRefresh = false) {
         if (!storeName) {
@@ -102,7 +101,7 @@ export const SupplierService = {
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para obtener el proveedor');
+                throw new Error('Store name is required to get the supplier');
             }
         }
 
@@ -124,10 +123,10 @@ export const SupplierService = {
     },
 
     /**
-     * Obtener todos los proveedores de una tienda
-     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
-     * @param {object} filters - Filtros a aplicar
-     * @param {boolean} forceRefresh - Forzar actualización desde BD
+     * Get all suppliers from a store
+     * @param {string} storeName - Store name (required for collection)
+     * @param {object} filters - Filters to apply
+     * @param {boolean} forceRefresh - Force refresh from database
      */
     async getAll(storeName = null, filters = {}, forceRefresh = false) {
         if (!storeName) {
@@ -135,7 +134,7 @@ export const SupplierService = {
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para obtener los proveedores');
+                throw new Error('Store name is required to get suppliers');
             }
         }
 
@@ -157,10 +156,10 @@ export const SupplierService = {
     },
 
     /**
-     * Actualizar proveedor
-     * @param {string} supplierId - ID del proveedor
-     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
-     * @param {object} updateData - Datos a actualizar
+     * Update supplier
+     * @param {string} supplierId - Supplier ID
+     * @param {string} storeName - Store name (required for collection)
+     * @param {object} updateData - Data to update
      */
     async update(supplierId, storeName = null, updateData) {
         if (!storeName) {
@@ -168,42 +167,42 @@ export const SupplierService = {
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para actualizar el proveedor');
+                throw new Error('Store name is required to update the supplier');
             }
         }
 
         const currentSupplier = await this.getById(supplierId, storeName, true);
 
         if (!currentSupplier) {
-            throw new Error('Proveedor no encontrado');
+            throw new Error('Supplier not found');
         }
 
-        // Validaciones
-        if (updateData.nombre && updateData.nombre.length < 2) {
-            throw new Error('El nombre debe tener al menos 2 caracteres');
+        // Validations
+        if (updateData.name && updateData.name.length < 2) {
+            throw new Error('Name must be at least 2 characters long');
         }
 
-        if (updateData.correo && !this._validateEmail(updateData.correo)) {
-            throw new Error('Correo electrónico inválido');
+        if (updateData.email && !this._validateEmail(updateData.email)) {
+            throw new Error('Invalid email address');
         }
 
-        if (updateData.telefono && updateData.telefono.length < 10) {
-            throw new Error('El teléfono debe tener al menos 10 dígitos');
+        if (updateData.phone && updateData.phone.length < 10) {
+            throw new Error('Phone must be at least 10 digits');
         }
 
-        // Si se actualiza el RFC, verificar que no exista otro con ese RFC
+        // If RFC is being updated, check it doesn't exist for another supplier
         if (updateData.rfc && updateData.rfc !== currentSupplier.rfc) {
             const existingByRfc = await SupplierRepository.getByRfc(updateData.rfc, storeName);
             if (existingByRfc && existingByRfc.id !== supplierId) {
-                throw new Error(`Ya existe otro proveedor con el RFC "${updateData.rfc}"`);
+                throw new Error(`Another supplier with RFC "${updateData.rfc}" already exists`);
             }
         }
 
-        // Si se actualiza el correo, verificar que no exista otro con ese correo
-        if (updateData.correo && updateData.correo !== currentSupplier.correo) {
-            const existingByEmail = await SupplierRepository.getByEmail(updateData.correo, storeName);
+        // If email is being updated, check it doesn't exist for another supplier
+        if (updateData.email && updateData.email !== currentSupplier.email) {
+            const existingByEmail = await SupplierRepository.getByEmail(updateData.email, storeName);
             if (existingByEmail && existingByEmail.id !== supplierId) {
-                throw new Error(`Ya existe otro proveedor con el correo "${updateData.correo}"`);
+                throw new Error(`Another supplier with email "${updateData.email}" already exists`);
             }
         }
 
@@ -215,22 +214,22 @@ export const SupplierService = {
     },
 
     /**
-     * Cambiar estado del proveedor (activar/desactivar)
-     * @param {string} supplierId - ID del proveedor
-     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
-     * @param {boolean} activo - Estado activo/inactivo
+     * Toggle supplier status (active/inactive)
+     * @param {string} supplierId - Supplier ID
+     * @param {string} storeName - Store name (required for collection)
+     * @param {boolean} active - Active/inactive status
      */
-    async toggleStatus(supplierId, storeName = null, activo) {
+    async toggleStatus(supplierId, storeName = null, active) {
         if (!storeName) {
             const session = AdminService.getSession();
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para cambiar el estado del proveedor');
+                throw new Error('Store name is required to change supplier status');
             }
         }
 
-        const updated = await SupplierRepository.update(supplierId, storeName, { activo });
+        const updated = await SupplierRepository.update(supplierId, storeName, { active });
 
         await CacheService.clearCache(STORES.SUPPLIERS || 'suppliers');
 
@@ -238,10 +237,10 @@ export const SupplierService = {
     },
 
     /**
-     * Eliminar proveedor
-     * @param {string} supplierId - ID del proveedor
-     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
-     * @param {boolean} hardDelete - Eliminación física o lógica
+     * Delete supplier
+     * @param {string} supplierId - Supplier ID
+     * @param {string} storeName - Store name (required for collection)
+     * @param {boolean} hardDelete - Physical or logical deletion
      */
     async delete(supplierId, storeName = null, hardDelete = false) {
         if (!storeName) {
@@ -249,7 +248,7 @@ export const SupplierService = {
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para eliminar el proveedor');
+                throw new Error('Store name is required to delete the supplier');
             }
         }
 
@@ -261,31 +260,31 @@ export const SupplierService = {
     },
 
     /**
-     * Buscar proveedores
-     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
-     * @param {string} termino - Término de búsqueda
-     * @param {number} limit - Límite de resultados
+     * Search suppliers
+     * @param {string} storeName - Store name (required for collection)
+     * @param {string} term - Search term
+     * @param {number} limit - Result limit
      */
-    async search(storeName = null, termino, limit = 20) {
+    async search(storeName = null, term, limit = 20) {
         if (!storeName) {
             const session = AdminService.getSession();
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para buscar proveedores');
+                throw new Error('Store name is required to search suppliers');
             }
         }
 
-        if (!termino || termino.trim().length < 2) {
-            throw new Error('Ingrese al menos 2 caracteres para buscar');
+        if (!term || term.trim().length < 2) {
+            throw new Error('Enter at least 2 characters to search');
         }
 
-        const suppliersData = await SupplierRepository.search(storeName, termino, limit);
+        const suppliersData = await SupplierRepository.search(storeName, term, limit);
         return suppliersData.map(s => new Supplier(s));
     },
 
     /**
-     * Validar email
+     * Validate email
      */
     _validateEmail(email) {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

@@ -1,6 +1,6 @@
 /* ========================================
-   SUPPLIER REPOSITORY - Operaciones CRUD con Firebase
-   COLECCIONES DINÁMICAS: suppliers + NombreTienda
+   SUPPLIER REPOSITORY - CRUD Operations with Firebase
+   DYNAMIC COLLECTIONS: suppliers + StoreName
    ======================================== */
 
 import { db } from '/config/firebaseConfig.js';
@@ -9,24 +9,24 @@ import {
     query, where, orderBy, limit
 } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 
-// Función para generar el nombre de la colección en camelCase
+// Function to generate collection name in camelCase
 const getSupplierCollectionName = (storeName) => {
     if (!storeName) {
-        throw new Error('El nombre de la tienda es requerido para la colección de proveedores');
+        throw new Error('Store name is required for supplier collection');
     }
 
-    // Convertir a camelCase: "Mi Tienda Online" -> "suppliersMiTiendaOnline"
+    // Convert to camelCase: "Mi Tienda Online" -> "suppliersMiTiendaOnline"
     const camelCaseName = storeName
         .toLowerCase()
-        .replace(/[^a-zA-Z0-9]/g, ' ') // Reemplazar caracteres especiales con espacios
+        .replace(/[^a-zA-Z0-9]/g, ' ')
         .trim()
         .split(' ')
         .filter(word => word.length > 0)
         .map((word, index) => {
             if (index === 0) {
-                return word; // Primera palabra en minúscula
+                return word;
             }
-            return word.charAt(0).toUpperCase() + word.slice(1); // Resto con mayúscula inicial
+            return word.charAt(0).toUpperCase() + word.slice(1);
         })
         .join('');
 
@@ -37,19 +37,18 @@ export const SupplierRepository = {
     async save(supplierData, storeName) {
         const plainData = {
             id: supplierData.id,
-            nombre: supplierData.nombre || '',
-            razonSocial: supplierData.razonSocial || '',
+            name: supplierData.name || '',
+            businessName: supplierData.businessName || '',
             rfc: supplierData.rfc || '',
-            telefono: supplierData.telefono || '',
-            telefonoAlterno: supplierData.telefonoAlterno || '',
-            direccionFiscal: supplierData.direccionFiscal || '',
-            correo: supplierData.correo || '',
-            imagen: supplierData.imagen || '',
-            activo: supplierData.activo !== undefined ? supplierData.activo : true,
+            phone: supplierData.phone || '',
+            alternatePhone: supplierData.alternatePhone || '',
+            fiscalAddress: supplierData.fiscalAddress || '',
+            email: supplierData.email || '',
+            image: supplierData.image || '',
+            active: supplierData.active !== undefined ? supplierData.active : true,
             createdAt: supplierData.createdAt || new Date().toISOString(),
             updatedAt: supplierData.updatedAt || null,
-            createdBy: supplierData.createdBy || null,
-            storeId: supplierData.storeId || null // Referencia a la tienda
+            createdById: supplierData.createdById || null
         };
 
         const collectionName = getSupplierCollectionName(storeName);
@@ -80,7 +79,7 @@ export const SupplierRepository = {
         const collectionName = getSupplierCollectionName(storeName);
         const q = query(
             collection(db, collectionName),
-            where('correo', '==', email.toLowerCase()),
+            where('email', '==', email.toLowerCase()),
             limit(1)
         );
         const querySnapshot = await getDocs(q);
@@ -91,8 +90,8 @@ export const SupplierRepository = {
         const collectionName = getSupplierCollectionName(storeName);
         let constraints = [];
 
-        if (filters.activo !== undefined) {
-            constraints.push(where('activo', '==', filters.activo));
+        if (filters.active !== undefined) {
+            constraints.push(where('active', '==', filters.active));
         }
 
         constraints.push(limit(limitCount));
@@ -100,19 +99,19 @@ export const SupplierRepository = {
         const q = query(collection(db, collectionName), ...constraints);
         const querySnapshot = await getDocs(q);
 
-        const proveedores = [];
+        const suppliers = [];
         querySnapshot.forEach((doc) => {
-            proveedores.push({ id: doc.id, ...doc.data() });
+            suppliers.push({ id: doc.id, ...doc.data() });
         });
 
-        // Ordenar en memoria
-        proveedores.sort((a, b) => {
+        // Sort in memory by createdAt descending
+        suppliers.sort((a, b) => {
             const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
             const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
             return dateB - dateA;
         });
 
-        return proveedores;
+        return suppliers;
     },
 
     async update(supplierId, storeName, updateData) {
@@ -132,11 +131,11 @@ export const SupplierRepository = {
             await deleteDoc(supplierRef);
             return true;
         } else {
-            return await this.update(supplierId, storeName, { activo: false });
+            return await this.update(supplierId, storeName, { active: false });
         }
     },
 
-    async search(storeName, termino, limitCount = 20) {
+    async search(storeName, term, limitCount = 20) {
         const collectionName = getSupplierCollectionName(storeName);
         const q = query(
             collection(db, collectionName),
@@ -144,19 +143,19 @@ export const SupplierRepository = {
         );
         const querySnapshot = await getDocs(q);
 
-        const terminoLower = termino.toLowerCase();
-        const proveedores = [];
+        const termLower = term.toLowerCase();
+        const suppliers = [];
 
         querySnapshot.forEach((doc) => {
             const data = { id: doc.id, ...doc.data() };
-            if (data.nombre?.toLowerCase().includes(terminoLower) ||
-                data.razonSocial?.toLowerCase().includes(terminoLower) ||
-                data.rfc?.toLowerCase().includes(terminoLower) ||
-                data.correo?.toLowerCase().includes(terminoLower)) {
-                proveedores.push(data);
+            if (data.name?.toLowerCase().includes(termLower) ||
+                data.businessName?.toLowerCase().includes(termLower) ||
+                data.rfc?.toLowerCase().includes(termLower) ||
+                data.email?.toLowerCase().includes(termLower)) {
+                suppliers.push(data);
             }
         });
 
-        return proveedores.slice(0, limitCount);
+        return suppliers.slice(0, limitCount);
     }
 };
