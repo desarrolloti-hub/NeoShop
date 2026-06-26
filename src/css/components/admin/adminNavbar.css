@@ -133,13 +133,15 @@
 /* ============================================ */
 
 .admin-sidebar-footer {
-    padding: 1rem;
+    margin-top: 5px;
     border-top: 1px solid var(--border-light);
+    padding-top: 5px;
     background: var(--bg-white);
 }
 
 /* Información del usuario */
 .admin-user-info {
+    margin-top: 5px;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -531,5 +533,129 @@
 
     .admin-user-avatar i {
         font-size: 1.5rem;
+    }
+}
+
+/* ============================================ */
+/* TRIAL BADGE - Estilos para el badge de prueba */
+/* ============================================ */
+
+.trial-badge-container {
+    margin-bottom: var(--spacing-sm);
+    padding: 5px 4px 0 4px;
+}
+
+.trial-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--border-radius-md);
+    background: var(--color-primary-dark);
+    border: var(--text-light solid);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--text-light);
+    transition: all var(--transition-fast);
+}
+
+.trial-badge i {
+    color: var(--text-light);
+    font-size: 12px;
+}
+
+.trial-badge .trial-label {
+    font-weight: 400;
+    color: var(--text-light);
+    opacity: 0.7;
+}
+
+/* Badge con días restantes */
+.trial-badge .trial-days {
+    background: #f59e0b;
+    color: white;
+    padding: 0 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+/* Estado crítico (3 días o menos) */
+.trial-badge.critical {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    border-color: #ef4444;
+    color: #991b1b;
+    animation: pulseCritical 2s ease-in-out infinite;
+}
+
+.trial-badge.critical i {
+    color: #ef4444;
+}
+
+.trial-badge.critical .trial-label {
+    color: #991b1b;
+}
+
+@keyframes pulseCritical {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+/* Badge expirado */
+.trial-badge.expired {
+    background: linear-gradient(135deg, #fecaca, #fca5a5);
+    border-color: #dc2626;
+    color: #7f1d1d;
+    animation: pulseExpired 1.5s ease-in-out infinite;
+}
+
+.trial-badge.expired i {
+    color: #dc2626;
+}
+
+.trial-badge.expired .trial-label {
+    color: #7f1d1d;
+}
+
+@keyframes pulseExpired {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.03);
+        opacity: 0.8;
+    }
+}
+
+/* ============================================ */
+/* RESPONSIVE - Ajustes para móvil */
+/* ============================================ */
+
+@media (max-width: 550px) {
+    .trial-badge {
+        font-size: 10px;
+        padding: 4px 10px;
+        gap: 4px;
+    }
+
+    .trial-badge i {
+        font-size: 10px;
+    }
+
+    .trial-badge .trial-days {
+        font-size: 8px;
+        padding: 0 6px;
     }
 }

@@ -15,7 +15,7 @@ export async function createAccountController() {
     initAvatarClick();
     initAvatarUpload();
     initRemoveImageButton();
-    initPasswordToggle(); // ✅ Función para el ojito
+    initPasswordToggle();
     initRegisterFormSubmit();
     initGoogleRegister();
 }
@@ -112,26 +112,19 @@ function initRemoveImageButton() {
     });
 }
 
-// ✅ FUNCIÓN PARA EL OJITO DE CONTRASEÑA
 function initPasswordToggle() {
-    // Esperar a que el DOM esté listo
     setTimeout(() => {
         const toggleBtn = document.getElementById('togglePassword');
         const passwordInput = document.getElementById('password');
-
-        console.log('Toggle button found:', !!toggleBtn);
-        console.log('Password input found:', !!passwordInput);
 
         if (!toggleBtn || !passwordInput) {
             console.warn('Password toggle elements not found');
             return;
         }
 
-        // Remover event listeners anteriores
         const newToggleBtn = toggleBtn.cloneNode(true);
         toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
 
-        // Agregar event listener
         newToggleBtn.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -139,36 +132,27 @@ function initPasswordToggle() {
             const icon = this.querySelector('i');
             const isPasswordVisible = passwordInput.type === 'text';
 
-            console.log('Toggle clicked, current type:', passwordInput.type);
-
-            // Cambiar tipo de input
             passwordInput.type = isPasswordVisible ? 'password' : 'text';
 
-            // Cambiar icono
             if (icon) {
                 icon.className = isPasswordVisible ? 'fas fa-eye' : 'fas fa-eye-slash';
             }
 
-            // Cambiar aria-label
             this.setAttribute(
                 'aria-label',
                 isPasswordVisible ? 'Mostrar contraseña' : 'Ocultar contraseña'
             );
 
-            // Focus en el input después del toggle
             passwordInput.focus();
         });
 
-        // Soporte para teclado
         newToggleBtn.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 newToggleBtn.click();
             }
         });
-
-        console.log('Password toggle initialized successfully');
-    }, 100); // Pequeño delay para asegurar que el DOM está listo
+    }, 100);
 }
 
 function initRegisterFormSubmit() {
@@ -259,7 +243,6 @@ function initRegisterFormSubmit() {
             if (removeBtn) removeBtn.style.display = 'none';
             if (profileImageInput) profileImageInput.value = '';
 
-            // Resetear el tipo de contraseña a password
             const passwordInput = document.getElementById('password');
             if (passwordInput) {
                 passwordInput.type = 'password';
@@ -269,6 +252,7 @@ function initRegisterFormSubmit() {
                 }
             }
 
+            // ✅ Redirigir a login (la verificación de storeId se hará allí)
             setTimeout(() => {
                 if (typeof window.navigateTo === 'function') {
                     window.navigateTo('/iniciarSesion');
@@ -323,6 +307,7 @@ function initGoogleRegister() {
 
             if (termsCheckbox) termsCheckbox.checked = false;
 
+            // ✅ Redirigir a login (la verificación de storeId se hará allí)
             setTimeout(() => {
                 if (typeof window.navigateTo === 'function') {
                     window.navigateTo('/iniciarSesion');

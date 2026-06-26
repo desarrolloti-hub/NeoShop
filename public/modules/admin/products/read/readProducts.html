@@ -17,9 +17,10 @@
             <!-- Filtros: Buscador + Toggle de estado -->
             <div class="filters-wrapper">
                 <div class="search-wrapper">
-                    <input type="text" id="searchProduct" class="search-input" placeholder="Buscar por nombre, SKU o marca...">
+                    <input type="text" id="searchProduct" class="search-input"
+                        placeholder="Buscar por nombre, código o marca...">
                 </div>
-                
+
                 <!-- Toggle Switch para mostrar activos/inactivos -->
                 <div class="status-toggle-wrapper">
                     <span class="status-label">Inactivos</span>
@@ -36,7 +37,7 @@
                     <thead>
                         <tr>
                             <th>Imagen</th>
-                            <th>SKU</th>
+                            <th>Código</th>
                             <th>Nombre</th>
                             <th>Marca</th>
                             <th>Precio</th>
@@ -63,11 +64,21 @@
 <template id="productRowTemplate">
     <tr>
         <td class="product-img-container"></td>
-        <td><div class="middle-block"><span class="product-sku"></span></div></td>
-        <td><div class="middle-block"><span class="product-name"></span></div></td>
-        <td><div class="middle-block"><span class="product-brand"></span></div></td>
-        <td><div class="middle-block"><span class="product-price"></span></div></td>
-        <td><div class="middle-block"><span class="product-stock"></span></div></td>
+        <td>
+            <div class="middle-block"><span class="product-barcode"></span></div>
+        </td>
+        <td>
+            <div class="middle-block"><span class="product-name"></span></div>
+        </td>
+        <td>
+            <div class="middle-block"><span class="product-brand"></span></div>
+        </td>
+        <td>
+            <div class="middle-block"><span class="product-price"></span></div>
+        </td>
+        <td>
+            <div class="middle-block"><span class="product-stock"></span></div>
+        </td>
         <td><span class="product-status"></span></td>
         <td>
             <div class="action-badge">
@@ -90,7 +101,7 @@
             <div class="product-card-avatar"></div>
             <div class="product-card-title">
                 <h4 class="card-name"></h4>
-                <small class="card-sku"></small>
+                <small class="card-barcode"></small>
             </div>
         </div>
         <div class="product-card-info">
@@ -127,12 +138,12 @@
                     <i id="modalAvatarIcon" class="fas fa-box"></i>
                 </div>
                 <div class="modal-info">
-                    <p><strong>SKU:</strong> <span id="modalSku"></span></p>
-                    <p><strong>Nombre:</strong> <span id="modalNombre"></span></p>
-                    <p><strong>Marca:</strong> <span id="modalMarca"></span></p>
-                    <p><strong>Precio:</strong> <span id="modalPrecio"></span></p>
+                    <p><strong>Código:</strong> <span id="modalBarcode"></span></p>
+                    <p><strong>Nombre:</strong> <span id="modalName"></span></p>
+                    <p><strong>Marca:</strong> <span id="modalBrand"></span></p>
+                    <p><strong>Precio:</strong> <span id="modalPrice"></span></p>
                     <p><strong>Stock:</strong> <span id="modalStock"></span></p>
-                    <p><strong>Descripción:</strong> <span id="modalDescripcion"></span></p>
+                    <p><strong>Descripción:</strong> <span id="modalDescription"></span></p>
                 </div>
             </div>
             <div class="modal-footer">

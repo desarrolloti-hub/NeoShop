@@ -5,6 +5,7 @@
    ======================================== */
 
 import { AdminService } from '/services/adminService.js';
+import { AdminRepository } from '/repositories/adminRepository.js';
 
 let isLoading = false;
 
@@ -22,7 +23,8 @@ export async function loginController() {
     displayPlanInfo(plan, period);
 
     if (AdminService.isAuthenticated()) {
-        redirectByRole();
+        // ✅ Verificar si tiene storeId antes de redirigir
+        await checkStoreAndRedirect();
         return;
     }
 
@@ -30,6 +32,81 @@ export async function loginController() {
     initPasswordToggle();
     initLoginForm(plan, period);
     initGoogleLogin(plan, period);
+}
+
+// ✅ FUNCIÓN PARA VERIFICAR STOREID Y REDIRIGIR
+async function checkStoreAndRedirect() {
+    const session = AdminService.getSession();
+    const adminId = session?.id;
+
+    if (!adminId) {
+        redirectByRole();
+        return;
+    }
+
+    try {
+        // Obtener datos actualizados del admin
+        const adminData = await AdminRepository.getById(adminId);
+
+        // ✅ Si no tiene storeId, mostrar alerta para configurar tienda
+        if (!adminData?.storeId) {
+            const result = await Swal.fire({
+                title: '📋 Configura tu tienda',
+                html: `
+                    <div style="text-align: left;">
+                        <p>Para comenzar a usar NeoShop, necesitas configurar los datos de tu negocio.</p>
+                        <p style="color: #64748b; font-size: 0.9rem;">Este paso es obligatorio para poder gestionar productos, ventas y más.</p>
+                        <hr style="margin: 12px 0; border-color: #e2e8f0;">
+                        <p style="color: #64748b; font-size: 0.8rem;">
+                            <i class="fas fa-info-circle"></i> 
+                            Solo te tomará un par de minutos.
+                        </p>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonText: 'Ir a configurar',
+                confirmButtonColor: '#456da2',
+                showCancelButton: true,
+                cancelButtonText: 'Después',
+                cancelButtonColor: '#64748b',
+                allowOutsideClick: false
+            });
+
+            if (result.isConfirmed) {
+                // Redirigir a configuración de tienda
+                if (typeof window.navigateTo === 'function') {
+                    window.navigateTo('/crearTienda');
+                } else {
+                    window.location.href = '/crearTienda';
+                }
+            } else {
+                // Si cancela, igual redirigir a configuración (es obligatorio)
+                Swal.fire({
+                    title: 'Configuración necesaria',
+                    text: 'Para usar la plataforma, es necesario configurar tu tienda.',
+                    icon: 'warning',
+                    confirmButtonText: 'Configurar ahora',
+                    confirmButtonColor: '#456da2',
+                    allowOutsideClick: false
+                }).then(() => {
+                    if (typeof window.navigateTo === 'function') {
+                        window.navigateTo('/crearTienda');
+                    } else {
+                        window.location.href = '/crearTienda';
+                    }
+                });
+            }
+            return;
+        }
+
+        // ✅ Si tiene storeId, redirigir normalmente
+        redirectByRole();
+
+    } catch (error) {
+        console.error('Error verificando storeId:', error);
+        // En caso de error, redirigir normalmente
+        redirectByRole();
+    }
 }
 
 // ✅ FUNCIÓN PARA MOSTRAR EL PLAN SELECCIONADO (opcional)
@@ -114,10 +191,7 @@ function redirectByRole() {
         targetUrl = '/contacto';
     } else if (['basic', 'pro', 'enterprise'].includes(plan)) {
         // Planes de pago: redirigir al checkout para completar el pago
-        // Asumiendo que tienes una ruta /checkout o similar
         targetUrl = `/checkout?plan=${plan}&period=${period}`;
-        // Si no tienes checkout, puedes redirigir a un mensaje de "próximamente"
-        // targetUrl = '/inicioAdmin?payment_required=true';
     }
 
     window.location.href = targetUrl;
@@ -192,8 +266,8 @@ function initLoginForm(plan, period) {
         submitBtn.disabled = true;
 
         try {
-            // Llamada al servicio de login, pasando plan y period (por si el backend los necesita)
-            await AdminService.login(email, password, false, plan, period);
+            // Llamada al servicio de login
+            await AdminService.login(email, password, false);
 
             const session = AdminService.getSession();
             const nombre = session?.fullName || session?.name || 'Administrador';
@@ -215,7 +289,8 @@ function initLoginForm(plan, period) {
                 }
             });
 
-            redirectByRole();
+            // ✅ Verificar storeId antes de redirigir
+            await checkStoreAndRedirect();
 
         } catch (error) {
             Swal.close();
@@ -254,8 +329,8 @@ function initGoogleLogin(plan, period) {
         newGoogleBtn.disabled = true;
 
         try {
-            // Login con Google, pasando también plan y period
-            await AdminService.login(null, null, true, plan, period);
+            // Login con Google
+            await AdminService.login(null, null, true);
 
             const session = AdminService.getSession();
             const nombre = session?.fullName || session?.name || 'Administrador';
@@ -277,7 +352,8 @@ function initGoogleLogin(plan, period) {
                 }
             });
 
-            redirectByRole();
+            // ✅ Verificar storeId antes de redirigir
+            await checkStoreAndRedirect();
 
         } catch (error) {
             Swal.close();

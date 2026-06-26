@@ -4,6 +4,7 @@
    ======================================== */
 
 import { AuthService } from '../../../../services/authService.js';
+import { AdminService } from '../../../../services/adminService.js';
 import { checkTrialStatus, resetTrialAlerts, getTrialDaysLeft } from '../../../../services/trialCheckService.js';
 
 // ==================== CONFIGURATION ====================
@@ -46,11 +47,10 @@ export function initAdminNavbarController() {
         setActiveLink();
         loadUserInfo();
         applyModulePermissions();
+        updateTrialBadge(); // ✅ Actualizar badge de prueba
 
         // ✅ Verificar estado de prueba gratuita al cargar
         checkTrialStatus();
-
-
 
         console.log('✅ Admin Navbar Controller initialized');
     }).catch(error => {
@@ -92,7 +92,9 @@ function cacheElements() {
         avatarImg: document.getElementById('adminAvatarImg'),
         avatarIcon: document.getElementById('adminAvatarIcon'),
         userInfo: document.getElementById('adminUserInfo'),
-        menuItems: document.querySelectorAll('[data-module]')
+        menuItems: document.querySelectorAll('[data-module]'),
+        trialBadgeContainer: document.getElementById('trialBadgeContainer'),
+        trialDaysText: document.getElementById('trialDaysText')
     };
 }
 
@@ -134,6 +136,7 @@ function bindEvents() {
     window.addEventListener('auth:changed', () => {
         loadUserInfo();
         applyModulePermissions();
+        updateTrialBadge(); // ✅ Actualizar badge al cambiar auth
 
         // ✅ Resetear alertas y verificar al cambiar autenticación
         resetTrialAlerts();
@@ -141,6 +144,67 @@ function bindEvents() {
             checkTrialStatus();
         }
     });
+}
+
+// ==================== TRIAL BADGE ====================
+
+/**
+ * ✅ Actualiza el badge de prueba gratuita
+ * Solo se muestra para usuarios con plan 'full-free'
+ */
+function updateTrialBadge() {
+    const container = elements.trialBadgeContainer;
+    const daysText = elements.trialDaysText;
+
+    if (!container || !daysText) return;
+
+    try {
+        const session = AdminService.getSession();
+
+        // ✅ Si no hay sesión o no es plan gratuito, ocultar badge
+        if (!session || session.plan !== 'full-free') {
+            container.style.display = 'none';
+            return;
+        }
+
+        // ✅ Obtener días restantes
+        const daysLeft = getTrialDaysLeft();
+
+        // ✅ Si no hay fecha de prueba, ocultar
+        if (daysLeft === null || daysLeft === undefined) {
+            container.style.display = 'none';
+            return;
+        }
+
+        // ✅ Mostrar badge
+        container.style.display = 'block';
+        const badge = container.querySelector('.trial-badge');
+
+        // ✅ Remover clases de estado previas
+        badge.classList.remove('critical', 'expired');
+
+        if (daysLeft < 0) {
+            // ❌ Prueba expirada
+            daysText.textContent = '¡Expirado!';
+            badge.classList.add('expired');
+            badge.querySelector('i').className = 'fas fa-exclamation-triangle';
+        } else if (daysLeft <= 3) {
+            // ⚠️ Últimos 3 días
+            daysText.textContent = `${daysLeft} días`;
+            badge.classList.add('critical');
+            badge.querySelector('i').className = 'fas fa-clock';
+        } else {
+            // ✅ Prueba activa
+            daysText.textContent = `${daysLeft} días`;
+            badge.querySelector('i').className = 'fas fa-clock';
+        }
+
+        console.log(`✅ Trial badge updated: ${daysLeft} days left`);
+
+    } catch (error) {
+        console.error('Error updating trial badge:', error);
+        container.style.display = 'none';
+    }
 }
 
 // ==================== PERMISSION LOGIC ====================
@@ -183,6 +247,7 @@ function applyModulePermissions() {
 
         if (elements.userPlan) {
             const planNames = {
+                'full-free': 'Plan Gratuito',
                 [PLANS.BASIC]: 'Plan Básico',
                 [PLANS.PREMIUM]: 'Plan Premium',
                 [PLANS.FULL_PREMIUM]: 'Plan Full Premium',
@@ -504,9 +569,6 @@ async function handleLogout(event) {
     await timer;
 
     try {
-        // ✅ Limpiar intervalo de trial checker
-
-
         if (window.AuthService && typeof window.AuthService.logout === 'function') {
             await window.AuthService.logout();
         } else if (AuthService && typeof AuthService.logout === 'function') {
@@ -546,7 +608,11 @@ export function reinitialize() {
     setActiveLink();
     loadUserInfo();
     applyModulePermissions();
+    updateTrialBadge(); // ✅ Actualizar badge al re-inicializar
 
     // ✅ Resetear alertas y verificar al re-inicializar
-
+    resetTrialAlerts();
+    if (AdminService.isAuthenticated()) {
+        checkTrialStatus();
+    }
 }
