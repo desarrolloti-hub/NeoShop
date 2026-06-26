@@ -1,119 +1,137 @@
 /* ========================================
-   CACHE SERVICE - [Tu Proyecto]
-   Manejo de caché con IndexedDB
+   CACHE SERVICE - IndexedDB cache management
    ======================================== */
 
-const DB_NAME = 'TuProyecto_Cache';
-const DB_VERSION = 4; // ✅ Subir versión para agregar CASH_SESSIONS
+const DB_NAME = 'NeoShop_Cache';
+const DB_VERSION = 5; // Increment version for new stores
 
 export const STORES = {
     ADMINS: 'admins',
     SUPPLIERS: 'suppliers',
-    CASH_SESSIONS: 'cash_sessions', 
-    STORES: 'stores',        // <- Agregar esta linea
-    TIENDAS: 'tiendas',
-    PRODUCTOS: 'productos'
+    CASH_SESSIONS: 'cash_sessions',
+    STORES: 'stores',
+    STORE_ITEMS: 'store_items',
+    PRODUCTS: 'products'
 };
 
 let db = null;
+let isInitializing = false;
+let initPromise = null;
 
+/**
+ * Initialize IndexedDB database
+ */
 async function initDB() {
-    return new Promise((resolve, reject) => {
-        if (db) {
-            resolve(db);
-            return;
-        }
-        
+    // Return existing DB if already initialized
+    if (db) {
+        return db;
+    }
+
+    // Prevent multiple concurrent initializations
+    if (isInitializing) {
+        return initPromise;
+    }
+
+    isInitializing = true;
+
+    initPromise = new Promise((resolve, reject) => {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
-        
+
         request.onerror = () => {
-            console.error('Error abriendo IndexedDB:', request.error);
+            console.error('❌ Error opening IndexedDB:', request.error);
+            isInitializing = false;
             reject(request.error);
         };
-        
+
         request.onsuccess = () => {
             db = request.result;
-            console.log('✅ IndexedDB inicializado');
+            console.log('✅ IndexedDB initialized successfully');
+            isInitializing = false;
             resolve(db);
         };
-        
+
         request.onupgradeneeded = (event) => {
             const database = event.target.result;
-            
-            // ✅ Crear todos los object stores necesarios
-            if (!database.objectStoreNames.contains(STORES.ADMINS)) {
-                database.createObjectStore(STORES.ADMINS, { keyPath: 'id' });
-                console.log('📦 Store creado:', STORES.ADMINS);
-            }
-            
-            if (!database.objectStoreNames.contains(STORES.SUPPLIERS)) {
-                database.createObjectStore(STORES.SUPPLIERS, { keyPath: 'id' });
-                console.log('📦 Store creado:', STORES.SUPPLIERS);
-            }
-            
-            // ✅ AGREGAR CASH_SESSIONS
-            if (!database.objectStoreNames.contains(STORES.CASH_SESSIONS)) {
-                database.createObjectStore(STORES.CASH_SESSIONS, { keyPath: 'id' });
-                console.log('📦 Store creado:', STORES.CASH_SESSIONS);
-            }
-            
-            if (!database.objectStoreNames.contains(STORES.TIENDAS)) {
-                database.createObjectStore(STORES.TIENDAS, { keyPath: 'id' });
-                console.log('📦 Store creado:', STORES.TIENDAS);
-            }
-            
-            if (!database.objectStoreNames.contains(STORES.PRODUCTOS)) {
-                database.createObjectStore(STORES.PRODUCTOS, { keyPath: 'id' });
-                console.log('📦 Store creado:', STORES.PRODUCTOS);
-            }
+
+            // Create all required object stores
+            const storesToCreate = [
+                STORES.ADMINS,
+                STORES.SUPPLIERS,
+                STORES.CASH_SESSIONS,
+                STORES.STORES,
+                STORES.STORE_ITEMS,
+                STORES.PRODUCTS
+            ];
+
+            storesToCreate.forEach(storeName => {
+                if (!database.objectStoreNames.contains(storeName)) {
+                    database.createObjectStore(storeName, { keyPath: 'id' });
+                    console.log(`📦 Object store created: ${storeName}`);
+                }
+            });
+
+            console.log('✅ Database upgrade completed');
         };
     });
+
+    return initPromise;
 }
 
+/**
+ * Set cache item
+ * @param {string} storeName - Store name
+ * @param {string} id - Item ID
+ * @param {*} data - Data to cache
+ * @param {number} ttl - Time to live in milliseconds (default: 1 hour)
+ */
 export async function setCache(storeName, id, data, ttl = 3600000) {
     try {
         const database = await initDB();
-        
-        // ✅ Verificar que el store existe antes de intentar usarlo
+
         if (!database.objectStoreNames.contains(storeName)) {
-            console.warn(`⚠️ Store "${storeName}" no existe`);
+            console.warn(`⚠️ Store "${storeName}" does not exist, skipping cache`);
             return false;
         }
-        
+
         const transaction = database.transaction([storeName], 'readwrite');
         const store = transaction.objectStore(storeName);
-        
+
         const cacheItem = {
             id: id,
             data: data,
             timestamp: Date.now(),
             ttl: ttl
         };
-        
+
         return new Promise((resolve, reject) => {
             const request = store.put(cacheItem);
             request.onsuccess = () => resolve(true);
             request.onerror = () => reject(request.error);
         });
     } catch (error) {
-        console.error('Error guardando en caché:', error);
+        console.error('❌ Error saving to cache:', error);
         return false;
     }
 }
 
+/**
+ * Get cache item
+ * @param {string} storeName - Store name
+ * @param {string} id - Item ID
+ * @returns {*} Cached data or null if expired/not found
+ */
 export async function getCache(storeName, id) {
     try {
         const database = await initDB();
-        
-        // ✅ Verificar que el store existe
+
         if (!database.objectStoreNames.contains(storeName)) {
-            console.warn(`⚠️ Store "${storeName}" no existe`);
+            console.warn(`⚠️ Store "${storeName}" does not exist`);
             return null;
         }
-        
+
         const transaction = database.transaction([storeName], 'readonly');
         const store = transaction.objectStore(storeName);
-        
+
         return new Promise((resolve, reject) => {
             const request = store.get(id);
             request.onsuccess = () => {
@@ -127,38 +145,45 @@ export async function getCache(storeName, id) {
             request.onerror = () => reject(request.error);
         });
     } catch (error) {
-        console.error('Error obteniendo de caché:', error);
+        console.error('❌ Error getting from cache:', error);
         return null;
     }
 }
 
+/**
+ * Clear cache for a specific store
+ * @param {string} storeName - Store name
+ */
 export async function clearCache(storeName) {
     try {
         const database = await initDB();
-        
+
         if (!database.objectStoreNames.contains(storeName)) {
-            console.warn(`⚠️ Store "${storeName}" no existe, no se puede limpiar`);
+            console.warn(`⚠️ Store "${storeName}" does not exist, skipping clear`);
             return false;
         }
-        
+
         const transaction = database.transaction([storeName], 'readwrite');
         const store = transaction.objectStore(storeName);
-        
+
         return new Promise((resolve, reject) => {
             const request = store.clear();
             request.onsuccess = () => resolve(true);
             request.onerror = () => reject(request.error);
         });
     } catch (error) {
-        console.error('Error limpiando caché:', error);
+        console.error('❌ Error clearing cache:', error);
         return false;
     }
 }
 
+/**
+ * Clear all cache stores
+ */
 export async function clearAllCache() {
     try {
         const database = await initDB();
-        
+
         for (const storeName of Object.values(STORES)) {
             if (database.objectStoreNames.contains(storeName)) {
                 const transaction = database.transaction([storeName], 'readwrite');
@@ -168,15 +193,78 @@ export async function clearAllCache() {
                     request.onsuccess = () => resolve(true);
                     request.onerror = () => reject(request.error);
                 });
-                console.log(`🗑️ Store limpiado: ${storeName}`);
+                console.log(`🗑️ Cache cleared: ${storeName}`);
             }
         }
-        
-        console.log('✅ Caché completamente limpiada');
+
+        console.log('✅ All cache cleared successfully');
         return true;
     } catch (error) {
-        console.error('Error limpiando caché:', error);
+        console.error('❌ Error clearing all cache:', error);
         return false;
+    }
+}
+
+/**
+ * Remove a specific item from cache
+ * @param {string} storeName - Store name
+ * @param {string} id - Item ID
+ */
+export async function removeCache(storeName, id) {
+    try {
+        const database = await initDB();
+
+        if (!database.objectStoreNames.contains(storeName)) {
+            console.warn(`⚠️ Store "${storeName}" does not exist`);
+            return false;
+        }
+
+        const transaction = database.transaction([storeName], 'readwrite');
+        const store = transaction.objectStore(storeName);
+
+        return new Promise((resolve, reject) => {
+            const request = store.delete(id);
+            request.onsuccess = () => resolve(true);
+            request.onerror = () => reject(request.error);
+        });
+    } catch (error) {
+        console.error('❌ Error removing from cache:', error);
+        return false;
+    }
+}
+
+/**
+ * Get all items from a cache store
+ * @param {string} storeName - Store name
+ * @returns {Array} Array of cache items
+ */
+export async function getAllCache(storeName) {
+    try {
+        const database = await initDB();
+
+        if (!database.objectStoreNames.contains(storeName)) {
+            console.warn(`⚠️ Store "${storeName}" does not exist`);
+            return [];
+        }
+
+        const transaction = database.transaction([storeName], 'readonly');
+        const store = transaction.objectStore(storeName);
+
+        return new Promise((resolve, reject) => {
+            const request = store.getAll();
+            request.onsuccess = () => {
+                const results = request.result || [];
+                // Filter out expired items
+                const validItems = results.filter(item =>
+                    (Date.now() - item.timestamp) < item.ttl
+                );
+                resolve(validItems.map(item => item.data));
+            };
+            request.onerror = () => reject(request.error);
+        });
+    } catch (error) {
+        console.error('❌ Error getting all from cache:', error);
+        return [];
     }
 }
 
@@ -185,5 +273,7 @@ export const CacheService = {
     getCache,
     clearCache,
     clearAllCache,
+    removeCache,
+    getAllCache,
     STORES
 };

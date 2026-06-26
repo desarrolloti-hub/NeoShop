@@ -1,6 +1,6 @@
 /* ========================================
-   AUTH SERVICE - Solo gestión de autenticación
-   NO sabe nada de layouts, NO redirige
+   AUTH SERVICE - Authentication management only
+   Knows nothing about layouts, NO redirects
    ======================================== */
 
 import { AdminService, ROLES } from './adminService.js';
@@ -9,57 +9,57 @@ export { ROLES };
 
 export const AuthService = {
     /**
-     * Observador de cambios en autenticación
+     * Authentication state change observer
      */
     onAuthStateChange(callback) {
         const userData = AdminService.getSession();
         callback(userData);
-        
+
         const handler = (e) => callback(e.detail);
         window.addEventListener('auth:stateChanged', handler);
-        
+
         return () => window.removeEventListener('auth:stateChanged', handler);
     },
-    
+
     /**
-     * Obtener rol del usuario (síncrono)
+     * Get user role (synchronous)
      */
     getUserRoleSync() {
         const session = AdminService.getSession();
         if (!session) return ROLES.GUEST;
         return ROLES.ADMIN;
     },
-    
+
     /**
-     * Verificar si está autenticado
+     * Check if user is authenticated
      */
     isAuthenticated() {
         return AdminService.isAuthenticated();
     },
-    
+
     /**
-     * Obtener usuario actual
+     * Get current user
      */
     getCurrentUser() {
         return AdminService.getSession();
     },
-    
+
     /**
-     * Cerrar sesión
+     * Logout
      */
     async logout() {
         return await AdminService.logout();
     },
-    
+
     /**
-     * Iniciar sesión
+     * Login
      */
     async login(email, password, isGoogle = false) {
         return await AdminService.login(email, password, isGoogle);
     },
-    
+
     /**
-     * Registrar usuario
+     * Register user
      */
     async register(userData, password) {
         return await AdminService.register(userData, password);
