@@ -1,6 +1,6 @@
 /* FILE: createStoreController.js
    ========================================================
-   CONTROLADOR PARA CONFIGURAR DATOS DE LA TIENDA
+   CONTROLLER FOR STORE CONFIGURATION (CREATE/EDIT)
    ======================================================== */
 
 import { AdminService } from '/services/adminService.js';
@@ -10,23 +10,351 @@ import { StoreService } from '/services/storeService.js';
 let currentStep = 1;
 let isTransitioning = false;
 let storeLogoBase64 = '';
+let isEditMode = false;
+let existingStoreData = null;
 
 export async function createStoreController() {
+    console.log('🚀 createStoreController initialized');
+
+    // ⚠️ FORZAR STEP 1 SIEMPRE AL INICIAR
+    currentStep = 1;
+    isTransitioning = false;
+
+    await loadExistingData();
     initWizard();
     initLogoUpload();
     initNavigationButtons();
-    initCompleteButton();
-    initSkipButton();
-    await loadExistingData();
+    initSaveButton();
+    initCancelButton();
+
+    // ⚠️ FORZAR UI AL PASO 1 DESPUÉS DE CARGAR
+    forceStep1();
 }
 
-function initWizard() {
-    const stepItems = document.querySelectorAll('.step-item');
+/* ========================================================
+   FORZAR QUE LA UI ESTÉ EN EL PASO 1
+   ======================================================== */
+function forceStep1() {
+    console.log('🔄 Forzando paso 1...');
+
     const panels = document.querySelectorAll('.carousel-panel');
+    const stepItems = document.querySelectorAll('.step-item');
+    const dots = document.querySelectorAll('.step-dot');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const actionButtons = document.getElementById('actionButtons');
+
+    // Ocultar todos los paneles
+    panels.forEach(panel => panel.classList.remove('active'));
+
+    // Mostrar solo el panel 1
+    const panel1 = document.querySelector('.carousel-panel[data-panel="1"]');
+    if (panel1) {
+        panel1.classList.add('active');
+        panel1.style.animation = 'fadeInUp 0.5s ease forwards';
+    }
+
+    // Actualizar steps
+    stepItems.forEach((step, idx) => {
+        if (idx === 0) {
+            step.classList.add('active');
+        } else {
+            step.classList.remove('active');
+        }
+    });
+
+    // Actualizar dots
+    dots.forEach((dot, idx) => {
+        if (idx === 0) {
+            dot.classList.add('active');
+        } else {
+            dot.classList.remove('active');
+        }
+    });
+
+    // Actualizar step display
     const stepDisplay = document.getElementById('currentStepDisplay');
+    if (stepDisplay) stepDisplay.textContent = '1';
+
+    // Botones
+    if (prevBtn) prevBtn.disabled = true;
+    if (nextBtn) nextBtn.style.display = 'flex';
+    if (actionButtons) actionButtons.style.display = 'none';
+
+    // Cancel button
+    const cancelBtn = document.getElementById('cancelBtn');
+    if (cancelBtn) {
+        cancelBtn.style.display = isEditMode ? 'flex' : 'none';
+    }
+
+    currentStep = 1;
+    console.log('✅ Paso 1 forzado correctamente');
+}
+
+/* ========================================================
+   LOAD EXISTING DATA
+   ======================================================== */
+async function loadExistingData() {
+    console.log('📥 Loading existing data...');
+
+    try {
+        const adminSession = AdminService.getSession();
+        const adminId = adminSession?.id;
+
+        console.log('👤 Admin session:', adminSession);
+        console.log('🆔 Admin ID:', adminId);
+
+        if (!adminId) {
+            console.warn('⚠️ No admin session found');
+            return;
+        }
+
+        const adminData = await AdminRepository.getById(adminId);
+        console.log('📋 Admin data from repository:', adminData);
+
+        if (adminData?.storeId) {
+            console.log('🏪 Store ID found:', adminData.storeId);
+            console.log('🏪 Store name:', adminData.storeName);
+
+            isEditMode = true;
+
+            try {
+                const store = await StoreService.getById(adminData.storeId, adminData.storeName, true);
+                console.log('📦 Store data loaded:', store);
+
+                if (store) {
+                    existingStoreData = store;
+                    fillFormWithStoreData(store);
+                    showEditModeUI();
+                    console.log('✅ Store loaded for editing:', store.id);
+                } else {
+                    console.warn('⚠️ Store not found, falling back to create mode');
+                    isEditMode = false;
+                }
+            } catch (error) {
+                console.error('❌ Error loading store:', error);
+                isEditMode = false;
+            }
+        } else {
+            console.log('ℹ️ No store found, create mode');
+            isEditMode = false;
+            fillFormWithAdminData(adminData);
+        }
+    } catch (error) {
+        console.error('❌ Error loading existing data:', error);
+        isEditMode = false;
+    }
+
+    console.log('📌 Final mode:', isEditMode ? 'EDIT' : 'CREATE');
+}
+
+function fillFormWithStoreData(store) {
+    console.log('📝 Filling form with store data:', store);
+
+    const businessName = document.getElementById('businessName');
+    const rfc = document.getElementById('rfc');
+    const phone = document.getElementById('businessPhone');
+    const billingEmail = document.getElementById('billingEmail');
+    const street = document.getElementById('street');
+    const neighborhood = document.getElementById('neighborhood');
+    const postalCode = document.getElementById('postalCode');
+    const city = document.getElementById('city');
+    const state = document.getElementById('state');
+    const refs = document.getElementById('locationRefs');
+
+    if (businessName) {
+        businessName.value = store.name || '';
+        businessName.disabled = true;
+        businessName.title = 'El nombre del negocio no se puede modificar';
+        businessName.style.opacity = '0.7';
+        businessName.style.cursor = 'not-allowed';
+
+        const nameNote = document.getElementById('nameNote');
+        if (nameNote) nameNote.style.display = 'block';
+        console.log('✅ Business name set:', store.name);
+    }
+
+    if (rfc) rfc.value = store.rfc || '';
+    if (phone) phone.value = store.phone || '';
+    if (billingEmail) billingEmail.value = store.billingEmail || '';
+    if (street) street.value = store.address?.street || '';
+    if (neighborhood) neighborhood.value = store.address?.neighborhood || '';
+    if (postalCode) postalCode.value = store.address?.postalCode || '';
+    if (city) city.value = store.address?.city || '';
+    if (state) state.value = store.address?.state || '';
+    if (refs) refs.value = store.address?.references || '';
+
+    if (store.logo) {
+        storeLogoBase64 = store.logo;
+        showLogoPreview(store.logo);
+        console.log('✅ Logo loaded');
+    }
+
+    const titleEl = document.querySelector('.store-create-header h2');
+    if (titleEl) titleEl.textContent = 'Editar tienda';
+
+    const subtitleEl = document.querySelector('.store-create-header p');
+    if (subtitleEl) subtitleEl.textContent = 'Actualiza los datos de tu negocio';
+}
+
+function fillFormWithAdminData(adminData) {
+    console.log('📝 Filling form with admin data:', adminData);
+
+    if (!adminData) return;
+
+    const businessName = document.getElementById('businessName');
+    const rfc = document.getElementById('rfc');
+    const phone = document.getElementById('businessPhone');
+    const billingEmail = document.getElementById('billingEmail');
+    const street = document.getElementById('street');
+    const neighborhood = document.getElementById('neighborhood');
+    const postalCode = document.getElementById('postalCode');
+    const city = document.getElementById('city');
+    const state = document.getElementById('state');
+    const refs = document.getElementById('locationRefs');
+
+    if (businessName) businessName.value = adminData.name || '';
+    if (rfc) rfc.value = adminData.rfc || '';
+    if (phone) phone.value = adminData.phone || '';
+    if (billingEmail) billingEmail.value = adminData.billingEmail || '';
+    if (street) street.value = adminData.address?.street || '';
+    if (neighborhood) neighborhood.value = adminData.address?.neighborhood || '';
+    if (postalCode) postalCode.value = adminData.address?.postalCode || '';
+    if (city) city.value = adminData.address?.city || '';
+    if (state) state.value = adminData.address?.state || '';
+    if (refs) refs.value = adminData.address?.references || '';
+}
+
+function showEditModeUI() {
+    console.log('🖥️ Showing edit mode UI');
+
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) {
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> Actualizar tienda';
+    }
+
+    const cancelBtn = document.getElementById('cancelBtn');
+    if (cancelBtn) {
+        cancelBtn.style.display = 'flex';
+        cancelBtn.innerHTML = '<i class="fas fa-times"></i> Cancelar';
+    }
+}
+
+/* ========================================================
+   LOGO UPLOAD
+   ======================================================== */
+function initLogoUpload() {
+    const uploadWrapper = document.getElementById('logoUploadWrapper');
+    const fileInput = document.getElementById('logoInput');
+    const uploadBtn = document.getElementById('uploadLogoBtn');
+    const removeBtn = document.getElementById('removeLogoBtn');
+
+    if (!uploadWrapper || !fileInput) {
+        console.warn('⚠️ Logo upload elements not found');
+        return;
+    }
+
+    uploadWrapper.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.click();
+    });
+
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fileInput.click();
+        });
+    }
+
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            showToast('Selecciona una imagen válida', 'error');
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            showToast('La imagen no debe superar los 2MB', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            storeLogoBase64 = ev.target.result;
+            showLogoPreview(storeLogoBase64);
+            updateLogoButtons(true);
+            showToast('Logotipo cargado', 'success');
+        };
+        reader.readAsDataURL(file);
+    });
+
+    if (removeBtn) {
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            storeLogoBase64 = '';
+            hideLogoPreview();
+            updateLogoButtons(false);
+            fileInput.value = '';
+            showToast('Logotipo eliminado', 'info');
+        });
+    }
+}
+
+function showLogoPreview(base64Image) {
+    const previewImg = document.getElementById('logoPreviewImg');
+    const logoIcon = document.getElementById('logoIcon');
+
+    if (previewImg) {
+        previewImg.src = base64Image;
+        previewImg.style.display = 'block';
+    }
+    if (logoIcon) logoIcon.style.display = 'none';
+}
+
+function hideLogoPreview() {
+    const previewImg = document.getElementById('logoPreviewImg');
+    const logoIcon = document.getElementById('logoIcon');
+
+    if (previewImg) {
+        previewImg.src = '';
+        previewImg.style.display = 'none';
+    }
+    if (logoIcon) logoIcon.style.display = 'block';
+}
+
+function updateLogoButtons(hasImage) {
+    const uploadBtn = document.getElementById('uploadLogoBtn');
+    const removeBtn = document.getElementById('removeLogoBtn');
+
+    if (hasImage) {
+        if (uploadBtn) {
+            uploadBtn.innerHTML = '<i class="fas fa-exchange-alt"></i> Cambiar';
+            uploadBtn.className = 'store-logo-btn primary';
+        }
+        if (removeBtn) {
+            removeBtn.className = 'store-logo-btn danger';
+            removeBtn.style.display = 'inline-flex';
+        }
+    } else {
+        if (uploadBtn) {
+            uploadBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Subir logo';
+            uploadBtn.className = 'store-logo-btn';
+        }
+        if (removeBtn) {
+            removeBtn.style.display = 'none';
+        }
+    }
+}
+
+/* ========================================================
+   WIZARD
+   ======================================================== */
+function initWizard() {
+    const stepItems = document.querySelectorAll('.step-item');
+    const panels = document.querySelectorAll('.carousel-panel');
+    const dots = document.querySelectorAll('.step-dot');
 
     function updateUI() {
         stepItems.forEach((step, idx) => {
@@ -34,29 +362,36 @@ function initWizard() {
             else step.classList.remove('active');
         });
 
+        dots.forEach((dot, idx) => {
+            if (idx + 1 === currentStep) dot.classList.add('active');
+            else dot.classList.remove('active');
+        });
+
         panels.forEach((panel, idx) => {
             if (idx + 1 === currentStep) panel.classList.add('active');
             else panel.classList.remove('active');
         });
 
+        const stepDisplay = document.getElementById('currentStepDisplay');
         if (stepDisplay) stepDisplay.textContent = currentStep;
+
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const actionButtons = document.getElementById('actionButtons');
+
         if (prevBtn) prevBtn.disabled = currentStep === 1;
-        if (nextBtn) nextBtn.disabled = currentStep === 2;
+
+        if (nextBtn) {
+            nextBtn.style.display = currentStep === 1 ? 'flex' : 'none';
+        }
+
         if (actionButtons) {
             actionButtons.style.display = currentStep === 2 ? 'flex' : 'none';
         }
-    }
 
-    function nextStep() {
-        if (currentStep < 2 && !isTransitioning) {
-            if (currentStep === 1 && !validateStep1()) return;
-            cambiarPanel(1);
-        }
-    }
-
-    function prevStep() {
-        if (currentStep > 1 && !isTransitioning) {
-            cambiarPanel(-1);
+        const cancelBtn = document.getElementById('cancelBtn');
+        if (cancelBtn) {
+            cancelBtn.style.display = isEditMode ? 'flex' : 'none';
         }
     }
 
@@ -88,18 +423,27 @@ function initWizard() {
             if (idx + 1 > currentStep) {
                 if (currentStep === 1 && !validateStep1()) return;
             }
-            while (currentStep < idx + 1) cambiarPanel(1);
+            while (currentStep < idx + 1) {
+                if (currentStep === 1 && !validateStep1()) return;
+                cambiarPanel(1);
+            }
             while (currentStep > idx + 1) cambiarPanel(-1);
         });
     });
 
-    if (prevBtn) prevBtn.addEventListener('click', prevStep);
-    if (nextBtn) nextBtn.addEventListener('click', nextStep);
+    dots.forEach((dot, idx) => {
+        dot.addEventListener('click', () => {
+            if (idx + 1 > currentStep) {
+                if (currentStep === 1 && !validateStep1()) return;
+            }
+            while (currentStep < idx + 1) {
+                if (currentStep === 1 && !validateStep1()) return;
+                cambiarPanel(1);
+            }
+            while (currentStep > idx + 1) cambiarPanel(-1);
+        });
+    });
 
-    updateUI();
-}
-
-function initNavigationButtons() {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
 
@@ -119,8 +463,15 @@ function initNavigationButtons() {
             }
         });
     }
+
+    // ⚠️ FORZAR UI AL PASO 1
+    currentStep = 1;
+    updateUI();
 }
 
+/* ========================================================
+   VALIDATIONS
+   ======================================================== */
 function validateStep1() {
     const businessName = document.getElementById('businessName')?.value.trim();
     const rfc = document.getElementById('rfc')?.value.trim();
@@ -136,8 +487,18 @@ function validateStep1() {
         document.getElementById('rfc')?.focus();
         return false;
     }
+    if (rfc.length < 12) {
+        showToast('RFC inválido (mínimo 12 caracteres)', 'error');
+        document.getElementById('rfc')?.focus();
+        return false;
+    }
     if (!phone) {
-        showToast('Ingresa el telefono del negocio', 'error');
+        showToast('Ingresa el teléfono del negocio', 'error');
+        document.getElementById('businessPhone')?.focus();
+        return false;
+    }
+    if (phone.length < 10) {
+        showToast('Teléfono inválido (mínimo 10 dígitos)', 'error');
         document.getElementById('businessPhone')?.focus();
         return false;
     }
@@ -145,61 +506,59 @@ function validateStep1() {
     return true;
 }
 
-function initLogoUpload() {
-    const uploadArea = document.getElementById('logoUploadArea');
-    const fileInput = document.getElementById('logoInput');
-    const placeholder = document.getElementById('logoPlaceholder');
-    const preview = document.getElementById('logoPreview');
-    const previewImg = document.getElementById('logoPreviewImg');
-    const removeBtn = document.getElementById('removeLogoBtn');
+function validateStep2() {
+    const street = document.getElementById('street')?.value.trim();
+    const postalCode = document.getElementById('postalCode')?.value.trim();
+    const city = document.getElementById('city')?.value.trim();
+    const state = document.getElementById('state')?.value.trim();
 
-    if (!uploadArea) return;
-
-    uploadArea.addEventListener('click', () => fileInput.click());
-
-    fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            showToast('Selecciona una imagen valida', 'error');
-            return;
-        }
-
-        if (file.size > 2 * 1024 * 1024) {
-            showToast('La imagen no debe superar los 2MB', 'error');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            storeLogoBase64 = ev.target.result;
-            previewImg.src = storeLogoBase64;
-            placeholder.style.display = 'none';
-            preview.style.display = 'flex';
-            showToast('Logotipo cargado', 'success');
-        };
-        reader.readAsDataURL(file);
-    });
-
-    if (removeBtn) {
-        removeBtn.addEventListener('click', () => {
-            storeLogoBase64 = '';
-            placeholder.style.display = 'flex';
-            preview.style.display = 'none';
-            fileInput.value = '';
-            showToast('Logotipo eliminado', 'info');
-        });
+    if (!street) {
+        showToast('Ingresa la calle', 'error');
+        document.getElementById('street')?.focus();
+        return false;
     }
+    if (!postalCode) {
+        showToast('Ingresa el código postal', 'error');
+        document.getElementById('postalCode')?.focus();
+        return false;
+    }
+    if (!city) {
+        showToast('Ingresa la ciudad', 'error');
+        document.getElementById('city')?.focus();
+        return false;
+    }
+    if (!state) {
+        showToast('Ingresa el estado', 'error');
+        document.getElementById('state')?.focus();
+        return false;
+    }
+
+    return true;
 }
 
-function initCompleteButton() {
-    const completeBtn = document.getElementById('completeBtn');
-    if (!completeBtn) return;
+/* ========================================================
+   NAVIGATION BUTTONS
+   ======================================================== */
+function initNavigationButtons() {
+    // Ya está manejado en initWizard
+}
 
-    completeBtn.addEventListener('click', async () => {
-        if (!validateStep1()) {
-            showToast('Completa todos los campos del paso 1', 'error');
+/* ========================================================
+   SAVE BUTTON
+   ======================================================== */
+function initSaveButton() {
+    const saveBtn = document.getElementById('saveBtn');
+    if (!saveBtn) {
+        console.warn('⚠️ Save button not found');
+        return;
+    }
+
+    saveBtn.addEventListener('click', async () => {
+        console.log('💾 Save button clicked');
+        console.log('📌 isEditMode:', isEditMode);
+
+        if (!validateStep1() || !validateStep2()) {
+            console.warn('⚠️ Validation failed');
             return;
         }
 
@@ -207,14 +566,15 @@ function initCompleteButton() {
         const adminId = adminSession?.id;
 
         if (!adminId) {
-            showToast('No se encontro la sesion del administrador', 'error');
+            showToast('No se encontró la sesión del administrador', 'error');
             return;
         }
 
         const businessName = document.getElementById('businessName')?.value.trim();
+        const finalName = isEditMode ? existingStoreData?.name : businessName;
 
         const storeData = {
-            name: businessName,
+            name: finalName || businessName,
             rfc: document.getElementById('rfc')?.value.trim(),
             phone: document.getElementById('businessPhone')?.value.trim(),
             billingEmail: document.getElementById('billingEmail')?.value.trim(),
@@ -229,47 +589,54 @@ function initCompleteButton() {
             }
         };
 
-        const submitBtn = completeBtn;
+        console.log('📦 Store data to save:', storeData);
+
+        const submitBtn = saveBtn;
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
         submitBtn.disabled = true;
 
         try {
-            // 1. Crear la tienda en Firestore (coleccion dinámica 'stores + NombreTienda')
-            // El ID se genera automaticamente como camelCase del nombre
-            const newStore = await StoreService.create(storeData, adminId, adminSession);
+            let result;
 
-            console.log('✅ Tienda creada con ID:', newStore.id);
-            console.log('✅ Colección creada:', `stores${businessName.replace(/\s/g, '')}`);
+            if (isEditMode) {
+                console.log('🔄 Updating store:', existingStoreData.id);
+                result = await StoreService.update(existingStoreData.id, existingStoreData.name, storeData);
+                console.log('✅ Store updated:', result);
 
-            // 2. Actualizar el admin en Firestore con el storeId y el nombre de la tienda
-            await AdminRepository.update(adminId, {
-                storeId: newStore.id,
-                storeName: businessName // Guardamos el nombre para futuras operaciones
-            });
+                await Swal.fire({
+                    title: '¡Tienda actualizada!',
+                    text: 'Los datos de tu negocio han sido actualizados correctamente',
+                    icon: 'success',
+                    confirmButtonText: 'Ir al dashboard',
+                    confirmButtonColor: '#22c55e'
+                });
+            } else {
+                console.log('🆕 Creating store...');
+                result = await StoreService.create(storeData, adminId, adminSession);
+                console.log('✅ Store created:', result);
 
-            console.log('✅ Admin actualizado con storeId:', newStore.id);
+                await AdminRepository.update(adminId, {
+                    storeId: result.id,
+                    storeName: businessName
+                });
 
-            // 3. Actualizar la sesion en localStorage con el storeId y storeName
-            const updatedSession = {
-                ...adminSession,
-                storeId: newStore.id,
-                storeName: businessName
-            };
-            localStorage.setItem('admin_user', JSON.stringify(updatedSession));
+                const updatedSession = {
+                    ...adminSession,
+                    storeId: result.id,
+                    storeName: businessName
+                };
+                localStorage.setItem('admin_user', JSON.stringify(updatedSession));
+                window.dispatchEvent(new CustomEvent('auth:stateChanged', { detail: updatedSession }));
 
-            // 4. Disparar evento de cambio de autenticacion para que otros componentes se actualicen
-            window.dispatchEvent(new CustomEvent('auth:stateChanged', { detail: updatedSession }));
-
-            console.log('✅ Sesion local actualizada');
-
-            await Swal.fire({
-                title: '¡Configuracion guardada!',
-                text: 'Los datos de tu negocio han sido registrados correctamente',
-                icon: 'success',
-                confirmButtonText: 'Ir al dashboard',
-                confirmButtonColor: '#22c55e'
-            });
+                await Swal.fire({
+                    title: '¡Configuración guardada!',
+                    text: 'Los datos de tu negocio han sido registrados correctamente',
+                    icon: 'success',
+                    confirmButtonText: 'Ir al dashboard',
+                    confirmButtonColor: '#22c55e'
+                });
+            }
 
             if (typeof window.navigateTo === 'function') {
                 window.navigateTo('/inicioAdmin');
@@ -278,8 +645,8 @@ function initCompleteButton() {
             }
 
         } catch (error) {
-            console.error('Error al guardar:', error);
-            showToast(error.message || 'Error al guardar la configuracion', 'error');
+            console.error('❌ Error al guardar:', error);
+            showToast(error.message || 'Error al guardar la configuración', 'error');
         } finally {
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
@@ -287,23 +654,38 @@ function initCompleteButton() {
     });
 }
 
-function initSkipButton() {
-    const skipBtn = document.getElementById('skipBtn');
-    if (!skipBtn) return;
+/* ========================================================
+   CANCEL BUTTON - Solo en edición
+   ======================================================== */
+function initCancelButton() {
+    const cancelBtn = document.getElementById('cancelBtn');
+    if (!cancelBtn) {
+        console.warn('⚠️ Cancel button not found');
+        return;
+    }
 
-    skipBtn.addEventListener('click', async () => {
+    cancelBtn.addEventListener('click', async () => {
+        console.log('❌ Cancel button clicked');
+
+        if (!isEditMode) {
+            console.warn('⚠️ Cancel button clicked but not in edit mode');
+            return;
+        }
+
         const result = await Swal.fire({
-            title: '¿Omitir configuracion?',
-            text: 'Podras completar estos datos mas tarde desde la configuracion',
-            icon: 'question',
+            title: '¿Cancelar edición?',
+            text: 'Los cambios no guardados se perderán',
+            icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Si, omitir',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#64748b',
-            cancelButtonColor: '#456da2'
+            confirmButtonText: 'Sí, cancelar',
+            cancelButtonText: 'Seguir editando',
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#64748b',
+            reverseButtons: true
         });
 
         if (result.isConfirmed) {
+            console.log('✅ Cancel confirmed, redirecting...');
             if (typeof window.navigateTo === 'function') {
                 window.navigateTo('/inicioAdmin');
             } else {
@@ -313,69 +695,9 @@ function initSkipButton() {
     });
 }
 
-async function loadExistingData() {
-    try {
-        const adminSession = AdminService.getSession();
-        const adminId = adminSession?.id;
-
-        if (!adminId) return;
-
-        // Verificar si el admin ya tiene una tienda
-        const adminData = await AdminRepository.getById(adminId);
-
-        if (adminData?.storeId) {
-            // Si ya tiene tienda, redirigir al dashboard
-            Swal.fire({
-                title: 'Tienda ya configurada',
-                text: 'Tu negocio ya ha sido configurado anteriormente',
-                icon: 'info',
-                confirmButtonText: 'Ir al dashboard',
-                confirmButtonColor: '#456da2'
-            }).then(() => {
-                window.location.href = '/inicioAdmin';
-            });
-            return;
-        }
-
-        // Si no tiene tienda, cargar datos existentes del admin (si los hay)
-        if (adminData) {
-            const businessNameInput = document.getElementById('businessName');
-            const rfcInput = document.getElementById('rfc');
-            const phoneInput = document.getElementById('businessPhone');
-            const billingEmailInput = document.getElementById('billingEmail');
-            const streetInput = document.getElementById('street');
-            const neighborhoodInput = document.getElementById('neighborhood');
-            const postalCodeInput = document.getElementById('postalCode');
-            const cityInput = document.getElementById('city');
-            const stateInput = document.getElementById('state');
-            const refsInput = document.getElementById('locationRefs');
-
-            if (businessNameInput) businessNameInput.value = adminData.name || '';
-            if (rfcInput) rfcInput.value = adminData.rfc || '';
-            if (phoneInput) phoneInput.value = adminData.phone || '';
-            if (billingEmailInput) billingEmailInput.value = adminData.billingEmail || '';
-            if (streetInput) streetInput.value = adminData.address?.street || '';
-            if (neighborhoodInput) neighborhoodInput.value = adminData.address?.neighborhood || '';
-            if (postalCodeInput) postalCodeInput.value = adminData.address?.postalCode || '';
-            if (cityInput) cityInput.value = adminData.address?.city || '';
-            if (stateInput) stateInput.value = adminData.address?.state || '';
-            if (refsInput) refsInput.value = adminData.address?.references || '';
-
-            if (adminData.logo) {
-                storeLogoBase64 = adminData.logo;
-                const previewImg = document.getElementById('logoPreviewImg');
-                const placeholder = document.getElementById('logoPlaceholder');
-                const preview = document.getElementById('logoPreview');
-                if (previewImg) previewImg.src = storeLogoBase64;
-                if (placeholder) placeholder.style.display = 'none';
-                if (preview) preview.style.display = 'flex';
-            }
-        }
-    } catch (error) {
-        console.error('Error al cargar datos existentes:', error);
-    }
-}
-
+/* ========================================================
+   UTILITY FUNCTIONS
+   ======================================================== */
 function showToast(message, type = 'info') {
     const Toast = Swal.mixin({
         toast: true,
@@ -393,54 +715,6 @@ function showToast(message, type = 'info') {
     Toast.fire({ icon, title: message });
 }
 
-function cambiarPanel(direction) {
-    const panels = document.querySelectorAll('.carousel-panel');
-    const currentPanel = document.querySelector('.carousel-panel.active');
-    const currentIndex = Array.from(panels).indexOf(currentPanel);
-    const newIndex = currentIndex + direction;
-
-    if (newIndex < 0 || newIndex >= panels.length) return;
-
-    isTransitioning = true;
-    currentPanel.style.animation = 'fadeOutDown 0.4s ease forwards';
-
-    setTimeout(() => {
-        currentPanel.classList.remove('active');
-        currentPanel.style.animation = '';
-        panels[newIndex].classList.add('active');
-        panels[newIndex].style.animation = 'fadeInUp 0.5s ease forwards';
-        currentStep = newIndex + 1;
-        updateWizardUI();
-        setTimeout(() => { isTransitioning = false; }, 300);
-    }, 300);
-}
-
-function updateWizardUI() {
-    const stepItems = document.querySelectorAll('.step-item');
-    const panels = document.querySelectorAll('.carousel-panel');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const actionButtons = document.getElementById('actionButtons');
-    const stepDisplay = document.getElementById('currentStepDisplay');
-
-    stepItems.forEach((step, idx) => {
-        if (idx + 1 === currentStep) step.classList.add('active');
-        else step.classList.remove('active');
-    });
-
-    panels.forEach((panel, idx) => {
-        if (idx + 1 === currentStep) panel.classList.add('active');
-        else panel.classList.remove('active');
-    });
-
-    if (stepDisplay) stepDisplay.textContent = currentStep;
-    if (prevBtn) prevBtn.disabled = currentStep === 1;
-    if (nextBtn) nextBtn.disabled = currentStep === 2;
-    if (actionButtons) {
-        actionButtons.style.display = currentStep === 2 ? 'flex' : 'none';
-    }
-}
-
 export function cleanupCreateStore() {
-    // Limpieza si es necesaria
+    // Cleanup if needed
 }

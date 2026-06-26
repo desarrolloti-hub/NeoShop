@@ -280,24 +280,7 @@
     color: var(--color-primary);
 }
 
-#removeLogoBtn {
-    display: none;
-    margin: var(--spacing-xs) auto 0;
-    padding: 6px 16px;
-    border: none;
-    border-radius: var(--border-radius-md);
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-    cursor: pointer;
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    transition: var(--transition-normal);
-}
 
-#removeLogoBtn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(220, 38, 38, 0.4);
-}
 
 /* ========================================================
    CARRUSEL
@@ -577,15 +560,7 @@
 /* ========================================================
    ACTION BUTTONS
    ======================================================== */
-.action-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--spacing-md);
-    padding: var(--spacing-xl);
-    border-top: 1px solid var(--border-light);
-    background: var(--bg-light);
-    display: none;
-}
+
 
 .btn-primary,
 .btn-secondary {
