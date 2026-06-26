@@ -1,5 +1,5 @@
 /* ========================================
-   ADMIN SERVICE - Business Logic
+   ADMIN SERVICE - Business logic
    ======================================== */
 
 import { Admin } from '/classes/adminModel.js';
@@ -74,7 +74,7 @@ export const AdminService = {
             throw new Error('This account has been deactivated');
         }
 
-        // Save session only on login
+        // ✅ Guardar sesión con storeId y storeName
         const sessionData = {
             id: result.userData.id,
             name: result.userData.name,
@@ -82,10 +82,11 @@ export const AdminService = {
             fullName: result.userData.name,
             initials: this._getInitials(result.userData.name),
             plan: result.userData.plan,
-            totalStores: Object.keys(result.userData.storesId || {}).length,
             active: result.userData.active,
             userPhoto: result.userData.userPhoto,
-            provider: result.userData.provider
+            provider: result.userData.provider,
+            storeId: result.userData.storeId || null,  // ✅ IMPORTANTE: guardar storeId
+            storeName: result.userData.storeName || null  // ✅ IMPORTANTE: guardar storeName
         };
 
         this._saveSession(sessionData);
