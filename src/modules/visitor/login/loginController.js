@@ -16,7 +16,7 @@ export async function loginController() {
     }
 
     animateLoginForm();
-    initPasswordToggle(); // ✅ Función para el ojito
+    initPasswordToggle();
     initLoginForm();
     initGoogleLogin();
 }
@@ -42,9 +42,7 @@ function redirectByRole() {
     window.location.href = '/inicioAdmin';
 }
 
-// ✅ FUNCIÓN PARA EL OJITO DE CONTRASEÑA EN LOGIN
 function initPasswordToggle() {
-    // Esperar a que el DOM esté listo
     setTimeout(() => {
         const toggleBtn = document.getElementById('toggleLoginPassword');
         const passwordInput = document.getElementById('loginPass');
@@ -57,11 +55,9 @@ function initPasswordToggle() {
             return;
         }
 
-        // Remover event listeners anteriores
         const newToggleBtn = toggleBtn.cloneNode(true);
         toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
 
-        // Agregar event listener
         newToggleBtn.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -71,25 +67,20 @@ function initPasswordToggle() {
 
             console.log('Login toggle clicked, current type:', passwordInput.type);
 
-            // Cambiar tipo de input
             passwordInput.type = isPasswordVisible ? 'password' : 'text';
 
-            // Cambiar icono
             if (icon) {
                 icon.className = isPasswordVisible ? 'fas fa-eye' : 'fas fa-eye-slash';
             }
 
-            // Cambiar aria-label
             this.setAttribute(
                 'aria-label',
                 isPasswordVisible ? 'Mostrar contraseña' : 'Ocultar contraseña'
             );
 
-            // Focus en el input después del toggle
             passwordInput.focus();
         });
 
-        // Soporte para teclado
         newToggleBtn.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -127,18 +118,41 @@ function initLoginForm() {
         submitBtn.disabled = true;
 
         try {
+            // ✅ EJECUTAR LOGIN PRIMERO
             await AdminService.login(email, password, false);
-            showSuccessToast('Bienvenido');
-            setTimeout(() => redirectByRole(), 1000);
+
+            // ✅ DESPUÉS DEL LOGIN EXITOSO, MOSTRAR BIENVENIDA CON SWEETALERT
+            const session = AdminService.getSession();
+            const nombre = session?.fullName || session?.name || 'Administrador';
+
+            await Swal.fire({
+                title: `¡Bienvenido, ${nombre}!`,
+                text: 'Serás redirigido al dashboard en 3 segundos',
+                icon: 'success',
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    const timerElement = Swal.getTimerProgressBar();
+                    if (timerElement) {
+                        timerElement.style.background = '#22c55e';
+                    }
+                }
+            });
+
+            // ✅ REDIRIGIR DESPUÉS DEL SWEETALERT
+            redirectByRole();
+
         } catch (error) {
+            // Cerrar SweetAlert si está abierto
+            Swal.close();
+
             const friendlyMessage = getFriendlyErrorMessage(error);
             showTemporaryError('Acceso denegado', friendlyMessage);
-        } finally {
-            isLoading = false;
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
 
-            // Resetear el tipo de contraseña si hay error
+            // Resetear el tipo de contraseña
             const passwordInput = document.getElementById('loginPass');
             if (passwordInput) {
                 passwordInput.type = 'password';
@@ -147,6 +161,10 @@ function initLoginForm() {
                     toggleIcon.className = 'fas fa-eye';
                 }
             }
+        } finally {
+            isLoading = false;
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
         }
     });
 }
@@ -167,10 +185,37 @@ function initGoogleLogin() {
         newGoogleBtn.disabled = true;
 
         try {
+            // ✅ EJECUTAR LOGIN CON GOOGLE PRIMERO
             await AdminService.login(null, null, true);
-            showSuccessToast('Sesión iniciada con Google');
-            setTimeout(() => redirectByRole(), 1000);
+
+            // ✅ DESPUÉS DEL LOGIN EXITOSO, MOSTRAR BIENVENIDA CON SWEETALERT
+            const session = AdminService.getSession();
+            const nombre = session?.fullName || session?.name || 'Administrador';
+
+            await Swal.fire({
+                title: `¡Bienvenido, ${nombre}!`,
+                text: 'Serás redirigido al dashboard en 3 segundos',
+                icon: 'success',
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    const timerElement = Swal.getTimerProgressBar();
+                    if (timerElement) {
+                        timerElement.style.background = '#22c55e';
+                    }
+                }
+            });
+
+            // ✅ REDIRIGIR DESPUÉS DEL SWEETALERT
+            redirectByRole();
+
         } catch (error) {
+            // Cerrar SweetAlert si está abierto
+            Swal.close();
+
             const friendlyMessage = getFriendlyErrorMessage(error);
             showTemporaryError('Error con Google', friendlyMessage);
         } finally {
@@ -220,25 +265,6 @@ function showTemporaryError(title, message) {
             popup.addEventListener('mouseenter', Swal.stopTimer);
             popup.addEventListener('mouseleave', Swal.resumeTimer);
         }
-    });
-}
-
-function showSuccessToast(message) {
-    const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 2500,
-        timerProgressBar: true,
-        didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer);
-            toast.addEventListener('mouseleave', Swal.resumeTimer);
-        }
-    });
-
-    Toast.fire({
-        icon: 'success',
-        title: message
     });
 }
 
