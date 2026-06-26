@@ -1,181 +1,155 @@
 /* ========================================
-   ADMIN MODEL - [Tu Proyecto]
-   Estructura de datos del administrador
+   ADMIN MODEL - User Data Structure
    ======================================== */
 
 export class Admin {
     constructor(data = {}) {
-        // Identificación
+        // Identification
         this.id = data.id || null;
-        
-        // Datos personales
-        this.nombre = data.nombre || '';
-        this.apellido = data.apellido || '';
-        this.telefono = data.telefono || '';
+
+        // Personal Information
+        this.name = data.name || '';
         this.email = data.email || '';
-        
-        this.storeId = data.storeId || null;  // ✅ CAMBIADO: companyId → storeId
-        
-        // Plan y tiendas
-        this.plan = data.plan || null;                    // Ej: 'basic', 'premium', 'enterprise'
-        this.tiendas = data.tiendas || {};                // { storeId: { nombre: '', activo: true } }
-        
-        // Estado y términos
-        this.activo = data.activo !== undefined ? data.activo : true;
-        this.termsAccepted = data.termsAccepted || false;
-        
-        // Foto de usuario
+        this.phoneNumber = data.phoneNumber || '';
         this.userPhoto = data.userPhoto || '';
-        
-        // Autenticación
-        this.provider = data.provider || 'email';         // 'email' o 'google'
-        this.emailVerified = data.emailVerified || false;
-        
+
+        // Store and Plan
+        this.plan = data.plan || null;                    // e.g., 'basic', 'premium', 'enterprise'
+        this.storesId = data.storesId || {};              // { storeId: { name: '', active: true } }
+
+        // Status and Terms
+        this.active = data.active !== undefined ? data.active : true;
+        this.termsAccepted = data.termsAccepted || false;
+
+        // Authentication
+        this.provider = data.provider || 'email';         // 'email' or 'google'
+
         // Metadata
         this.createdAt = data.createdAt || new Date().toISOString();
         this.updatedAt = data.updatedAt || null;
-        this.lastLogin = data.lastLogin || null;
     }
-    
+
     // ========== GETTERS ==========
-    
-    // Nombre completo
-    get nombreCompleto() {
-        return `${this.nombre} ${this.apellido}`.trim() || 'Administrador';
+
+    // Full name (for backwards compatibility)
+    get fullName() {
+        return this.name || 'Administrator';
     }
-    
-    // Iniciales para avatar
-    get iniciales() {
-        const primera = this.nombre ? this.nombre.charAt(0) : '';
-        const segunda = this.apellido ? this.apellido.charAt(0) : '';
-        return (primera + segunda).toUpperCase() || 'A';
+
+    // Initials for avatar
+    get initials() {
+        if (!this.name) return 'A';
+        const parts = this.name.trim().split(' ');
+        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+        return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
     }
-    
-    // 🆕 Verificar si tiene tienda asignada
-    get tieneTienda() {  // ✅ CAMBIADO: tieneEmpresa → tieneTienda
-        return !!this.storeId;  // ✅ CAMBIADO: companyId → storeId
+
+    // Check if user has any store assigned
+    get hasStore() {
+        return Object.keys(this.storesId || {}).length > 0;
     }
-    
-    // Lista de IDs de tiendas activas
-    get tiendasActivas() {
-        if (!this.tiendas) return [];
-        return Object.entries(this.tiendas)
-            .filter(([_, store]) => store?.activo === true)
+
+    // List of active store IDs
+    get activeStores() {
+        if (!this.storesId) return [];
+        return Object.entries(this.storesId)
+            .filter(([_, store]) => store?.active === true)
             .map(([id]) => id);
     }
-    
-    // Cantidad de tiendas
-    get totalTiendas() {
-        return Object.keys(this.tiendas || {}).length;
+
+    // Total number of stores
+    get totalStores() {
+        return Object.keys(this.storesId || {}).length;
     }
-    
-    // Verificar si tiene plan activo
-    get tienePlan() {
+
+    // Check if user has an active plan
+    get hasPlan() {
         return !!this.plan;
     }
-    
-    // Datos resumidos para localStorage
-    get datosResumidos() {
+
+    // Summary data for localStorage
+    get summary() {
         return {
             id: this.id,
-            nombre: this.nombre,
-            apellido: this.apellido,
+            name: this.name,
             email: this.email,
-            nombreCompleto: this.nombreCompleto,
-            iniciales: this.iniciales,
-            storeId: this.storeId,     // ✅ CAMBIADO: companyId → storeId
+            fullName: this.fullName,
+            initials: this.initials,
             plan: this.plan,
-            totalTiendas: this.totalTiendas,
-            activo: this.activo,
+            totalStores: this.totalStores,
+            active: this.active,
             userPhoto: this.userPhoto,
             provider: this.provider
         };
     }
-    
-    // ========== MÉTODOS ==========
-    
-    // 🆕 Asignar tienda al administrador
-    asignarTienda(storeId) {  // ✅ CAMBIADO: asignarEmpresa → asignarTienda
-        this.storeId = storeId;  // ✅ CAMBIADO: companyId → storeId
-        this.updatedAt = new Date().toISOString();
-        return this;
-    }
-    
-    // 🆕 Desvincular tienda
-    desvincularTienda() {  // ✅ CAMBIADO: desvincularEmpresa → desvincularTienda
-        this.storeId = null;  // ✅ CAMBIADO: companyId → storeId
-        this.updatedAt = new Date().toISOString();
-        return this;
-    }
-    
-    // Agregar una tienda
-    agregarTienda(storeId, storeData = {}) {
-        this.tiendas = {
-            ...this.tiendas,
+
+    // ========== METHODS ==========
+
+    // Assign a store to the administrator
+    assignStore(storeId, storeData = {}) {
+        this.storesId = {
+            ...this.storesId,
             [storeId]: {
-                nombre: storeData.nombre || storeId,
-                activo: storeData.activo !== undefined ? storeData.activo : true,
-                fechaAsignacion: new Date().toISOString()
+                name: storeData.name || storeId,
+                active: storeData.active !== undefined ? storeData.active : true,
+                assignedAt: new Date().toISOString()
             }
         };
         this.updatedAt = new Date().toISOString();
         return this;
     }
-    
-    // Remover una tienda
-    removerTienda(storeId) {
-        if (this.tiendas && this.tiendas[storeId]) {
-            delete this.tiendas[storeId];
+
+    // Remove a store from the administrator
+    removeStore(storeId) {
+        if (this.storesId && this.storesId[storeId]) {
+            delete this.storesId[storeId];
             this.updatedAt = new Date().toISOString();
         }
         return this;
     }
-    
-    // Activar/desactivar tienda
-    toggleTienda(storeId, activo) {
-        if (this.tiendas && this.tiendas[storeId]) {
-            this.tiendas[storeId].activo = activo;
+
+    // Activate/deactivate a store
+    toggleStore(storeId, active) {
+        if (this.storesId && this.storesId[storeId]) {
+            this.storesId[storeId].active = active;
             this.updatedAt = new Date().toISOString();
         }
         return this;
     }
-    
-    // Verificar si administra una tienda específica
-    administraTienda(storeId) {
-        return !!(this.tiendas && this.tiendas[storeId] && this.tiendas[storeId].activo);
+
+    // Check if user manages a specific store
+    managesStore(storeId) {
+        return !!(this.storesId && this.storesId[storeId] && this.storesId[storeId].active);
     }
-    
-    // Actualizar plan
-    actualizarPlan(nuevoPlan) {
-        this.plan = nuevoPlan;
+
+    // Update the user's plan
+    updatePlan(newPlan) {
+        this.plan = newPlan;
         this.updatedAt = new Date().toISOString();
         return this;
     }
-    
-    // Validar datos completos para registro
-    validarParaRegistro() {
-        const errores = [];
-        
-        if (!this.nombre || this.nombre.trim().length < 2) {
-            errores.push('El nombre debe tener al menos 2 caracteres');
-        }
-        if (!this.apellido || this.apellido.trim().length < 2) {
-            errores.push('El apellido debe tener al menos 2 caracteres');
+
+    // Validate complete data for registration
+    validateForRegistration() {
+        const errors = [];
+
+        if (!this.name || this.name.trim().length < 2) {
+            errors.push('Name must be at least 2 characters long');
         }
         if (!this.email || !this._validateEmail(this.email)) {
-            errores.push('Correo electrónico inválido');
+            errors.push('Invalid email address');
         }
         if (!this.termsAccepted) {
-            errores.push('Debe aceptar los términos y condiciones');
+            errors.push('You must accept the terms and conditions');
         }
-        
+
         return {
-            valido: errores.length === 0,
-            errores
+            valid: errors.length === 0,
+            errors
         };
     }
-    
-    // Validar email (privado)
+
+    // Validate email (private)
     _validateEmail(email) {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return re.test(email);
