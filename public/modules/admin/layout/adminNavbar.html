@@ -40,24 +40,33 @@
                 <a href="/editarPerfil" data-link><i class="fas fa-user"></i> <span>Perfil</span></a>
             </li>
         </ul>
-    </nav>
+        <div class="admin-sidebar-footer">
+            <div class="admin-user-info" id="adminUserInfo">
+                <div class="admin-user-avatar" id="adminUserAvatar">
+                    <img id="adminAvatarImg" class="admin-avatar-img" src="" alt="Avatar" style="display: none;">
+                    <i id="adminAvatarIcon" class="fas fa-user-circle"></i>
+                </div>
+                <div class="admin-user-details">
+                    <div class="admin-user-name" id="adminUserName">Cargando...</div>
+                    <div class="admin-user-email" id="adminUserEmail">cargando@email.com</div>
+                </div>
+            </div>
 
-    <div class="admin-sidebar-footer">
-        <div class="admin-user-info" id="adminUserInfo">
-            <div class="admin-user-avatar" id="adminUserAvatar">
-                <img id="adminAvatarImg" class="admin-avatar-img" src="" alt="Avatar" style="display: none;">
-                <i id="adminAvatarIcon" class="fas fa-user-circle"></i>
-            </div>
-            <div class="admin-user-details">
-                <div class="admin-user-name" id="adminUserName">Cargando...</div>
-                <div class="admin-user-email" id="adminUserEmail">cargando@email.com</div>
-            </div>
+
+
+            <button class="admin-logout-btn" id="adminLogoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Cerrar Sesión</span>
+            </button>
         </div>
-
-        <button class="admin-logout-btn" id="adminLogoutBtn">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Cerrar Sesión</span>
-        </button>
+    </nav>
+    <!-- ✅ Badge de prueba gratuita -->
+    <div class="trial-badge-container" id="trialBadgeContainer" style="display: none;">
+        <div class="trial-badge">
+            <i class="fas fa-clock"></i>
+            <span id="trialDaysText">15 días</span>
+            <span class="trial-label">de prueba</span>
+        </div>
     </div>
 </aside>
 

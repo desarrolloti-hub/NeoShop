@@ -1,6 +1,5 @@
 /* ========================================
-   TRIAL CHECKER - Verifica estado de prueba gratuita
-   Muestra alertas cuando la prueba está por expirar o ha expirado
+   TRIAL CHECK SERVICE - Verifica estado de prueba gratuita
    ======================================== */
 
 import { AdminService } from '/services/adminService.js';
@@ -10,12 +9,14 @@ let hasShownGraceAlert = false;
 
 /**
  * Verifica el estado de la prueba gratuita y muestra alertas
- * Se debe llamar al cargar la aplicación y periódicamente
  */
 export function checkTrialStatus() {
     const session = AdminService.getSession();
 
     if (!session) return;
+
+    // ✅ Solo verificar si es plan gratuito
+    if (session.plan !== 'full-free') return;
 
     const trialEndDate = session.trialEndDate;
     if (!trialEndDate) return;
@@ -25,7 +26,6 @@ export function checkTrialStatus() {
     const diffTime = trialEnd.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    // ✅ Si la prueba expiró
     if (diffDays < 0) {
         if (!hasShownExpiredAlert) {
             hasShownExpiredAlert = true;
@@ -34,17 +34,31 @@ export function checkTrialStatus() {
         return;
     }
 
-    // ✅ Si está en periodo de gracia (últimos 3 días)
     if (diffDays <= 3 && !hasShownGraceAlert) {
         hasShownGraceAlert = true;
         showGracePeriodAlert(diffDays);
     }
 
-    // ✅ Si hay más de 3 días, resetear flags para cuando llegue el momento
     if (diffDays > 3) {
         hasShownGraceAlert = false;
         hasShownExpiredAlert = false;
     }
+}
+
+/**
+ * Obtiene los días restantes de prueba
+ */
+export function getTrialDaysLeft() {
+    const session = AdminService.getSession();
+    if (!session || !session.trialEndDate) return null;
+
+    // ✅ Si no es plan gratuito, no mostrar
+    if (session.plan !== 'full-free') return null;
+
+    const now = new Date();
+    const trialEnd = new Date(session.trialEndDate);
+    const diffTime = trialEnd.getTime() - now.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
 
 /**
@@ -121,24 +135,7 @@ function showGracePeriodAlert(daysLeft) {
     });
 }
 
-/**
- * Resetea los flags para que las alertas puedan mostrarse nuevamente
- * Útil después de cambiar de usuario o hacer logout
- */
 export function resetTrialAlerts() {
     hasShownExpiredAlert = false;
     hasShownGraceAlert = false;
-}
-
-/**
- * Obtiene los días restantes de prueba
- */
-export function getTrialDaysLeft() {
-    const session = AdminService.getSession();
-    if (!session || !session.trialEndDate) return null;
-
-    const now = new Date();
-    const trialEnd = new Date(session.trialEndDate);
-    const diffTime = trialEnd.getTime() - now.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
