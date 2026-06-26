@@ -1,7 +1,7 @@
 /* ========================================
-   PRODUCT SERVICE - Logica de negocio para productos
-   TODAS LAS VALIDACIONES VAN AQUI
-   COLECCIONES DINÁMICAS: [NombreTienda]Products
+   PRODUCT SERVICE - Business logic for products
+   ALL VALIDATIONS GO HERE
+   DYNAMIC COLLECTIONS: products + StoreName
    ======================================== */
 
 import { Product } from '/classes/productModel.js';
@@ -12,119 +12,117 @@ import { AdminService } from '/services/adminService.js';
 
 export const ProductService = {
     /**
-     * Obtiene la tienda del admin actual para saber que coleccion usar
-     * @param {string} adminId - ID del administrador
-     * @param {string} storeName - Nombre de la tienda (opcional)
-     * @returns {Promise<Object>} Tienda del admin
+     * Get current store for the admin
+     * @param {string} adminId - Admin ID
+     * @param {string} storeName - Store name (optional)
+     * @returns {Promise<Object>} Admin's store
      */
     async getCurrentStore(adminId, storeName = null) {
         if (!adminId) {
-            throw new Error('Admin ID no proporcionado');
+            throw new Error('Admin ID not provided');
         }
 
         console.log('🔍 getCurrentStore - adminId:', adminId);
-        console.log('🔍 getCurrentStore - storeName recibido:', storeName);
+        console.log('🔍 getCurrentStore - storeName received:', storeName);
 
-        // 🔥 IMPORTANTE: Pasamos storeName a getByAdminId para buscar en la colección correcta
+        // Get the store from the repository
         const store = await StoreRepository.getByAdminId(adminId, storeName);
 
         if (!store) {
-            throw new Error('No se encontro una tienda asociada a este administrador');
+            throw new Error('No store found for this administrator');
         }
 
-        console.log('✅ Tienda encontrada:', store.name);
+        console.log('✅ Store found:', store.name);
         return store;
     },
 
     /**
-     * Crear nuevo producto
-     * @param {Object} productData - Datos del producto
-     * @param {string} adminId - ID del administrador
-     * @param {string} storeName - Nombre de la tienda (requerido para la colección)
+     * Create new product
+     * @param {Object} productData - Product data
+     * @param {string} adminId - Admin ID
+     * @param {string} storeName - Store name (required for collection)
      */
     async create(productData, adminId = null, storeName = null) {
-        console.log('🔍 ProductService.create - Iniciando...');
+        console.log('🔍 ProductService.create - Starting...');
         console.log('  - adminId:', adminId);
-        console.log('  - storeName recibido:', storeName);
+        console.log('  - storeName received:', storeName);
 
-        // ========== VALIDACIONES ==========
+        // ========== VALIDATIONS ==========
         if (!productData.name || productData.name.trim().length < 3) {
-            throw new Error('El nombre del producto debe tener al menos 3 caracteres');
+            throw new Error('Product name must be at least 3 characters long');
         }
 
         if (!productData.barcode || productData.barcode.trim().length < 3) {
-            throw new Error('El codigo de barras debe tener al menos 3 caracteres');
+            throw new Error('Barcode must be at least 3 characters long');
         }
 
         if (!productData.brand || productData.brand.trim().length < 2) {
-            throw new Error('La marca debe tener al menos 2 caracteres');
+            throw new Error('Brand must be at least 2 characters long');
         }
 
         if (!productData.price || productData.price <= 0) {
-            throw new Error('El precio debe ser mayor a 0');
+            throw new Error('Price must be greater than 0');
         }
 
         if (productData.cost < 0) {
-            throw new Error('El costo no puede ser negativo');
+            throw new Error('Cost cannot be negative');
         }
 
         if (productData.stock < 0) {
-            throw new Error('El stock no puede ser negativo');
+            throw new Error('Stock cannot be negative');
         }
 
-        // 🔥 Si no se proporciona storeName, intentar obtener de la sesión
+        // Get storeName from session if not provided
         let finalStoreName = storeName;
         if (!finalStoreName) {
             try {
                 const session = AdminService.getSession();
                 finalStoreName = session?.storeName;
-                console.log('  - storeName obtenido de sesión:', finalStoreName);
+                console.log('  - storeName from session:', finalStoreName);
             } catch (error) {
-                console.error('  - Error obteniendo sesión:', error);
+                console.error('  - Error getting session:', error);
             }
         }
 
-        // 🔥 Si aún no tenemos storeName, intentar obtenerlo de la tienda del admin
+        // Try to get storeName from the store
         if (!finalStoreName) {
             try {
-                // Buscar en la colección "stores" por defecto (sin storeName)
                 const store = await StoreRepository.getByAdminId(adminId);
                 if (store && store.name) {
                     finalStoreName = store.name;
-                    console.log('  - storeName obtenido de la tienda (colección stores):', finalStoreName);
+                    console.log('  - storeName from store:', finalStoreName);
                 }
             } catch (error) {
-                console.error('  - Error obteniendo tienda por adminId:', error);
+                console.error('  - Error getting store:', error);
             }
         }
 
-        // 🔥 Verificar que tengamos storeName
         if (!finalStoreName) {
-            console.error('❌ No se pudo obtener storeName');
-            throw new Error('Se requiere el nombre de la tienda para crear productos. Por favor, inicia sesión nuevamente.');
+            console.error('❌ Could not get storeName');
+            throw new Error('Store name is required to create products. Please log in again.');
         }
 
-        console.log('✅ storeName final:', finalStoreName);
+        console.log('✅ Final storeName:', finalStoreName);
 
-        // 🔥 Obtener la tienda del admin (para obtener el ID) PASANDO EL storeName
+        // Get store for storeId
         const store = await this.getCurrentStore(adminId, finalStoreName);
         const storeNameClean = store.name;
 
-        console.log('✅ Tienda encontrada:', storeNameClean);
+        console.log('✅ Store found:', storeNameClean);
 
-        // Verificar si ya existe un producto con ese codigo de barras en esta tienda
+        // Check if product with this barcode exists
         const existingByBarcode = await ProductRepository.getByBarcode(productData.barcode, storeNameClean);
         if (existingByBarcode) {
-            throw new Error(`Ya existe un producto con el codigo de barras "${productData.barcode}" en esta tienda`);
+            throw new Error(`A product with barcode "${productData.barcode}" already exists in this store`);
         }
 
-        // ========== CREAR MODELO ==========
+        // ========== CREATE MODEL ==========
         const product = new Product({
             barcode: productData.barcode.trim(),
             name: productData.name.trim(),
             description: productData.description?.trim() || '',
             brand: productData.brand.trim(),
-            unitOfMeasure: productData.unitOfMeasure?.trim() || 'pieza',
+            unitOfMeasure: productData.unitOfMeasure?.trim() || 'piece',
             price: parseFloat(productData.price),
             cost: parseFloat(productData.cost) || 0,
             stock: parseInt(productData.stock) || 0,
@@ -136,21 +134,21 @@ export const ProductService = {
             createdBy: adminId
         });
 
-        // Generar ID unico
+        // Generate unique ID
         product.id = `prod_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
 
-        // ========== GUARDAR EN FIRESTORE (coleccion dinamica) ==========
-        console.log('💾 Guardando en colección:', storeNameClean);
+        // ========== SAVE TO FIRESTORE ==========
+        console.log('💾 Saving to collection:', storeNameClean);
         const result = await ProductRepository.save(product, storeNameClean);
 
-        // Limpiar cache
+        // Clear cache
         await CacheService.clearCache(STORES.PRODUCTS || 'products');
 
         return new Product(result);
     },
 
     /**
-     * Obtener producto por ID
+     * Get product by ID
      */
     async getById(productId, adminId, storeName = null) {
         if (!storeName) {
@@ -158,7 +156,7 @@ export const ProductService = {
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para obtener el producto');
+                throw new Error('Store name is required to get the product');
             }
         }
 
@@ -175,7 +173,7 @@ export const ProductService = {
     },
 
     /**
-     * Obtener producto por codigo de barras
+     * Get product by barcode
      */
     async getByBarcode(barcode, adminId, storeName = null) {
         if (!storeName) {
@@ -183,7 +181,7 @@ export const ProductService = {
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para obtener el producto');
+                throw new Error('Store name is required to get the product');
             }
         }
 
@@ -195,7 +193,7 @@ export const ProductService = {
     },
 
     /**
-     * Obtener todos los productos de la tienda del admin
+     * Get all products from admin's store
      */
     async getAll(adminId, filters = {}, forceRefresh = false, storeName = null) {
         if (!storeName) {
@@ -203,7 +201,7 @@ export const ProductService = {
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para obtener los productos');
+                throw new Error('Store name is required to get products');
             }
         }
 
@@ -228,7 +226,7 @@ export const ProductService = {
     },
 
     /**
-     * Actualizar producto
+     * Update product
      */
     async update(productId, updateData, adminId, storeName = null) {
         if (!storeName) {
@@ -236,7 +234,7 @@ export const ProductService = {
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para actualizar el producto');
+                throw new Error('Store name is required to update the product');
             }
         }
 
@@ -246,39 +244,39 @@ export const ProductService = {
         const currentProduct = await this.getById(productId, adminId, storeNameClean);
 
         if (!currentProduct) {
-            throw new Error('Producto no encontrado');
+            throw new Error('Product not found');
         }
 
-        // ========== VALIDACIONES ==========
+        // ========== VALIDATIONS ==========
         if (updateData.name && updateData.name.length < 3) {
-            throw new Error('El nombre debe tener al menos 3 caracteres');
+            throw new Error('Name must be at least 3 characters long');
         }
 
         if (updateData.barcode && updateData.barcode.length < 3) {
-            throw new Error('El codigo de barras debe tener al menos 3 caracteres');
+            throw new Error('Barcode must be at least 3 characters long');
         }
 
         if (updateData.brand && updateData.brand.length < 2) {
-            throw new Error('La marca debe tener al menos 2 caracteres');
+            throw new Error('Brand must be at least 2 characters long');
         }
 
         if (updateData.price && updateData.price <= 0) {
-            throw new Error('El precio debe ser mayor a 0');
+            throw new Error('Price must be greater than 0');
         }
 
         if (updateData.cost && updateData.cost < 0) {
-            throw new Error('El costo no puede ser negativo');
+            throw new Error('Cost cannot be negative');
         }
 
         if (updateData.stock && updateData.stock < 0) {
-            throw new Error('El stock no puede ser negativo');
+            throw new Error('Stock cannot be negative');
         }
 
-        // Si se esta actualizando el codigo de barras, verificar que no exista ya
+        // If barcode is being updated, check it doesn't exist
         if (updateData.barcode && updateData.barcode !== currentProduct.barcode) {
             const existing = await ProductRepository.getByBarcode(updateData.barcode, storeNameClean);
             if (existing) {
-                throw new Error(`Ya existe un producto con el codigo de barras "${updateData.barcode}" en esta tienda`);
+                throw new Error(`A product with barcode "${updateData.barcode}" already exists in this store`);
             }
         }
 
@@ -290,7 +288,7 @@ export const ProductService = {
     },
 
     /**
-     * Actualizar stock
+     * Update stock
      */
     async updateStock(productId, quantity, adminId, storeName = null) {
         if (!storeName) {
@@ -298,7 +296,7 @@ export const ProductService = {
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para actualizar el stock');
+                throw new Error('Store name is required to update stock');
             }
         }
 
@@ -308,12 +306,11 @@ export const ProductService = {
         const product = await this.getById(productId, adminId, storeNameClean);
 
         if (!product) {
-            throw new Error('Producto no encontrado');
+            throw new Error('Product not found');
         }
 
-        // ========== VALIDACION ==========
         if (product.stock + quantity < 0) {
-            throw new Error('No se puede reducir el stock por debajo de 0');
+            throw new Error('Cannot reduce stock below 0');
         }
 
         const updated = await ProductRepository.updateStock(productId, quantity, storeNameClean);
@@ -324,7 +321,7 @@ export const ProductService = {
     },
 
     /**
-     * Cambiar estado del producto (activar/desactivar)
+     * Toggle product status (active/inactive)
      */
     async toggleStatus(productId, active, adminId, storeName = null) {
         if (!storeName) {
@@ -332,7 +329,7 @@ export const ProductService = {
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para cambiar el estado');
+                throw new Error('Store name is required to change status');
             }
         }
 
@@ -347,7 +344,7 @@ export const ProductService = {
     },
 
     /**
-     * Eliminar producto
+     * Delete product
      */
     async delete(productId, adminId, hardDelete = false, storeName = null) {
         if (!storeName) {
@@ -355,7 +352,7 @@ export const ProductService = {
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para eliminar el producto');
+                throw new Error('Store name is required to delete the product');
             }
         }
 
@@ -370,12 +367,11 @@ export const ProductService = {
     },
 
     /**
-     * Buscar productos
+     * Search products
      */
     async search(term, adminId, limit = 20, storeName = null) {
-        // ========== VALIDACION ==========
         if (!term || term.trim().length < 2) {
-            throw new Error('Ingrese al menos 2 caracteres para buscar');
+            throw new Error('Enter at least 2 characters to search');
         }
 
         if (!storeName) {
@@ -383,7 +379,7 @@ export const ProductService = {
             storeName = session?.storeName;
 
             if (!storeName) {
-                throw new Error('Se requiere el nombre de la tienda para buscar productos');
+                throw new Error('Store name is required to search products');
             }
         }
 
@@ -395,7 +391,7 @@ export const ProductService = {
     },
 
     /**
-     * Obtener productos con stock bajo
+     * Get low stock products
      */
     async getLowStockProducts(adminId, storeName = null) {
         const products = await this.getAll(adminId, { active: true }, false, storeName);
@@ -403,7 +399,7 @@ export const ProductService = {
     },
 
     /**
-     * Obtener productos agotados
+     * Get out of stock products
      */
     async getOutOfStockProducts(adminId, storeName = null) {
         const products = await this.getAll(adminId, { active: true }, false, storeName);

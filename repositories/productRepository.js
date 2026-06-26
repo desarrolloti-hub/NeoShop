@@ -1,7 +1,7 @@
 /* ========================================
-   PRODUCT REPOSITORY - Operaciones CRUD con Firebase
-   COLECCIONES DINÁMICAS: products + NombreTienda (camel case)
-   Ejemplo: "toyota" → "productsToyota"
+   PRODUCT REPOSITORY - CRUD Operations with Firebase
+   DYNAMIC COLLECTIONS: products + StoreName (camel case)
+   Example: "toyota" → "productsToyota"
    ======================================== */
 
 import { db } from '/config/firebaseConfig.js';
@@ -11,68 +11,56 @@ import {
 } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 
 /**
- * Obtiene el nombre de la colección de productos para una tienda
- * @param {string} storeName - Nombre de la tienda (ej: "toyota", "mi tienda")
- * @returns {string} - Nombre de la colección (ej: "productsToyota", "productsMiTienda")
+ * Gets the products collection name for a store
+ * @param {string} storeName - Store name (e.g., "toyota", "mi tienda")
+ * @returns {string} - Collection name (e.g., "productsToyota", "productsMiTienda")
  */
 function getProductsCollectionName(storeName) {
-    // 🔥 VALIDACIÓN: Si storeName es undefined o null, lanzar error
     if (!storeName) {
-        console.error('❌ getProductsCollectionName: storeName es null o undefined');
-        throw new Error('El nombre de la tienda es requerido para obtener la colección de productos');
+        console.error('❌ getProductsCollectionName: storeName is null or undefined');
+        throw new Error('Store name is required to get products collection');
     }
 
-    // Convertir a string por seguridad
     const storeNameStr = String(storeName);
-    console.log('🔍 getProductsCollectionName - storeName recibido:', storeNameStr);
+    console.log('🔍 getProductsCollectionName - storeName received:', storeNameStr);
 
-    // 🔥 Convertir a camel case con primera letra mayúscula
-    // "mi tienda" → "MiTienda"
-    // "toyota" → "Toyota"
-    // "ORIEN" → "Orien"
+    // Convert to camelCase with first letter capitalized
     const camelCaseName = storeNameStr
         .toLowerCase()
-        .replace(/[^a-zA-Z0-9]/g, ' ') // Reemplazar caracteres especiales con espacios
+        .replace(/[^a-zA-Z0-9]/g, ' ')
         .trim()
         .split(' ')
         .filter(word => word.length > 0)
         .map((word, index) => {
             if (index === 0) {
-                return word; // Primera palabra en minúscula
+                return word;
             }
-            return word.charAt(0).toUpperCase() + word.slice(1); // Resto con mayúscula inicial
+            return word.charAt(0).toUpperCase() + word.slice(1);
         })
         .join('');
 
-    // Si después de la limpieza queda vacío, usar el nombre original
     if (!camelCaseName) {
-        console.warn('⚠️ storeName quedó vacío después de limpieza, usando el original:', storeNameStr);
-        // Intentar usar el nombre original pero con primera letra mayúscula
+        console.warn('⚠️ storeName became empty after cleanup, using original:', storeNameStr);
         const fallbackName = storeNameStr.charAt(0).toUpperCase() + storeNameStr.slice(1).toLowerCase();
         return `products${fallbackName}`;
     }
 
-    // 🔥 Primera letra mayúscula para el nombre de la colección
     const collectionBase = camelCaseName.charAt(0).toUpperCase() + camelCaseName.slice(1);
     const collectionName = `products${collectionBase}`;
 
-    console.log('✅ Nombre de colección generado:', collectionName);
+    console.log('✅ Collection name generated:', collectionName);
     return collectionName;
 }
 
 export const ProductRepository = {
-    /**
-     * Guardar producto (crear o actualizar) en la colección dinámica
-     */
     async save(productData, storeName) {
         if (!storeName) {
-            throw new Error('storeName es requerido para guardar un producto');
+            throw new Error('storeName is required to save a product');
         }
 
         const collectionName = getProductsCollectionName(storeName);
-        console.log('📁 Colección destino:', collectionName);
+        console.log('📁 Target collection:', collectionName);
 
-        // ✅ CONVERTIR A OBJETO PLANO (sin getters ni métodos)
         const plainData = {
             id: productData.id,
             barcode: productData.barcode || '',
@@ -98,12 +86,9 @@ export const ProductRepository = {
         return { id: plainData.id, ...plainData };
     },
 
-    /**
-     * Obtener producto por ID desde la colección dinámica
-     */
     async getById(productId, storeName) {
         if (!storeName) {
-            throw new Error('storeName es requerido para obtener un producto');
+            throw new Error('storeName is required to get a product');
         }
         const collectionName = getProductsCollectionName(storeName);
         const productRef = doc(db, collectionName, productId);
@@ -111,12 +96,9 @@ export const ProductRepository = {
         return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
     },
 
-    /**
-     * Obtener producto por código de barras desde la colección dinámica
-     */
     async getByBarcode(barcode, storeName) {
         if (!storeName) {
-            throw new Error('storeName es requerido para buscar por código de barras');
+            throw new Error('storeName is required to search by barcode');
         }
         const collectionName = getProductsCollectionName(storeName);
         const q = query(
@@ -128,12 +110,9 @@ export const ProductRepository = {
         return querySnapshot.empty ? null : { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
     },
 
-    /**
-     * Obtener todos los productos de una tienda desde su colección dinámica
-     */
     async getAll(storeName, filters = {}, limitCount = 100) {
         if (!storeName) {
-            throw new Error('storeName es requerido para obtener todos los productos');
+            throw new Error('storeName is required to get all products');
         }
         const collectionName = getProductsCollectionName(storeName);
         let constraints = [];
@@ -161,12 +140,9 @@ export const ProductRepository = {
         return products;
     },
 
-    /**
-     * Actualizar producto en la colección dinámica
-     */
     async update(productId, updateData, storeName) {
         if (!storeName) {
-            throw new Error('storeName es requerido para actualizar un producto');
+            throw new Error('storeName is required to update a product');
         }
         const collectionName = getProductsCollectionName(storeName);
         const productRef = doc(db, collectionName, productId);
@@ -177,19 +153,16 @@ export const ProductRepository = {
         return await this.getById(productId, storeName);
     },
 
-    /**
-     * Actualizar stock en la colección dinámica
-     */
     async updateStock(productId, quantity, storeName) {
         if (!storeName) {
-            throw new Error('storeName es requerido para actualizar el stock');
+            throw new Error('storeName is required to update stock');
         }
         const collectionName = getProductsCollectionName(storeName);
         const productRef = doc(db, collectionName, productId);
         const product = await this.getById(productId, storeName);
 
         if (!product) {
-            throw new Error('Producto no encontrado');
+            throw new Error('Product not found');
         }
 
         const newStock = (product.stock || 0) + quantity;
@@ -202,12 +175,9 @@ export const ProductRepository = {
         return await this.getById(productId, storeName);
     },
 
-    /**
-     * Eliminar producto (soft delete) en la colección dinámica
-     */
     async delete(productId, storeName, hardDelete = false) {
         if (!storeName) {
-            throw new Error('storeName es requerido para eliminar un producto');
+            throw new Error('storeName is required to delete a product');
         }
         const collectionName = getProductsCollectionName(storeName);
 
@@ -220,12 +190,9 @@ export const ProductRepository = {
         }
     },
 
-    /**
-     * Buscar productos por nombre, marca o código de barras en la colección dinámica
-     */
     async search(term, storeName, limitCount = 20) {
         if (!storeName) {
-            throw new Error('storeName es requerido para buscar productos');
+            throw new Error('storeName is required to search products');
         }
         const collectionName = getProductsCollectionName(storeName);
         const q = query(
