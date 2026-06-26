@@ -1,6 +1,7 @@
 /* ========================================
    LOGIN CONTROLLER - Form listener and service integration
    IMPLEMENTS SWEETALERT2 FOR FRIENDLY ERRORS
+   CAPTURA PARÁMETROS DE PLAN Y PERÍODO DESDE LA URL
    ======================================== */
 
 import { AdminService } from '/services/adminService.js';
@@ -8,7 +9,17 @@ import { AdminService } from '/services/adminService.js';
 let isLoading = false;
 
 export async function loginController() {
-    console.log('Login controller initialized');
+    // ✅ CAPTURAR PARÁMETROS DE LA URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const plan = urlParams.get('plan') || 'basic';
+    const period = urlParams.get('period') || 'monthly';
+
+    // Guardar en sessionStorage para uso posterior (ej. en checkout)
+    sessionStorage.setItem('selectedPlan', plan);
+    sessionStorage.setItem('selectedPeriod', period);
+
+    // Mostrar información del plan en el formulario (si existe un elemento)
+    displayPlanInfo(plan, period);
 
     if (AdminService.isAuthenticated()) {
         redirectByRole();
@@ -17,8 +28,49 @@ export async function loginController() {
 
     animateLoginForm();
     initPasswordToggle();
-    initLoginForm();
-    initGoogleLogin();
+    initLoginForm(plan, period);
+    initGoogleLogin(plan, period);
+}
+
+// ✅ FUNCIÓN PARA MOSTRAR EL PLAN SELECCIONADO (opcional)
+function displayPlanInfo(plan, period) {
+    const planDisplay = document.getElementById('planDisplay');
+    if (!planDisplay) return;
+
+    const planNames = {
+        trial: 'Prueba Gratis (15 días)',
+        basic: 'Plan Básico',
+        pro: 'Plan Profesional',
+        enterprise: 'Plan Empresarial',
+        custom: 'Plan Personalizado'
+    };
+
+    const periodText = period === 'monthly' ? 'mensual' : 'anual';
+    const planName = planNames[plan] || plan;
+
+    let message = `Estás seleccionando: <strong>${planName}</strong>`;
+    if (plan !== 'custom' && plan !== 'trial') {
+        message += ` (pago ${periodText})`;
+    }
+    planDisplay.innerHTML = message;
+
+    // Agregar campos ocultos al formulario para enviarlos en el login
+    const form = document.getElementById('loginForm');
+    if (form) {
+        form.querySelectorAll('input[name="plan"], input[name="period"]').forEach(el => el.remove());
+
+        const planInput = document.createElement('input');
+        planInput.type = 'hidden';
+        planInput.name = 'plan';
+        planInput.value = plan;
+        form.appendChild(planInput);
+
+        const periodInput = document.createElement('input');
+        periodInput.type = 'hidden';
+        periodInput.name = 'period';
+        periodInput.value = period;
+        form.appendChild(periodInput);
+    }
 }
 
 function animateLoginForm() {
@@ -32,23 +84,49 @@ function animateLoginForm() {
     loginCard.style.transform = 'translateY(0)';
 }
 
+/**
+ * Redirige según el plan seleccionado después del login exitoso.
+ * - Si el plan es "trial" -> va al dashboard (prueba gratuita).
+ * - Si es un plan de pago (basic, pro, enterprise) -> va al checkout.
+ * - Si es "custom" -> va a contacto.
+ * - Si hay una URL de redirección guardada, la respeta.
+ */
 function redirectByRole() {
+    // Obtener el plan guardado en sessionStorage
+    const plan = sessionStorage.getItem('selectedPlan') || 'basic';
+    const period = sessionStorage.getItem('selectedPeriod') || 'monthly';
+
+    // Si hay una URL de redirección previa (ej. desde otra página), la priorizamos
     const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
     if (redirectUrl) {
         sessionStorage.removeItem('redirectAfterLogin');
         window.location.href = redirectUrl;
         return;
     }
-    window.location.href = '/inicioAdmin';
+
+    let targetUrl = '/inicioAdmin'; // por defecto
+
+    // Lógica según el plan
+    if (plan === 'trial') {
+        // Prueba gratuita: acceso al dashboard (podrías agregar un flag en la URL)
+        targetUrl = '/inicioAdmin?trial=true';
+    } else if (plan === 'custom') {
+        targetUrl = '/contacto';
+    } else if (['basic', 'pro', 'enterprise'].includes(plan)) {
+        // Planes de pago: redirigir al checkout para completar el pago
+        // Asumiendo que tienes una ruta /checkout o similar
+        targetUrl = `/checkout?plan=${plan}&period=${period}`;
+        // Si no tienes checkout, puedes redirigir a un mensaje de "próximamente"
+        // targetUrl = '/inicioAdmin?payment_required=true';
+    }
+
+    window.location.href = targetUrl;
 }
 
 function initPasswordToggle() {
     setTimeout(() => {
         const toggleBtn = document.getElementById('toggleLoginPassword');
         const passwordInput = document.getElementById('loginPass');
-
-        console.log('Login toggle button found:', !!toggleBtn);
-        console.log('Login password input found:', !!passwordInput);
 
         if (!toggleBtn || !passwordInput) {
             console.warn('Login password toggle elements not found');
@@ -64,8 +142,6 @@ function initPasswordToggle() {
 
             const icon = this.querySelector('i');
             const isPasswordVisible = passwordInput.type === 'text';
-
-            console.log('Login toggle clicked, current type:', passwordInput.type);
 
             passwordInput.type = isPasswordVisible ? 'password' : 'text';
 
@@ -87,12 +163,10 @@ function initPasswordToggle() {
                 newToggleBtn.click();
             }
         });
-
-        console.log('Login password toggle initialized successfully');
     }, 100);
 }
 
-function initLoginForm() {
+function initLoginForm(plan, period) {
     const loginForm = document.getElementById('loginForm');
     if (!loginForm) return;
 
@@ -118,16 +192,15 @@ function initLoginForm() {
         submitBtn.disabled = true;
 
         try {
-            // ✅ EJECUTAR LOGIN PRIMERO
-            await AdminService.login(email, password, false);
+            // Llamada al servicio de login, pasando plan y period (por si el backend los necesita)
+            await AdminService.login(email, password, false, plan, period);
 
-            // ✅ DESPUÉS DEL LOGIN EXITOSO, MOSTRAR BIENVENIDA CON SWEETALERT
             const session = AdminService.getSession();
             const nombre = session?.fullName || session?.name || 'Administrador';
 
             await Swal.fire({
                 title: `¡Bienvenido, ${nombre}!`,
-                text: 'Serás redirigido al dashboard en 3 segundos',
+                text: 'Serás redirigido en 3 segundos',
                 icon: 'success',
                 timer: 3000,
                 timerProgressBar: true,
@@ -142,17 +215,13 @@ function initLoginForm() {
                 }
             });
 
-            // ✅ REDIRIGIR DESPUÉS DEL SWEETALERT
             redirectByRole();
 
         } catch (error) {
-            // Cerrar SweetAlert si está abierto
             Swal.close();
-
             const friendlyMessage = getFriendlyErrorMessage(error);
             showTemporaryError('Acceso denegado', friendlyMessage);
 
-            // Resetear el tipo de contraseña
             const passwordInput = document.getElementById('loginPass');
             if (passwordInput) {
                 passwordInput.type = 'password';
@@ -169,7 +238,7 @@ function initLoginForm() {
     });
 }
 
-function initGoogleLogin() {
+function initGoogleLogin(plan, period) {
     const googleBtn = document.getElementById('googleLoginBtn');
     if (!googleBtn) return;
 
@@ -185,16 +254,15 @@ function initGoogleLogin() {
         newGoogleBtn.disabled = true;
 
         try {
-            // ✅ EJECUTAR LOGIN CON GOOGLE PRIMERO
-            await AdminService.login(null, null, true);
+            // Login con Google, pasando también plan y period
+            await AdminService.login(null, null, true, plan, period);
 
-            // ✅ DESPUÉS DEL LOGIN EXITOSO, MOSTRAR BIENVENIDA CON SWEETALERT
             const session = AdminService.getSession();
             const nombre = session?.fullName || session?.name || 'Administrador';
 
             await Swal.fire({
                 title: `¡Bienvenido, ${nombre}!`,
-                text: 'Serás redirigido al dashboard en 3 segundos',
+                text: 'Serás redirigido en 3 segundos',
                 icon: 'success',
                 timer: 3000,
                 timerProgressBar: true,
@@ -209,13 +277,10 @@ function initGoogleLogin() {
                 }
             });
 
-            // ✅ REDIRIGIR DESPUÉS DEL SWEETALERT
             redirectByRole();
 
         } catch (error) {
-            // Cerrar SweetAlert si está abierto
             Swal.close();
-
             const friendlyMessage = getFriendlyErrorMessage(error);
             showTemporaryError('Error con Google', friendlyMessage);
         } finally {
@@ -271,3 +336,5 @@ function showTemporaryError(title, message) {
 export function cleanupLogin() {
     console.log('Login controller cleaned up');
 }
+
+export default loginController;
