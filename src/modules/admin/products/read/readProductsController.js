@@ -44,11 +44,7 @@ async function loadProducts() {
             console.error('❌ Admin session not found');
             await Swal.fire({
                 title: 'Error',
-<<<<<<< HEAD
                 text: 'No se encontró la sesión del administrador. Por favor, inicia sesión nuevamente.',
-=======
-                text: 'No se encontró la sesión del administrador',
->>>>>>> f3e8c972687ed1354017f9c1f99b941db7385a2a
                 icon: 'error',
                 confirmButtonText: 'Aceptar',
                 confirmButtonColor: '#dc2626'
@@ -81,11 +77,7 @@ async function loadProducts() {
         console.error('Error loading products:', error);
         Swal.fire({
             title: 'Error',
-<<<<<<< HEAD
             text: 'No se pudieron cargar los productos. Intenta de nuevo más tarde.',
-=======
-            text: 'No se pudieron cargar los productos',
->>>>>>> f3e8c972687ed1354017f9c1f99b941db7385a2a
             icon: 'error',
             confirmButtonText: 'Aceptar',
             confirmButtonColor: '#dc2626'
@@ -404,13 +396,8 @@ async function handleToggleSwitch(id, name, isCurrentlyActive, toggleElement) {
         const adminId = adminSession?.id;
         const storeName = adminSession?.storeName;
 
-<<<<<<< HEAD
         if (!adminId || !storeName) {
             throw new Error('Admin session or store name not found');
-=======
-        if (!adminId) {
-            throw new Error('No se encontró la sesión del administrador');
->>>>>>> f3e8c972687ed1354017f9c1f99b941db7385a2a
         }
 
         await ProductService.toggleStatus(id, !isCurrentlyActive, adminId, storeName);
@@ -488,13 +475,8 @@ async function viewProductDetails(id) {
         const adminId = adminSession?.id;
         const storeName = adminSession?.storeName;
 
-<<<<<<< HEAD
         if (!adminId || !storeName) {
             throw new Error('Admin session or store name not found');
-=======
-        if (!adminId) {
-            throw new Error('No se encontró la sesión del administrador');
->>>>>>> f3e8c972687ed1354017f9c1f99b941db7385a2a
         }
 
         const product = await ProductService.getById(id, adminId, storeName);
