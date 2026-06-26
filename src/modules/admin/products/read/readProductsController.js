@@ -38,20 +38,36 @@ async function loadProducts() {
     try {
         const adminSession = AdminService.getSession();
         const adminId = adminSession?.id;
+        const storeName = adminSession?.storeName;
 
         if (!adminId) {
             console.error('❌ Admin session not found');
-            Swal.fire({
+            await Swal.fire({
                 title: 'Error',
-                text: 'Admin session not found',
+                text: 'No se encontró la sesión del administrador. Por favor, inicia sesión nuevamente.',
                 icon: 'error',
-                confirmButtonText: 'Accept',
+                confirmButtonText: 'Aceptar',
                 confirmButtonColor: '#dc2626'
             });
             return;
         }
 
-        const products = await ProductService.getAll(adminId, {}, false);
+        if (!storeName) {
+            console.warn('⚠️ Store name not found. Redirecting to create store.');
+            await Swal.fire({
+                title: 'Tienda no configurada',
+                text: 'Para ver productos, primero debes crear una tienda.',
+                icon: 'info',
+                confirmButtonText: 'Crear tienda',
+                confirmButtonColor: '#2563eb',
+                allowOutsideClick: false
+            });
+            window.location.href = '/crearTienda';
+            return;
+        }
+
+        // ✅ Ahora sí, llamamos al servicio con storeName
+        const products = await ProductService.getAll(adminId, storeName, {}, false);
         allProducts = products;
         console.log('✅ Products loaded:', allProducts.length);
 
@@ -61,9 +77,9 @@ async function loadProducts() {
         console.error('Error loading products:', error);
         Swal.fire({
             title: 'Error',
-            text: 'Could not load products',
+            text: 'No se pudieron cargar los productos. Intenta de nuevo más tarde.',
             icon: 'error',
-            confirmButtonText: 'Accept',
+            confirmButtonText: 'Aceptar',
             confirmButtonColor: '#dc2626'
         });
         showEmptyState();
@@ -378,12 +394,13 @@ async function handleToggleSwitch(id, name, isCurrentlyActive, toggleElement) {
 
         const adminSession = AdminService.getSession();
         const adminId = adminSession?.id;
+        const storeName = adminSession?.storeName;
 
-        if (!adminId) {
-            throw new Error('Admin session not found');
+        if (!adminId || !storeName) {
+            throw new Error('Admin session or store name not found');
         }
 
-        await ProductService.toggleStatus(id, !isCurrentlyActive, adminId);
+        await ProductService.toggleStatus(id, !isCurrentlyActive, adminId, storeName);
         Swal.close();
 
         await Swal.fire({
@@ -456,12 +473,13 @@ async function viewProductDetails(id) {
     try {
         const adminSession = AdminService.getSession();
         const adminId = adminSession?.id;
+        const storeName = adminSession?.storeName;
 
-        if (!adminId) {
-            throw new Error('Admin session not found');
+        if (!adminId || !storeName) {
+            throw new Error('Admin session or store name not found');
         }
 
-        const product = await ProductService.getById(id, adminId);
+        const product = await ProductService.getById(id, adminId, storeName);
 
         if (!product) {
             await Swal.fire({
