@@ -4,6 +4,7 @@
    ======================================== */
 
 import { AuthService } from '../../../../services/authService.js';
+import { checkTrialStatus, resetTrialAlerts, getTrialDaysLeft } from '../../../../services/trialCheckService.js';
 
 // ==================== CONFIGURATION ====================
 
@@ -45,6 +46,12 @@ export function initAdminNavbarController() {
         setActiveLink();
         loadUserInfo();
         applyModulePermissions();
+
+        // ✅ Verificar estado de prueba gratuita al cargar
+        checkTrialStatus();
+
+
+
         console.log('✅ Admin Navbar Controller initialized');
     }).catch(error => {
         console.error('❌ Error:', error);
@@ -127,6 +134,12 @@ function bindEvents() {
     window.addEventListener('auth:changed', () => {
         loadUserInfo();
         applyModulePermissions();
+
+        // ✅ Resetear alertas y verificar al cambiar autenticación
+        resetTrialAlerts();
+        if (AdminService.isAuthenticated()) {
+            checkTrialStatus();
+        }
     });
 }
 
@@ -450,7 +463,6 @@ function loadUserInfo() {
 async function handleLogout(event) {
     if (event) event.preventDefault();
 
-    // ✅ CONFIRMACIÓN CON SWEETALERT
     const result = await Swal.fire({
         title: '¿Cerrar sesión?',
         text: '¿Estás seguro de que deseas salir de tu cuenta?',
@@ -463,13 +475,11 @@ async function handleLogout(event) {
         reverseButtons: true
     });
 
-    // Si cancela, no hacer nada
     if (!result.isConfirmed) {
         console.log('❌ Logout cancelado');
         return;
     }
 
-    // ✅ MOSTRAR "CERRANDO SESIÓN..." CON TIMER DE 3 SEGUNDOS
     let timerInterval;
     const timer = Swal.fire({
         title: 'Cerrando sesión...',
@@ -491,24 +501,23 @@ async function handleLogout(event) {
         }
     });
 
-    // Esperar a que termine el timer (3 segundos)
     await timer;
 
     try {
-        // Intentar logout con AuthService
+        // ✅ Limpiar intervalo de trial checker
+
+
         if (window.AuthService && typeof window.AuthService.logout === 'function') {
             await window.AuthService.logout();
         } else if (AuthService && typeof AuthService.logout === 'function') {
             await AuthService.logout();
         } else {
-            // Fallback: limpiar localStorage manualmente
             localStorage.removeItem('admin_user');
             localStorage.removeItem('outlet_user');
             localStorage.removeItem('neoUser');
             window.dispatchEvent(new CustomEvent('auth:changed', { detail: { isLoggedIn: false } }));
         }
 
-        // Redirigir al login
         if (typeof window.navigateTo === 'function') {
             window.navigateTo('/');
         } else {
@@ -517,11 +526,8 @@ async function handleLogout(event) {
 
     } catch (error) {
         console.error('❌ Error en logout:', error);
-
-        // Cerrar SweetAlert si está abierto
         Swal.close();
 
-        // ✅ MOSTRAR ERROR SI FALLA
         await Swal.fire({
             title: 'Error al cerrar sesión',
             text: error.message || 'Ocurrió un problema, pero serás redirigido.',
@@ -530,7 +536,6 @@ async function handleLogout(event) {
             confirmButtonColor: '#dc2626'
         });
 
-        // Redirigir de todas formas
         window.location.href = '/';
     }
 }
@@ -541,4 +546,7 @@ export function reinitialize() {
     setActiveLink();
     loadUserInfo();
     applyModulePermissions();
+
+    // ✅ Resetear alertas y verificar al re-inicializar
+
 }

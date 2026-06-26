@@ -47,18 +47,26 @@ export const AdminRepository = {
         await updateProfile(firebaseUser, { displayName: adminData.name || email });
         await sendEmailVerification(firebaseUser);
 
+        const createdAt = new Date().toISOString();
+        const trialEndDate = new Date();
+        trialEndDate.setDate(trialEndDate.getDate() + 15);
+
+        // ✅ Guardar admin con plan 'full-free' por defecto
         const adminToSave = {
             id: firebaseUser.uid,
             name: adminData.name || '',
             email: firebaseUser.email,
             phoneNumber: adminData.phoneNumber || '',
-            plan: adminData.plan || null,
+            plan: 'full-free', // ✅ PLAN POR DEFECTO
             storesId: adminData.storesId || {},
+            storeId: adminData.storeId || null,
+            storeName: adminData.storeName || null,
+            trialEndDate: trialEndDate.toISOString(),
             active: true,
             termsAccepted: adminData.termsAccepted || false,
             userPhoto: adminData.userPhoto || '',
             provider: 'email',
-            createdAt: new Date().toISOString(),
+            createdAt: createdAt,
             updatedAt: null
         };
 
@@ -83,18 +91,26 @@ export const AdminRepository = {
         let adminData = await this.getById(firebaseUser.uid);
 
         if (!adminData) {
+            const createdAt = new Date().toISOString();
+            const trialEndDate = new Date();
+            trialEndDate.setDate(trialEndDate.getDate() + 15);
+
+            // ✅ Guardar admin con plan 'full-free' por defecto
             adminData = {
                 id: firebaseUser.uid,
                 name: firebaseUser.displayName || '',
                 email: firebaseUser.email,
                 phoneNumber: '',
-                plan: null,
+                plan: 'full-free', // ✅ PLAN POR DEFECTO
                 storesId: {},
+                storeId: null,
+                storeName: null,
+                trialEndDate: trialEndDate.toISOString(),
                 active: true,
                 termsAccepted: true,
                 userPhoto: firebaseUser.photoURL || '',
                 provider: 'google',
-                createdAt: new Date().toISOString(),
+                createdAt: createdAt,
                 updatedAt: null
             };
             await this.save(adminData);

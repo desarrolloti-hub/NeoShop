@@ -14,15 +14,20 @@ export class Admin {
         this.userPhoto = data.userPhoto || '';
 
         // Store and Plan
-        this.plan = data.plan || null;                    // e.g., 'basic', 'premium', 'enterprise'
-        this.storesId = data.storesId || {};              // { storeId: { name: '', active: true } }
+        this.plan = data.plan || 'full-free'; // ✅ Por defecto 'full-free'
+        this.storesId = data.storesId || {};
+        this.storeId = data.storeId || null;
+        this.storeName = data.storeName || null;
+
+        // Trial
+        this.trialEndDate = data.trialEndDate || null;
 
         // Status and Terms
         this.active = data.active !== undefined ? data.active : true;
         this.termsAccepted = data.termsAccepted || false;
 
         // Authentication
-        this.provider = data.provider || 'email';         // 'email' or 'google'
+        this.provider = data.provider || 'email';
 
         // Metadata
         this.createdAt = data.createdAt || new Date().toISOString();
@@ -31,12 +36,10 @@ export class Admin {
 
     // ========== GETTERS ==========
 
-    // Full name (for backwards compatibility)
     get fullName() {
         return this.name || 'Administrator';
     }
 
-    // Initials for avatar
     get initials() {
         if (!this.name) return 'A';
         const parts = this.name.trim().split(' ');
@@ -44,12 +47,10 @@ export class Admin {
         return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
     }
 
-    // Check if user has any store assigned
     get hasStore() {
         return Object.keys(this.storesId || {}).length > 0;
     }
 
-    // List of active store IDs
     get activeStores() {
         if (!this.storesId) return [];
         return Object.entries(this.storesId)
@@ -57,17 +58,43 @@ export class Admin {
             .map(([id]) => id);
     }
 
-    // Total number of stores
     get totalStores() {
         return Object.keys(this.storesId || {}).length;
     }
 
-    // Check if user has an active plan
     get hasPlan() {
         return !!this.plan;
     }
 
-    // Summary data for localStorage
+    // ✅ Verificar si el plan es gratuito (full-free)
+    get isFreePlan() {
+        return this.plan === 'full-free';
+    }
+
+    // ✅ Verificar si la prueba gratuita ha expirado
+    get isTrialExpired() {
+        if (!this.trialEndDate) return false;
+        const now = new Date();
+        const trialEnd = new Date(this.trialEndDate);
+        return now > trialEnd;
+    }
+
+    // ✅ Días restantes de prueba (puede ser negativo si expiró)
+    get daysLeftInTrial() {
+        if (!this.trialEndDate) return 0;
+        const now = new Date();
+        const trialEnd = new Date(this.trialEndDate);
+        const diffTime = trialEnd.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    }
+
+    // ✅ Verificar si está en periodo de gracia (últimos 3 días)
+    get isInGracePeriod() {
+        const daysLeft = this.daysLeftInTrial;
+        return daysLeft >= 0 && daysLeft <= 3;
+    }
+
     get summary() {
         return {
             id: this.id,
@@ -79,13 +106,18 @@ export class Admin {
             totalStores: this.totalStores,
             active: this.active,
             userPhoto: this.userPhoto,
-            provider: this.provider
+            provider: this.provider,
+            storeId: this.storeId,
+            storeName: this.storeName,
+            trialEndDate: this.trialEndDate,
+            isTrialExpired: this.isTrialExpired,
+            daysLeftInTrial: this.daysLeftInTrial,
+            isFreePlan: this.isFreePlan
         };
     }
 
     // ========== METHODS ==========
 
-    // Assign a store to the administrator
     assignStore(storeId, storeData = {}) {
         this.storesId = {
             ...this.storesId,
@@ -95,20 +127,24 @@ export class Admin {
                 assignedAt: new Date().toISOString()
             }
         };
+        this.storeId = storeId;
+        this.storeName = storeData.name || storeId;
         this.updatedAt = new Date().toISOString();
         return this;
     }
 
-    // Remove a store from the administrator
     removeStore(storeId) {
         if (this.storesId && this.storesId[storeId]) {
             delete this.storesId[storeId];
             this.updatedAt = new Date().toISOString();
+            if (this.storeId === storeId) {
+                this.storeId = null;
+                this.storeName = null;
+            }
         }
         return this;
     }
 
-    // Activate/deactivate a store
     toggleStore(storeId, active) {
         if (this.storesId && this.storesId[storeId]) {
             this.storesId[storeId].active = active;
@@ -117,19 +153,33 @@ export class Admin {
         return this;
     }
 
-    // Check if user manages a specific store
     managesStore(storeId) {
         return !!(this.storesId && this.storesId[storeId] && this.storesId[storeId].active);
     }
 
-    // Update the user's plan
     updatePlan(newPlan) {
         this.plan = newPlan;
         this.updatedAt = new Date().toISOString();
         return this;
     }
 
-    // Validate complete data for registration
+    extendTrial(days = 15) {
+        const currentEnd = this.trialEndDate ? new Date(this.trialEndDate) : new Date();
+        currentEnd.setDate(currentEnd.getDate() + days);
+        this.trialEndDate = currentEnd.toISOString();
+        this.updatedAt = new Date().toISOString();
+        return this;
+    }
+
+    setTrialFromCreation() {
+        const createdAt = this.createdAt ? new Date(this.createdAt) : new Date();
+        const trialEnd = new Date(createdAt);
+        trialEnd.setDate(trialEnd.getDate() + 15);
+        this.trialEndDate = trialEnd.toISOString();
+        this.updatedAt = new Date().toISOString();
+        return this;
+    }
+
     validateForRegistration() {
         const errors = [];
 
@@ -149,7 +199,6 @@ export class Admin {
         };
     }
 
-    // Validate email (private)
     _validateEmail(email) {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return re.test(email);

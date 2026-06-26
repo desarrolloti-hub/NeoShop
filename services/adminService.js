@@ -36,7 +36,7 @@ export const AdminService = {
             name: adminData.name.trim(),
             email: adminData.email.toLowerCase().trim(),
             phoneNumber: adminData.phoneNumber?.trim() || '',
-            plan: adminData.plan || null,
+            plan: 'full-free', // ✅ Plan por defecto
             storesId: adminData.storesId || {},
             active: true,
             termsAccepted: adminData.termsAccepted || false,
@@ -74,19 +74,22 @@ export const AdminService = {
             throw new Error('This account has been deactivated');
         }
 
-        // ✅ Guardar sesión con storeId y storeName
         const sessionData = {
             id: result.userData.id,
             name: result.userData.name,
             email: result.userData.email,
             fullName: result.userData.name,
             initials: this._getInitials(result.userData.name),
-            plan: result.userData.plan,
+            plan: result.userData.plan || 'full-free',
+            totalStores: Object.keys(result.userData.storesId || {}).length,
             active: result.userData.active,
             userPhoto: result.userData.userPhoto,
             provider: result.userData.provider,
-            storeId: result.userData.storeId || null,  // ✅ IMPORTANTE: guardar storeId
-            storeName: result.userData.storeName || null  // ✅ IMPORTANTE: guardar storeName
+            storeId: result.userData.storeId || null,
+            storeName: result.userData.storeName || null,
+            trialEndDate: result.userData.trialEndDate || null,
+            isTrialExpired: result.userData.isTrialExpired || false,
+            daysLeftInTrial: result.userData.daysLeftInTrial || 0
         };
 
         this._saveSession(sessionData);
