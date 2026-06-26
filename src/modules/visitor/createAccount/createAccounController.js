@@ -225,7 +225,7 @@ function initRegisterFormSubmit() {
             name: name,
             email: email,
             phoneNumber: '',
-            plan: full,
+            plan: "full",
             storesId: {},
             active: true,
             termsAccepted: true,
