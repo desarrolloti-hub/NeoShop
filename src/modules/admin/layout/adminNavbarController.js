@@ -1,10 +1,11 @@
 /* ========================================
-   ADMIN NAVBAR CONTROLLER - Solo lógica de permisos
+   ADMIN NAVBAR CONTROLLER - Only permission logic
+   With full profile photo support (base64 & Google)
    ======================================== */
 
 import { AuthService } from '../../../../services/authService.js';
 
-// ==================== CONFIGURACIÓN DE PLANES ====================
+// ==================== CONFIGURATION ====================
 
 const PLANS = {
     BASIC: 'basic',
@@ -13,7 +14,6 @@ const PLANS = {
     SPECIAL: 'special'
 };
 
-// Módulos permitidos por cada plan
 const PLAN_MODULES = {
     [PLANS.BASIC]: [
         'dashboard', 'productsList', 'orders', 'updateProfile'
@@ -31,7 +31,6 @@ const PLAN_MODULES = {
     ]
 };
 
-// Módulos que SIEMPRE se muestran (independientemente del plan)
 const ALWAYS_VISIBLE = ['dashboard', 'updateProfile'];
 
 // ==================== CONTROLLER ====================
@@ -45,8 +44,8 @@ export function initAdminNavbarController() {
         bindEvents();
         setActiveLink();
         loadUserInfo();
-        applyModulePermissions();  // ← Aplica permisos sin modificar HTML
-        console.log('✅ Admin Navbar Controller inicializado');
+        applyModulePermissions();
+        console.log('✅ Admin Navbar Controller initialized');
     }).catch(error => {
         console.error('❌ Error:', error);
         setTimeout(() => initAdminNavbarController(), 1000);
@@ -62,7 +61,7 @@ function waitForNavbar(maxAttempts = 30, interval = 100) {
                 resolve();
             } else {
                 attempts++;
-                if (attempts >= maxAttempts) reject(new Error('Admin Navbar no encontrado'));
+                if (attempts >= maxAttempts) reject(new Error('Admin Navbar not found'));
                 else setTimeout(check, interval);
             }
         };
@@ -86,7 +85,6 @@ function cacheElements() {
         avatarImg: document.getElementById('adminAvatarImg'),
         avatarIcon: document.getElementById('adminAvatarIcon'),
         userInfo: document.getElementById('adminUserInfo'),
-        // Todos los items del menú con data-module
         menuItems: document.querySelectorAll('[data-module]')
     };
 }
@@ -128,15 +126,12 @@ function bindEvents() {
 
     window.addEventListener('auth:changed', () => {
         loadUserInfo();
-        applyModulePermissions();  // Re-aplicar permisos al cambiar auth
+        applyModulePermissions();
     });
 }
 
-// ==================== LÓGICA DE PERMISOS ====================
+// ==================== PERMISSION LOGIC ====================
 
-/**
- * Obtener el plan del usuario desde localStorage
- */
 function getUserPlan(userData) {
     if (!userData) return PLANS.BASIC;
 
@@ -149,24 +144,15 @@ function getUserPlan(userData) {
     return PLANS.BASIC;
 }
 
-/**
- * Verificar si un módulo debe ser visible según el plan
- */
 function isModuleVisible(moduleId, userPlan) {
-    // Siempre visible
     if (ALWAYS_VISIBLE.includes(moduleId)) return true;
 
-    // Verificar si está en los módulos permitidos del plan
     const allowedModules = PLAN_MODULES[userPlan] || PLAN_MODULES[PLANS.BASIC];
     return allowedModules.includes(moduleId);
 }
 
-/**
- * Aplicar permisos a los elementos del menú (ocultar/mostrar según plan)
- */
 function applyModulePermissions() {
     try {
-        // Obtener datos del usuario
         let userData = null;
         const adminUser = localStorage.getItem('admin_user');
         const outletUser = localStorage.getItem('outlet_user');
@@ -182,7 +168,6 @@ function applyModulePermissions() {
 
         currentUserPlan = getUserPlan(userData);
 
-        // Mostrar el plan en la UI
         if (elements.userPlan) {
             const planNames = {
                 [PLANS.BASIC]: 'Plan Básico',
@@ -193,7 +178,6 @@ function applyModulePermissions() {
             elements.userPlan.textContent = planNames[currentUserPlan] || 'Plan Básico';
         }
 
-        // Aplicar visibilidad a cada módulo
         if (elements.menuItems && elements.menuItems.length > 0) {
             elements.menuItems.forEach(item => {
                 const moduleId = item.getAttribute('data-module');
@@ -204,32 +188,23 @@ function applyModulePermissions() {
             });
         }
 
-        console.log(`✅ Permisos aplicados - Plan: ${currentUserPlan}`);
+        console.log(`✅ Permissions applied - Plan: ${currentUserPlan}`);
 
     } catch (e) {
-        console.error('Error aplicando permisos:', e);
+        console.error('Error applying permissions:', e);
     }
 }
 
-// ==================== FUNCIONES UTILITARIAS EXPORTABLES ====================
+// ==================== EXPORTABLE UTILITIES ====================
 
-/**
- * Verificar si el usuario actual tiene acceso a un módulo específico
- */
 export function hasModuleAccess(moduleId) {
     return isModuleVisible(moduleId, currentUserPlan);
 }
 
-/**
- * Obtener el plan actual del usuario
- */
 export function getCurrentPlan() {
     return currentUserPlan;
 }
 
-/**
- * Verificar si el usuario tiene un plan específico o superior
- */
 export function hasMinPlan(requiredPlan) {
     const planLevels = {
         [PLANS.BASIC]: 1,
@@ -244,7 +219,86 @@ export function hasMinPlan(requiredPlan) {
     return currentLevel >= requiredLevel;
 }
 
-// ==================== FUNCIONES ORIGINALES (sin cambios) ====================
+// ==================== PROFILE PHOTO FUNCTIONS ====================
+
+/**
+ * Load user profile photo from various sources
+ * Supports: base64, Google photo URL, Firebase photoURL, local storage
+ */
+function loadUserProfilePhoto(userData) {
+    const avatarImg = elements.avatarImg;
+    const avatarIcon = elements.avatarIcon;
+
+    if (!avatarImg || !avatarIcon) return;
+
+    // Reset to default state
+    avatarImg.style.display = 'none';
+    avatarIcon.style.display = 'flex';
+
+    if (!userData) {
+        console.log('No user data found, using default avatar');
+        return;
+    }
+
+    // Try multiple possible photo field names
+    const photoURL = userData.userPhoto ||
+        userData.photoURL ||
+        userData.photo ||
+        userData.avatar ||
+        userData.foto ||
+        userData.fotoURL ||
+        userData.profilePhoto ||
+        userData.profilePicture ||
+        userData.image ||
+        userData.picture;
+
+    // Also check if photo is stored in the admin user data from registration
+    const adminUserPhoto = userData.userPhoto;
+
+    // Priority: adminUserPhoto (from registration) > photoURL (from Google/Firebase)
+    const finalPhoto = adminUserPhoto || photoURL;
+
+    if (finalPhoto) {
+        // Check if it's a valid image URL or base64
+        const isValidImage = finalPhoto.startsWith('data:image') ||
+            finalPhoto.startsWith('http') ||
+            finalPhoto.startsWith('/') ||
+            finalPhoto.startsWith('blob:');
+
+        if (isValidImage) {
+            console.log('Loading profile photo:', finalPhoto.substring(0, 50) + '...');
+
+            // Set the image source
+            avatarImg.src = finalPhoto;
+            avatarImg.style.display = 'block';
+            avatarIcon.style.display = 'none';
+
+            // Handle loading errors
+            avatarImg.onload = () => {
+                console.log('✅ Profile photo loaded successfully');
+                avatarImg.style.display = 'block';
+                avatarIcon.style.display = 'none';
+            };
+
+            avatarImg.onerror = () => {
+                console.warn('⚠️ Failed to load profile photo, using default avatar');
+                avatarImg.style.display = 'none';
+                avatarIcon.style.display = 'flex';
+                avatarImg.src = '';
+            };
+        } else {
+            console.warn('Invalid photo format, using default avatar');
+            avatarImg.style.display = 'none';
+            avatarIcon.style.display = 'flex';
+        }
+    } else {
+        console.log('No profile photo found, using default avatar');
+        avatarImg.style.display = 'none';
+        avatarIcon.style.display = 'flex';
+    }
+}
+
+// ==================== ORIGINAL FUNCTIONS ====================
 
 function toggleMenu() {
     if (!elements.sidebar) return;
@@ -341,17 +395,22 @@ function loadUserInfo() {
         if (adminUser) {
             userData = JSON.parse(adminUser);
             userEmail = userData.email;
+            console.log('Loaded admin_user data:', userData);
         } else if (outletUser) {
             userData = JSON.parse(outletUser);
             userEmail = userData.email;
+            console.log('Loaded outlet_user data:', userData);
         } else if (neoUser) {
             userData = JSON.parse(neoUser);
             userEmail = userData.email || userData.correo;
+            console.log('Loaded neoUser data:', userData);
         }
 
         if (userData) {
+            // Set user name
             if (elements.userName) {
                 const displayName = userData.name ||
+                    userData.fullName ||
                     userData.displayName ||
                     userData.nombre ||
                     userData.username ||
@@ -359,60 +418,119 @@ function loadUserInfo() {
                 elements.userName.textContent = displayName;
             }
 
+            // Set user email
             if (elements.userEmail && userEmail) {
                 elements.userEmail.textContent = userEmail;
             } else if (elements.userEmail) {
                 elements.userEmail.textContent = 'usuario@ejemplo.com';
             }
 
-            const photoURL = userData.photoURL || userData.avatar || userData.foto || userData.fotoURL;
-            if (photoURL && elements.avatarImg && elements.avatarIcon) {
-                elements.avatarImg.src = photoURL;
-                elements.avatarImg.style.display = 'block';
-                elements.avatarIcon.style.display = 'none';
-                elements.avatarImg.onerror = () => {
-                    elements.avatarImg.style.display = 'none';
-                    elements.avatarIcon.style.display = 'flex';
-                };
-            } else if (elements.avatarImg && elements.avatarIcon) {
-                elements.avatarImg.style.display = 'none';
-                elements.avatarIcon.style.display = 'flex';
-            }
+            // ✅ LOAD PROFILE PHOTO
+            loadUserProfilePhoto(userData);
+
         } else {
             if (elements.userName) elements.userName.textContent = 'Administrador';
             if (elements.userEmail) elements.userEmail.textContent = 'admin@neoshop.com';
+            // Use default avatar
+            if (elements.avatarImg) elements.avatarImg.style.display = 'none';
+            if (elements.avatarIcon) elements.avatarIcon.style.display = 'flex';
         }
     } catch (e) {
-        console.error('Error cargando información del usuario:', e);
+        console.error('Error loading user info:', e);
         if (elements.userName) elements.userName.textContent = 'Administrador';
         if (elements.userEmail) elements.userEmail.textContent = 'admin@neoshop.com';
+        if (elements.avatarImg) elements.avatarImg.style.display = 'none';
+        if (elements.avatarIcon) elements.avatarIcon.style.display = 'flex';
     }
 }
 
+/* ========================================================
+   HANDLE LOGOUT - CONFIRMACIÓN + 3 SEGUNDOS DE REDIRECCIÓN
+   ======================================================== */
 async function handleLogout(event) {
     if (event) event.preventDefault();
 
-    if (!confirm('¿Cerrar sesión de administrador?')) return;
+    // ✅ CONFIRMACIÓN CON SWEETALERT
+    const result = await Swal.fire({
+        title: '¿Cerrar sesión?',
+        text: '¿Estás seguro de que deseas salir de tu cuenta?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, cerrar sesión',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#64748b',
+        reverseButtons: true
+    });
+
+    // Si cancela, no hacer nada
+    if (!result.isConfirmed) {
+        console.log('❌ Logout cancelado');
+        return;
+    }
+
+    // ✅ MOSTRAR "CERRANDO SESIÓN..." CON TIMER DE 3 SEGUNDOS
+    let timerInterval;
+    const timer = Swal.fire({
+        title: 'Cerrando sesión...',
+        text: 'Serás redirigido en 3 segundos',
+        icon: 'info',
+        timer: 3000,
+        timerProgressBar: true,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+            Swal.showLoading();
+            const timerElement = Swal.getTimerProgressBar();
+            if (timerElement) {
+                timerElement.style.background = '#456da2';
+            }
+        },
+        willClose: () => {
+            clearInterval(timerInterval);
+        }
+    });
+
+    // Esperar a que termine el timer (3 segundos)
+    await timer;
 
     try {
+        // Intentar logout con AuthService
         if (window.AuthService && typeof window.AuthService.logout === 'function') {
             await window.AuthService.logout();
         } else if (AuthService && typeof AuthService.logout === 'function') {
             await AuthService.logout();
         } else {
+            // Fallback: limpiar localStorage manualmente
             localStorage.removeItem('admin_user');
             localStorage.removeItem('outlet_user');
             localStorage.removeItem('neoUser');
             window.dispatchEvent(new CustomEvent('auth:changed', { detail: { isLoggedIn: false } }));
         }
 
+        // Redirigir al login
         if (typeof window.navigateTo === 'function') {
             window.navigateTo('/');
         } else {
             window.location.href = '/';
         }
+
     } catch (error) {
-        console.error('Error en logout:', error);
+        console.error('❌ Error en logout:', error);
+
+        // Cerrar SweetAlert si está abierto
+        Swal.close();
+
+        // ✅ MOSTRAR ERROR SI FALLA
+        await Swal.fire({
+            title: 'Error al cerrar sesión',
+            text: error.message || 'Ocurrió un problema, pero serás redirigido.',
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#dc2626'
+        });
+
+        // Redirigir de todas formas
         window.location.href = '/';
     }
 }
