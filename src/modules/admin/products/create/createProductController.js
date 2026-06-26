@@ -20,10 +20,10 @@ export async function createProductController() {
   if (!sessionLoaded) {
     console.error('❌ Session could not be loaded');
     Swal.fire({
-      title: 'Session Error',
-      text: 'Could not load session. Please log in again.',
+      title: 'Error de sesión',
+      text: 'No se pudo cargar la sesión. Por favor inicia sesión nuevamente.',
       icon: 'error',
-      confirmButtonText: 'Understood',
+      confirmButtonText: 'Entendido',
       confirmButtonColor: '#dc2626'
     }).then(() => {
       if (window.router) window.router.navigate('/admin/login');
@@ -34,10 +34,10 @@ export async function createProductController() {
   if (!currentStoreName) {
     console.error('❌ storeName not found in session');
     Swal.fire({
-      title: 'Configuration Error',
-      text: 'Store not found for your account. Contact the administrator.',
+      title: 'Error de configuración',
+      text: 'No se encontró la tienda asociada a tu cuenta. Contacta al administrador.',
       icon: 'error',
-      confirmButtonText: 'Understood',
+      confirmButtonText: 'Entendido',
       confirmButtonColor: '#dc2626'
     }).then(() => {
       if (window.router) window.router.navigate('/inicioAdmin');
@@ -125,10 +125,10 @@ function initProductImageUpload() {
 
     if (!file.type.startsWith('image/')) {
       Swal.fire({
-        title: 'Invalid format',
-        text: 'Please select a valid image (JPG, PNG, GIF)',
+        title: 'Formato no válido',
+        text: 'Selecciona una imagen válida (JPG, PNG, GIF)',
         icon: 'error',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#456da2'
       });
       fileInput.value = '';
@@ -137,10 +137,10 @@ function initProductImageUpload() {
 
     if (file.size > 2 * 1024 * 1024) {
       Swal.fire({
-        title: 'Image too large',
-        text: 'Image must not exceed 2MB',
+        title: 'Imagen muy pesada',
+        text: 'La imagen no debe superar los 2MB',
         icon: 'error',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#456da2'
       });
       fileInput.value = '';
@@ -175,9 +175,9 @@ function initProductImageUpload() {
     reader.onerror = () => {
       Swal.fire({
         title: 'Error',
-        text: 'Could not process the image',
+        text: 'No se pudo procesar la imagen',
         icon: 'error',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#456da2'
       });
       currentImageBase64 = '';
@@ -225,62 +225,62 @@ function initProductFormSubmit() {
 
     if (isLoading) return;
 
-    const name = document.querySelector('input[name="name"]')?.value.trim();
-    const barcode = document.querySelector('input[name="barcode"]')?.value.trim();
-    const brand = document.querySelector('input[name="brand"]')?.value.trim();
-    const description = document.querySelector('textarea[name="description"]')?.value.trim();
-    const price = parseFloat(document.querySelector('input[name="price"]')?.value) || 0;
-    const cost = parseFloat(document.querySelector('input[name="cost"]')?.value) || 0;
-    const stock = parseInt(document.querySelector('input[name="stock"]')?.value) || 0;
-    const minStock = parseInt(document.querySelector('input[name="minStock"]')?.value) || 0;
-    const unitOfMeasure = document.querySelector('input[name="unitOfMeasure"]')?.value.trim();
+    const name = document.getElementById('name')?.value.trim();
+    const barcode = document.getElementById('barcode')?.value.trim();
+    const brand = document.getElementById('brand')?.value.trim();
+    const description = document.getElementById('description')?.value.trim();
+    const price = parseFloat(document.getElementById('price')?.value) || 0;
+    const cost = parseFloat(document.getElementById('cost')?.value) || 0;
+    const stock = parseInt(document.getElementById('stock')?.value) || 0;
+    const minStock = parseInt(document.getElementById('minStock')?.value) || 0;
+    const unitOfMeasure = document.getElementById('unitOfMeasure')?.value.trim();
 
-    // Validations
+    // Validaciones
     if (!name) {
       Swal.fire({
-        title: 'Required field',
-        text: 'Product name is required',
+        title: 'Campo requerido',
+        text: 'El nombre del producto es obligatorio',
         icon: 'warning',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#456da2'
       });
-      document.querySelector('input[name="name"]')?.focus();
+      document.getElementById('name')?.focus();
       return;
     }
 
     if (!barcode) {
       Swal.fire({
-        title: 'Required field',
-        text: 'Barcode is required',
+        title: 'Campo requerido',
+        text: 'El código de barras es obligatorio',
         icon: 'warning',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#456da2'
       });
-      document.querySelector('input[name="barcode"]')?.focus();
+      document.getElementById('barcode')?.focus();
       return;
     }
 
     if (!brand) {
       Swal.fire({
-        title: 'Required field',
-        text: 'Brand is required',
+        title: 'Campo requerido',
+        text: 'La marca es obligatoria',
         icon: 'warning',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#456da2'
       });
-      document.querySelector('input[name="brand"]')?.focus();
+      document.getElementById('brand')?.focus();
       return;
     }
 
     if (price <= 0) {
       Swal.fire({
-        title: 'Invalid price',
-        text: 'Price must be greater than 0',
+        title: 'Precio inválido',
+        text: 'El precio debe ser mayor a 0',
         icon: 'error',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#456da2'
       });
-      document.querySelector('input[name="price"]')?.focus();
+      document.getElementById('price')?.focus();
       return;
     }
 
@@ -289,9 +289,9 @@ function initProductFormSubmit() {
     if (!adminId) {
       Swal.fire({
         title: 'Error',
-        text: 'Admin session not found',
+        text: 'No se encontró la sesión del administrador',
         icon: 'error',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#456da2'
       });
       return;
@@ -300,9 +300,9 @@ function initProductFormSubmit() {
     if (!currentStoreName) {
       Swal.fire({
         title: 'Error',
-        text: 'Store not found',
+        text: 'No se encontró la tienda asociada',
         icon: 'error',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#456da2'
       });
       return;
@@ -317,7 +317,7 @@ function initProductFormSubmit() {
       cost: cost,
       stock: stock,
       minStock: minStock,
-      unitOfMeasure: unitOfMeasure || 'piece',
+      unitOfMeasure: unitOfMeasure || 'pieza',
       imageUrl: currentImageBase64
     };
 
@@ -326,8 +326,8 @@ function initProductFormSubmit() {
     const originalText = submitBtn.innerHTML;
 
     Swal.fire({
-      title: 'Registering product...',
-      text: 'Please wait a moment',
+      title: 'Registrando producto...',
+      text: 'Por favor espera un momento',
       allowOutsideClick: false,
       didOpen: () => { Swal.showLoading(); }
     });
@@ -346,17 +346,17 @@ function initProductFormSubmit() {
       Swal.close();
 
       await Swal.fire({
-        title: 'Product registered',
+        title: '¡Producto registrado! 🎉',
         html: `
                     <div style="text-align: left;">
-                        <p><strong>${name}</strong> has been registered successfully</p>
-                        <p>Code: ${barcode.toUpperCase()}</p>
-                        <p>Price: ${formatCurrency(price)}</p>
-                        <p>Stock: ${stock} units</p>
+                        <p><i class="fas fa-check-circle" style="color: #456da2;"></i> <strong>${name}</strong> ha sido registrado exitosamente</p>
+                        <p><i class="fas fa-barcode"></i> <strong>Código:</strong> ${barcode.toUpperCase()}</p>
+                        <p><i class="fas fa-dollar-sign"></i> <strong>Precio:</strong> ${formatCurrency(price)}</p>
+                        <p><i class="fas fa-boxes"></i> <strong>Stock:</strong> ${stock} unidades</p>
                     </div>
                 `,
         icon: 'success',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#22c55e'
       });
 
@@ -378,12 +378,12 @@ function initProductFormSubmit() {
       currentImageBase64 = '';
 
       const resultConfirm = await Swal.fire({
-        title: 'What would you like to do now?',
-        text: 'You can register another product or view the list',
+        title: '¿Qué deseas hacer ahora?',
+        text: 'Puedes registrar otro producto o ver el listado completo',
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: 'View list',
-        cancelButtonText: 'Register another',
+        confirmButtonText: 'Ver listado',
+        cancelButtonText: 'Registrar otro',
         confirmButtonColor: '#456da2',
         cancelButtonColor: '#64748b',
         reverseButtons: true
@@ -392,7 +392,7 @@ function initProductFormSubmit() {
       if (resultConfirm.isConfirmed) {
         window.location.href = '/productos';
       } else {
-        document.querySelector('input[name="name"]')?.focus();
+        document.getElementById('name')?.focus();
       }
 
     } catch (error) {
@@ -400,10 +400,10 @@ function initProductFormSubmit() {
       Swal.close();
 
       await Swal.fire({
-        title: 'Registration error',
-        html: `<p>${error.message || 'Please try again'}</p>`,
+        title: 'Error al registrar',
+        html: `<p>${error.message || 'Intenta nuevamente'}</p>`,
         icon: 'error',
-        confirmButtonText: 'Understood',
+        confirmButtonText: 'Entendido',
         confirmButtonColor: '#dc2626'
       });
     } finally {

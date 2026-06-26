@@ -43,9 +43,9 @@ async function loadProducts() {
             console.error('❌ Admin session not found');
             Swal.fire({
                 title: 'Error',
-                text: 'Admin session not found',
+                text: 'No se encontró la sesión del administrador',
                 icon: 'error',
-                confirmButtonText: 'Accept',
+                confirmButtonText: 'Aceptar',
                 confirmButtonColor: '#dc2626'
             });
             return;
@@ -61,9 +61,9 @@ async function loadProducts() {
         console.error('Error loading products:', error);
         Swal.fire({
             title: 'Error',
-            text: 'Could not load products',
+            text: 'No se pudieron cargar los productos',
             icon: 'error',
-            confirmButtonText: 'Accept',
+            confirmButtonText: 'Aceptar',
             confirmButtonColor: '#dc2626'
         });
         showEmptyState();
@@ -137,14 +137,14 @@ function renderProductsTable(products) {
             }
         }
 
-        const skuCell = row.querySelector('.product-sku');
+        const barcodeCell = row.querySelector('.product-barcode');
         const nameCell = row.querySelector('.product-name');
         const brandCell = row.querySelector('.product-brand');
         const priceCell = row.querySelector('.product-price');
         const stockCell = row.querySelector('.product-stock');
         const statusSpan = row.querySelector('.product-status');
 
-        if (skuCell) skuCell.textContent = product.barcode || 'N/A';
+        if (barcodeCell) barcodeCell.textContent = product.barcode || 'N/A';
         if (nameCell) nameCell.textContent = product.name || 'N/A';
         if (brandCell) brandCell.textContent = product.brand || 'N/A';
         if (priceCell) priceCell.textContent = formatCurrency(product.price || 0);
@@ -212,14 +212,14 @@ function renderProductsCards(products) {
         }
 
         const nameEl = card.querySelector('.card-name');
-        const skuEl = card.querySelector('.card-sku');
+        const barcodeEl = card.querySelector('.card-barcode');
         const brandEl = card.querySelector('.card-brand');
         const priceEl = card.querySelector('.card-price');
         const stockEl = card.querySelector('.card-stock');
         const statusSpan = card.querySelector('.card-status');
 
         if (nameEl) nameEl.textContent = product.name || 'N/A';
-        if (skuEl) skuEl.textContent = `Code: ${product.barcode || 'N/A'}`;
+        if (barcodeEl) barcodeEl.textContent = `Código: ${product.barcode || 'N/A'}`;
         if (brandEl) brandEl.textContent = product.brand || 'N/A';
         if (priceEl) priceEl.textContent = formatCurrency(product.price || 0);
         if (stockEl) stockEl.textContent = `Stock: ${product.stock || 0}`;
@@ -313,19 +313,19 @@ function updatePagination(totalItems) {
 
     if (currentDisplay) {
         if (totalItems === 0) {
-            currentDisplay.textContent = 'Page 0';
+            currentDisplay.textContent = 'Página 0';
         } else {
-            currentDisplay.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+            currentDisplay.textContent = `Página ${currentPage} de ${totalPages || 1}`;
         }
     }
 
     if (infoDisplay) {
         if (totalItems === 0) {
-            infoDisplay.textContent = 'Showing 0 products';
+            infoDisplay.textContent = 'Mostrando 0 productos';
         } else {
             const start = (currentPage - 1) * ITEMS_PER_PAGE + 1;
             const end = Math.min(currentPage * ITEMS_PER_PAGE, totalItems);
-            infoDisplay.textContent = `Showing ${start} - ${end} of ${totalItems} products`;
+            infoDisplay.textContent = `Mostrando ${start} - ${end} de ${totalItems} productos`;
         }
     }
 }
@@ -341,20 +341,20 @@ function scrollToTop() {
    HANDLE TOGGLE SWITCH
    ======================================================== */
 async function handleToggleSwitch(id, name, isCurrentlyActive, toggleElement) {
-    const action = isCurrentlyActive ? 'disable' : 'enable';
-    const actionText = isCurrentlyActive ? 'disabled' : 'enabled';
-    const confirmText = isCurrentlyActive ? 'Yes, disable' : 'Yes, enable';
+    const action = isCurrentlyActive ? 'deshabilitar' : 'habilitar';
+    const actionText = isCurrentlyActive ? 'deshabilitado' : 'habilitado';
+    const confirmText = isCurrentlyActive ? 'Sí, deshabilitar' : 'Sí, habilitar';
     const iconColor = isCurrentlyActive ? '#dc2626' : '#22c55e';
 
     const result = await Swal.fire({
-        title: `${isCurrentlyActive ? 'Disable' : 'Enable'} product`,
-        html: `You are about to ${action} <strong>${name}</strong>.<br>The product will be ${actionText} in the system.`,
+        title: `${isCurrentlyActive ? 'Deshabilitar' : 'Habilitar'} producto`,
+        html: `Estás a punto de ${action} <strong>${name}</strong>.<br>El producto quedará ${actionText} en el sistema.`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: iconColor,
         cancelButtonColor: '#64748b',
         confirmButtonText: confirmText,
-        cancelButtonText: 'Cancel',
+        cancelButtonText: 'Cancelar',
         reverseButtons: true
     });
 
@@ -370,8 +370,8 @@ async function handleToggleSwitch(id, name, isCurrentlyActive, toggleElement) {
         }
 
         Swal.fire({
-            title: `${isCurrentlyActive ? 'Disabling' : 'Enabling'}...`,
-            text: 'Please wait',
+            title: `${isCurrentlyActive ? 'Deshabilitando' : 'Habilitando'}...`,
+            text: 'Por favor espera',
             allowOutsideClick: false,
             didOpen: () => { Swal.showLoading(); }
         });
@@ -380,24 +380,24 @@ async function handleToggleSwitch(id, name, isCurrentlyActive, toggleElement) {
         const adminId = adminSession?.id;
 
         if (!adminId) {
-            throw new Error('Admin session not found');
+            throw new Error('No se encontró la sesión del administrador');
         }
 
         await ProductService.toggleStatus(id, !isCurrentlyActive, adminId);
         Swal.close();
 
         await Swal.fire({
-            title: `Product ${actionText}`,
-            text: `${name} has been ${actionText} successfully`,
+            title: `Producto ${actionText}`,
+            text: `${name} ha sido ${actionText} correctamente`,
             icon: 'success',
-            confirmButtonText: 'Accept',
+            confirmButtonText: 'Aceptar',
             confirmButtonColor: '#22c55e'
         });
 
         await loadProducts();
 
     } catch (error) {
-        console.error(`Error ${action}ing product:`, error);
+        console.error(`Error al ${action} producto:`, error);
         Swal.close();
 
         if (toggleElement) {
@@ -410,9 +410,9 @@ async function handleToggleSwitch(id, name, isCurrentlyActive, toggleElement) {
 
         await Swal.fire({
             title: 'Error',
-            text: error.message || `Could not ${action} the product`,
+            text: error.message || `No se pudo ${action} el producto`,
             icon: 'error',
-            confirmButtonText: 'Accept',
+            confirmButtonText: 'Aceptar',
             confirmButtonColor: '#dc2626'
         });
     }
@@ -458,7 +458,7 @@ async function viewProductDetails(id) {
         const adminId = adminSession?.id;
 
         if (!adminId) {
-            throw new Error('Admin session not found');
+            throw new Error('No se encontró la sesión del administrador');
         }
 
         const product = await ProductService.getById(id, adminId);
@@ -466,9 +466,9 @@ async function viewProductDetails(id) {
         if (!product) {
             await Swal.fire({
                 title: 'Error',
-                text: 'Product not found',
+                text: 'Producto no encontrado',
                 icon: 'error',
-                confirmButtonText: 'Accept',
+                confirmButtonText: 'Aceptar',
                 confirmButtonColor: '#dc2626'
             });
             return;
@@ -486,13 +486,13 @@ async function viewProductDetails(id) {
             if (modalAvatarIcon) modalAvatarIcon.style.display = 'block';
         }
 
-        document.getElementById('modalTitle').textContent = `Details: ${product.name}`;
-        document.getElementById('modalSku').textContent = product.barcode || 'N/A';
+        document.getElementById('modalTitle').textContent = `Detalles: ${product.name}`;
+        document.getElementById('modalBarcode').textContent = product.barcode || 'N/A';
         document.getElementById('modalName').textContent = product.name || 'N/A';
         document.getElementById('modalBrand').textContent = product.brand || 'N/A';
         document.getElementById('modalPrice').textContent = formatCurrency(product.price || 0);
         document.getElementById('modalStock').textContent = product.stock || 0;
-        document.getElementById('modalDescription').textContent = product.description || 'No description';
+        document.getElementById('modalDescription').textContent = product.description || 'Sin descripción';
 
         const modal = document.getElementById('productModal');
         if (modal) modal.style.display = 'block';
@@ -501,9 +501,9 @@ async function viewProductDetails(id) {
         console.error('Error loading details:', error);
         await Swal.fire({
             title: 'Error',
-            text: 'Error loading product details',
+            text: 'Error al cargar los detalles del producto',
             icon: 'error',
-            confirmButtonText: 'Accept',
+            confirmButtonText: 'Aceptar',
             confirmButtonColor: '#dc2626'
         });
     }
@@ -571,8 +571,8 @@ function showEmptySearchState() {
                 <td colspan="8" class="empty-state-cell">
                     <div class="empty-state-content">
                         <i class="fas fa-search"></i>
-                        <p>No products found</p>
-                        <p style="font-size: 0.8rem;">Try different search terms</p>
+                        <p>No se encontraron productos</p>
+                        <p style="font-size: 0.8rem;">Prueba con otros términos de búsqueda</p>
                     </div>
                 </td>
             </tr>
@@ -584,8 +584,8 @@ function showEmptySearchState() {
         cardsContainer.innerHTML = `
             <div class="cards-empty-state">
                 <i class="fas fa-search"></i>
-                <p>No products found</p>
-                <p style="font-size: 0.8rem;">Try different search terms</p>
+                <p>No se encontraron productos</p>
+                <p style="font-size: 0.8rem;">Prueba con otros términos de búsqueda</p>
             </div>
         `;
     }
@@ -597,8 +597,8 @@ function showEmptySearchState() {
 function updateTotalCount(count) {
     const totalSpan = document.getElementById('totalProductsCount');
     if (totalSpan) {
-        const statusText = currentFilter === 'active' ? 'active' : 'inactive';
-        totalSpan.textContent = `Total: ${count} products ${statusText}`;
+        const statusText = currentFilter === 'active' ? 'activos' : 'inactivos';
+        totalSpan.textContent = `Total: ${count} productos ${statusText}`;
     }
 }
 
@@ -644,7 +644,7 @@ function initOutsideModalClose() {
    SHOW EMPTY STATE
    ======================================================== */
 function showEmptyState() {
-    const statusText = currentFilter === 'active' ? 'active' : 'inactive';
+    const statusText = currentFilter === 'active' ? 'activos' : 'inactivos';
 
     const tableBody = document.getElementById('productTableBody');
     if (tableBody) {
@@ -653,8 +653,8 @@ function showEmptyState() {
                 <td colspan="8" class="empty-state-cell">
                     <div class="empty-state-content">
                         <i class="fas fa-box-open"></i>
-                        <p>No hay productos registrados</p>
-                        <a href="/crearProducto" class="btn btn-primary">Nuevo Producto</a>
+                        <p>No hay productos ${statusText} registrados</p>
+                        <a href="/crearProducto" class="btn btn-primary">Agregar producto</a>
                     </div>
                 </td>
             </tr>
@@ -666,8 +666,8 @@ function showEmptyState() {
         cardsContainer.innerHTML = `
             <div class="cards-empty-state">
                 <i class="fas fa-box-open"></i>
-                <p>No ${statusText} productos registrados</p>
-                <a href="/crearProducto" class="btn btn-primary">Nuevo Producto</a>
+                <p>No hay productos ${statusText} registrados</p>
+                <a href="/crearProducto" class="btn btn-primary">Agregar producto</a>
             </div>
         `;
     }
