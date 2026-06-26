@@ -2,16 +2,28 @@
    CACHE SERVICE - IndexedDB cache management
    ======================================== */
 
+<<<<<<< HEAD
 const DB_NAME = 'NeoShop_Cache';
 const DB_VERSION = 5; // Increment version for new stores
+=======
+const DB_NAME = 'TuProyecto_Cache';
+const DB_VERSION = 5; // ✅ Subir versión para agregar SALES y PRODUCTS
+>>>>>>> b4355263502592573213805e168999c7d51191e6
 
 export const STORES = {
     ADMINS: 'admins',
     SUPPLIERS: 'suppliers',
     CASH_SESSIONS: 'cash_sessions',
     STORES: 'stores',
+<<<<<<< HEAD
     STORE_ITEMS: 'store_items',
     PRODUCTS: 'products'
+=======
+    TIENDAS: 'tiendas',
+    PRODUCTOS: 'productos',
+    SALES: 'sales',       // ✅ AGREGADO: store para ventas
+    PRODUCTS: 'products'  // ✅ AGREGADO: store para productos
+>>>>>>> b4355263502592573213805e168999c7d51191e6
 };
 
 let db = null;
@@ -38,26 +50,38 @@ async function initDB() {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
 
         request.onerror = () => {
+<<<<<<< HEAD
             console.error('❌ Error opening IndexedDB:', request.error);
             isInitializing = false;
+=======
+>>>>>>> b4355263502592573213805e168999c7d51191e6
             reject(request.error);
         };
 
         request.onsuccess = () => {
             db = request.result;
+<<<<<<< HEAD
             console.log('✅ IndexedDB initialized successfully');
             isInitializing = false;
+=======
+>>>>>>> b4355263502592573213805e168999c7d51191e6
             resolve(db);
         };
 
         request.onupgradeneeded = (event) => {
             const database = event.target.result;
+<<<<<<< HEAD
 
             // Create all required object stores
+=======
+            
+            // Crear todos los object stores necesarios
+>>>>>>> b4355263502592573213805e168999c7d51191e6
             const storesToCreate = [
                 STORES.ADMINS,
                 STORES.SUPPLIERS,
                 STORES.CASH_SESSIONS,
+<<<<<<< HEAD
                 STORES.STORES,
                 STORES.STORE_ITEMS,
                 STORES.PRODUCTS
@@ -71,6 +95,19 @@ async function initDB() {
             });
 
             console.log('✅ Database upgrade completed');
+=======
+                STORES.TIENDAS,
+                STORES.PRODUCTOS,
+                STORES.SALES,      // ✅ NUEVO
+                STORES.PRODUCTS    // ✅ NUEVO
+            ];
+            
+            storesToCreate.forEach(storeName => {
+                if (!database.objectStoreNames.contains(storeName)) {
+                    database.createObjectStore(storeName, { keyPath: 'id' });
+                }
+            });
+>>>>>>> b4355263502592573213805e168999c7d51191e6
         };
     });
 
@@ -87,9 +124,14 @@ async function initDB() {
 export async function setCache(storeName, id, data, ttl = 3600000) {
     try {
         const database = await initDB();
+<<<<<<< HEAD
 
         if (!database.objectStoreNames.contains(storeName)) {
             console.warn(`⚠️ Store "${storeName}" does not exist, skipping cache`);
+=======
+        
+        if (!database.objectStoreNames.contains(storeName)) {
+>>>>>>> b4355263502592573213805e168999c7d51191e6
             return false;
         }
 
@@ -109,7 +151,10 @@ export async function setCache(storeName, id, data, ttl = 3600000) {
             request.onerror = () => reject(request.error);
         });
     } catch (error) {
+<<<<<<< HEAD
         console.error('❌ Error saving to cache:', error);
+=======
+>>>>>>> b4355263502592573213805e168999c7d51191e6
         return false;
     }
 }
@@ -123,9 +168,14 @@ export async function setCache(storeName, id, data, ttl = 3600000) {
 export async function getCache(storeName, id) {
     try {
         const database = await initDB();
+<<<<<<< HEAD
 
         if (!database.objectStoreNames.contains(storeName)) {
             console.warn(`⚠️ Store "${storeName}" does not exist`);
+=======
+        
+        if (!database.objectStoreNames.contains(storeName)) {
+>>>>>>> b4355263502592573213805e168999c7d51191e6
             return null;
         }
 
@@ -145,7 +195,10 @@ export async function getCache(storeName, id) {
             request.onerror = () => reject(request.error);
         });
     } catch (error) {
+<<<<<<< HEAD
         console.error('❌ Error getting from cache:', error);
+=======
+>>>>>>> b4355263502592573213805e168999c7d51191e6
         return null;
     }
 }
@@ -159,7 +212,10 @@ export async function clearCache(storeName) {
         const database = await initDB();
 
         if (!database.objectStoreNames.contains(storeName)) {
+<<<<<<< HEAD
             console.warn(`⚠️ Store "${storeName}" does not exist, skipping clear`);
+=======
+>>>>>>> b4355263502592573213805e168999c7d51191e6
             return false;
         }
 
@@ -172,7 +228,10 @@ export async function clearCache(storeName) {
             request.onerror = () => reject(request.error);
         });
     } catch (error) {
+<<<<<<< HEAD
         console.error('❌ Error clearing cache:', error);
+=======
+>>>>>>> b4355263502592573213805e168999c7d51191e6
         return false;
     }
 }
@@ -183,8 +242,14 @@ export async function clearCache(storeName) {
 export async function clearAllCache() {
     try {
         const database = await initDB();
+<<<<<<< HEAD
 
         for (const storeName of Object.values(STORES)) {
+=======
+        const stores = Object.values(STORES);
+        
+        for (const storeName of stores) {
+>>>>>>> b4355263502592573213805e168999c7d51191e6
             if (database.objectStoreNames.contains(storeName)) {
                 const transaction = database.transaction([storeName], 'readwrite');
                 const store = transaction.objectStore(storeName);
@@ -193,6 +258,7 @@ export async function clearAllCache() {
                     request.onsuccess = () => resolve(true);
                     request.onerror = () => reject(request.error);
                 });
+<<<<<<< HEAD
                 console.log(`🗑️ Cache cleared: ${storeName}`);
             }
         }
@@ -201,6 +267,13 @@ export async function clearAllCache() {
         return true;
     } catch (error) {
         console.error('❌ Error clearing all cache:', error);
+=======
+            }
+        }
+        
+        return true;
+    } catch (error) {
+>>>>>>> b4355263502592573213805e168999c7d51191e6
         return false;
     }
 }

@@ -86,8 +86,13 @@ export const SaleService = {
             subtotalWithoutTax: saleData.subtotalWithoutTax || 0,
             discount: saleData.discount || 0,
             tax: saleData.tax || 0,
+<<<<<<< HEAD
             taxAmount: saleData.taxAmount || 0,
             total: saleData.total || 0,
+=======
+            total: saleData.total,
+            change: saleData.change || 0,  // ✅ AGREGADO: guarda el cambio
+>>>>>>> b4355263502592573213805e168999c7d51191e6
             paymentMethod: saleData.paymentMethod,
             status: SALE_STATUS.PENDING,
             products: saleData.products || [],
@@ -108,8 +113,17 @@ export const SaleService = {
         // 🔥 Save using toFirestore() method which has NO underscores
         const result = await SaleRepository.save(sale.toFirestore(), storeName);
 
+<<<<<<< HEAD
         // Clear cache
         await CacheService.clearCache(STORES.SALES || 'sales');
+=======
+        // Limpiar caché (silenciosamente si no existe)
+        try {
+            await CacheService.clearCache(STORES.SALES || 'sales');
+        } catch (e) {
+            // Ignorar si la caché no existe
+        }
+>>>>>>> b4355263502592573213805e168999c7d51191e6
 
         return result;
     },
@@ -296,8 +310,17 @@ export const SaleService = {
 
         const result = await SaleRepository.update(saleId, storeName, updateData);
 
+<<<<<<< HEAD
         // Clear cache
         await CacheService.clearCache(STORES.SALES || 'sales');
+=======
+        // Limpiar caché (silenciosamente si no existe)
+        try {
+            await CacheService.clearCache(STORES.SALES || 'sales');
+        } catch (e) {
+            // Ignorar si la caché no existe
+        }
+>>>>>>> b4355263502592573213805e168999c7d51191e6
 
         return result;
     },
@@ -334,8 +357,17 @@ export const SaleService = {
 
         const result = await SaleRepository.updateStatus(saleId, storeName, SALE_STATUS.COMPLETED);
 
+<<<<<<< HEAD
         // Clear cache
         await CacheService.clearCache(STORES.SALES || 'sales');
+=======
+        // Limpiar caché (silenciosamente si no existe)
+        try {
+            await CacheService.clearCache(STORES.SALES || 'sales');
+        } catch (e) {
+            // Ignorar si la caché no existe
+        }
+>>>>>>> b4355263502592573213805e168999c7d51191e6
 
         return result;
     },
@@ -377,8 +409,17 @@ export const SaleService = {
             cancelledAt: new Date().toISOString()
         });
 
+<<<<<<< HEAD
         // Clear cache
         await CacheService.clearCache(STORES.SALES || 'sales');
+=======
+        // Limpiar caché (silenciosamente si no existe)
+        try {
+            await CacheService.clearCache(STORES.SALES || 'sales');
+        } catch (e) {
+            // Ignorar si la caché no existe
+        }
+>>>>>>> b4355263502592573213805e168999c7d51191e6
 
         return result;
     },
@@ -521,6 +562,7 @@ export const SaleService = {
     /**
      * Get sales with advanced filters
      */
+<<<<<<< HEAD
     async getSalesWithFilters(filters = {}, storeName = null) {
         if (!storeName) {
             const session = AdminService.getSession();
@@ -529,6 +571,21 @@ export const SaleService = {
             if (!storeName) {
                 throw new Error('Store name is required to get sales');
             }
+=======
+    _generateId() {
+        return `sale_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    },
+
+    /**
+     * Obtener todas las ventas de una tienda (sin límite)
+     * @param {string} storeSlug - Slug de la tienda
+     * @param {Object} options - Opciones de consulta
+     * @returns {Promise<Array>} Lista de ventas
+     */
+    async getAllSales(storeSlug, options = {}) {
+        if (!storeSlug) {
+            throw new Error('El slug de la tienda es requerido');
+>>>>>>> b4355263502592573213805e168999c7d51191e6
         }
 
         return await SaleRepository.getWithFilters(storeName, filters);
@@ -688,10 +745,17 @@ export const SaleService = {
                     ? completedToday.reduce((sum, s) => sum + (s.total || 0), 0) / completedToday.length
                     : 0
             },
+<<<<<<< HEAD
             week: {
                 sales: completedWeek.length,
                 revenue: completedWeek.reduce((sum, s) => sum + (s.total || 0), 0),
                 averageTicket: completedWeek.length > 0
+=======
+            semana: {
+                ventas: completedWeek.length,
+                ingresos: completedWeek.reduce((sum, s) => sum + (s.total || 0), 0),
+                ticketPromedio: completedWeek.length > 0
+>>>>>>> b4355263502592573213805e168999c7d51191e6
                     ? completedWeek.reduce((sum, s) => sum + (s.total || 0), 0) / completedWeek.length
                     : 0
             },

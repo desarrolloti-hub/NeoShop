@@ -1,6 +1,6 @@
 /* ============================================
    SALE CREATE CSS - Nueva Venta con Escáner SKU
-   Basado en variables globales del sistema
+   Estilo lineal con espacio amplio y encabezados alineados
    ============================================ */
 
 /* ========== HEADER ========== */
@@ -96,7 +96,6 @@
     margin-bottom: var(--spacing-lg);
 }
 
-/* Input group para SKU */
 .input-group-sku {
     display: flex;
     gap: var(--spacing-sm);
@@ -169,7 +168,6 @@
         opacity: 0;
         transform: translateY(-10px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
@@ -472,7 +470,7 @@
     color: #dc2626;
 }
 
-/* ========== CARRITO ========== */
+/* ========== CARRITO - 6 COLUMNAS CON ESPACIO ========== */
 .cart-section h3 {
     display: flex;
     align-items: center;
@@ -494,68 +492,116 @@
     overflow: hidden;
 }
 
+/* HEADER: 6 columnas (coinciden con el HTML) */
 .cart-header {
     display: grid;
-    grid-template-columns: 3fr 0.8fr 1fr 1fr 0.5fr;
+    grid-template-columns: 80px 2.5fr 1fr 1.2fr 1.2fr 0.7fr;
     background: var(--bg-light);
     padding: var(--spacing-md);
     font-weight: 600;
     color: var(--text-dark);
-    border-bottom: 1px solid var(--border-light);
+    border-bottom: 2px solid var(--border-light);
 }
 
-.cart-items-list {
-    max-height: 400px;
-    overflow-y: auto;
-}
-
+/* Cada ítem: 6 columnas */
 .cart-item {
     display: grid;
-    grid-template-columns: 3fr 0.8fr 1fr 1fr 0.5fr;
+    grid-template-columns: 80px 2.5fr 1fr 1.2fr 1.2fr 0.7fr;
     padding: var(--spacing-md);
     border-bottom: 1px solid var(--border-light);
     align-items: center;
+    gap: var(--spacing-sm);
+    transition: background 0.2s;
 }
 
 .cart-item:hover {
     background: var(--bg-light);
 }
 
+.cart-items-list {
+    max-height: 450px;
+    overflow-y: auto;
+}
+
+/* Columna de imagen */
+.cart-item-image-container {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    background: var(--bg-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-light);
+    flex-shrink: 0;
+}
+
+.cart-item-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cart-item-image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: #ccc;
+    font-size: 28px;
+}
+
+/* Información del producto */
 .cart-item-info {
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    padding: 0 var(--spacing-sm);
 }
 
 .cart-item-name {
     font-weight: 600;
+    font-size: var(--font-size-md);
     color: var(--text-dark);
+    line-height: 1.4;
+    word-break: break-word;
 }
 
 .cart-item-brand {
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
+    line-height: 1.3;
 }
 
 .cart-item-barcode {
     font-size: var(--font-size-xs);
     color: var(--text-muted);
+    line-height: 1.2;
 }
 
+/* Cantidad */
 .cart-item-quantity {
     display: flex;
     align-items: center;
-    gap: var(--spacing-xs);
+    gap: 6px;
 }
 
 .quantity-btn {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border: 1px solid var(--border-light);
     background: var(--bg-white);
     border-radius: var(--border-radius-sm);
     cursor: pointer;
     font-weight: bold;
+    font-size: var(--font-size-md);
     transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 .quantity-btn:hover {
@@ -565,29 +611,44 @@
 }
 
 .quantity-value {
-    width: 40px;
+    min-width: 34px;
     text-align: center;
     font-weight: 600;
+    font-size: var(--font-size-md);
 }
 
+/* Precios */
 .cart-item-price,
 .cart-item-subtotal {
     font-weight: 500;
     color: var(--text-dark);
+    white-space: nowrap;
+    font-size: var(--font-size-sm);
+    padding: 0 4px;
 }
 
+.cart-item-subtotal {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+/* Botón eliminar */
 .remove-item-btn {
     background: none;
     border: none;
     color: #dc2626;
     cursor: pointer;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     transition: all 0.2s;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .remove-item-btn:hover {
     color: #b91c1c;
-    transform: scale(1.1);
+    transform: scale(1.15);
 }
 
 .empty-cart {
@@ -643,34 +704,61 @@
     box-shadow: 0 0 0 3px rgba(69, 109, 162, 0.1);
 }
 
-/* ========== RESUMEN ========== */
+/* ========== RESUMEN DE VENTA ========== */
 .summary-section {
     background: var(--bg-light);
 }
 
 .summary-grid {
     display: flex;
-    justify-content: flex-end;
-    gap: var(--spacing-xl);
+    flex-direction: column;
     align-items: flex-end;
+    max-width: 400px;
+    margin-left: auto;
+    gap: var(--spacing-xs);
 }
 
 .summary-item {
-    text-align: right;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--spacing-xs) 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.summary-item:last-child {
+    border-bottom: none;
 }
 
 .summary-item label {
-    display: block;
     font-size: var(--font-size-sm);
-    font-weight: 600;
-    color: var(--text-dark);
-    margin-bottom: var(--spacing-xs);
+    font-weight: 500;
+    color: var(--text-muted);
 }
 
-.summary-value {
-    font-size: var(--font-size-xl);
+.summary-item .summary-value {
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.summary-item.total-item {
+    border-top: 2px solid var(--color-primary);
+    margin-top: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
+    border-bottom: none;
+}
+
+.summary-item.total-item label {
+    font-size: var(--font-size-md);
     font-weight: 700;
-    color: var(--color-primary-dark);
+    color: var(--text-dark);
+}
+
+.summary-item.total-item .summary-value {
+    font-size: var(--font-size-xl);
+    font-weight: 800;
+    color: var(--color-primary);
 }
 
 .discount-item .discount-input-wrapper {
@@ -692,58 +780,66 @@
     padding: var(--spacing-sm) 0;
     border: none;
     background: transparent;
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-md);
     font-weight: 600;
     text-align: right;
     outline: none;
 }
 
-.total-item {
-    margin-top: 0;
+.discount-item input:focus {
+    border-color: var(--color-primary);
 }
 
-.total-value {
-    font-size: 28px;
-    font-weight: 800;
-    color: var(--color-primary);
-}
-
-/* ========== MÉTODOS DE PAGO ========== */
+/* ========== MÉTODOS DE PAGO - CENTRADOS Y UNIFORMES ========== */
 .payment-methods {
     display: flex;
+    justify-content: center;
     gap: var(--spacing-lg);
     flex-wrap: wrap;
+    padding: var(--spacing-md) 0;
 }
 
 .payment-option {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: var(--spacing-sm);
-    padding: var(--spacing-sm) var(--spacing-lg);
-    border: 1px solid var(--border-light);
+    padding: var(--spacing-md) var(--spacing-xl);
+    min-width: 140px;
+    border: 2px solid var(--border-light);
     border-radius: var(--border-radius-md);
     cursor: pointer;
     transition: all 0.2s;
+    background: var(--bg-white);
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+    flex: 0 1 auto;
 }
 
 .payment-option:hover {
     border-color: var(--color-primary);
     background: var(--bg-blue-light);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
 }
 
 .payment-option input[type="radio"] {
     width: auto;
     margin: 0;
+    accent-color: var(--color-primary);
 }
 
 .payment-option i {
     color: var(--color-primary);
     font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
 }
 
 .payment-option:has(input:checked) {
     border-color: var(--color-primary);
     background: var(--bg-blue-light);
+    box-shadow: 0 0 0 3px rgba(69, 109, 162, 0.2);
 }
 
 /* ========== BOTONES DE ACCIÓN ========== */
@@ -759,15 +855,8 @@
 /* ========== RESPONSIVE ========== */
 @media (max-width: 968px) {
     .summary-grid {
-        gap: var(--spacing-lg);
-    }
-
-    .summary-value {
-        font-size: var(--font-size-lg);
-    }
-
-    .total-value {
-        font-size: 24px;
+        max-width: 100%;
+        align-items: stretch;
     }
 }
 
@@ -780,7 +869,6 @@
 
     .form-row {
         grid-template-columns: 1fr;
-        gap: var(--spacing-sm);
     }
 
     .preview-content {
@@ -797,6 +885,7 @@
         width: 100%;
     }
 
+    /* Carrito en modo vertical en móviles */
     .cart-header {
         display: none;
     }
@@ -807,16 +896,48 @@
         gap: var(--spacing-sm);
         padding: var(--spacing-md);
         position: relative;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .cart-item-image-container {
+        width: 80px;
+        height: 80px;
+        align-self: center;
     }
 
     .cart-item-info {
         width: 100%;
+        text-align: center;
         padding-right: 40px;
     }
 
+    .cart-item-name {
+        font-size: var(--font-size-lg);
+        word-break: break-word;
+    }
+
+    .cart-item-brand {
+        font-size: var(--font-size-sm);
+    }
+
+    .cart-item-barcode {
+        font-size: var(--font-size-xs);
+    }
+
     .cart-item-quantity {
-        justify-content: space-between;
-        width: 100%;
+        justify-content: center;
+        gap: var(--spacing-md);
+    }
+
+    .quantity-btn {
+        width: 38px;
+        height: 38px;
+        font-size: var(--font-size-lg);
+    }
+
+    .quantity-value {
+        font-size: var(--font-size-lg);
+        min-width: 40px;
     }
 
     .cart-item-price,
@@ -824,6 +945,8 @@
         display: flex;
         justify-content: space-between;
         width: 100%;
+        font-size: var(--font-size-md);
+        white-space: normal;
     }
 
     .cart-item-price::before {
@@ -840,38 +963,30 @@
 
     .remove-item-btn {
         position: absolute;
-        top: var(--spacing-md);
-        right: var(--spacing-md);
+        top: var(--spacing-sm);
+        right: var(--spacing-sm);
+        font-size: 1.5rem;
     }
 
     .summary-grid {
-        flex-direction: column;
         align-items: stretch;
-        gap: var(--spacing-md);
-    }
-
-    .summary-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        text-align: left;
-    }
-
-    .summary-item label {
-        margin-bottom: 0;
-    }
-
-    .discount-item .discount-input-wrapper {
-        width: auto;
     }
 
     .payment-methods {
         gap: var(--spacing-sm);
+        padding: var(--spacing-sm) 0;
     }
 
     .payment-option {
-        padding: var(--spacing-xs) var(--spacing-md);
-        font-size: var(--font-size-sm);
+        min-width: 100px;
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: var(--font-size-xs);
+        flex: 1 1 auto;
+    }
+
+    .payment-option i {
+        font-size: 1rem;
+        width: 20px;
     }
 
     .form-actions {
@@ -909,4 +1024,51 @@
     .btn-add-to-cart {
         padding: var(--spacing-sm);
     }
+
+    .payment-methods {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .payment-option {
+        width: 100%;
+        max-width: 250px;
+        justify-content: center;
+    }
 }
+    /* Estilo para el checkbox de IVA */
+    #includeTaxCheckbox {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--color-primary);
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    /* Animación suave para el contenedor de efectivo */
+    #cashPaymentContainer {
+        animation: fadeSlideDown 0.3s ease;
+    }
+
+    @keyframes fadeSlideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Estilo para el input de efectivo cuando está enfocado */
+    #cashAmount:focus {
+        border-color: var(--color-primary) !important;
+        box-shadow: 0 0 0 3px rgba(69, 109, 162, 0.15) !important;
+        outline: none;
+    }
+
+    /* Ajuste para el cambio cuando es insuficiente (se aplica desde JS) */
+    .change-value.insufficient {
+        color: #dc3545 !important;
+    }
