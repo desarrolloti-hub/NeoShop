@@ -6,19 +6,102 @@
 
 import { ProductService } from '/services/productService.js';
 import { AdminService } from '/services/adminService.js';
+import { CategoryService } from '/services/categoryService.js';
 
 let isLoading = false;
 let currentImageBase64 = '';
 let originalProductData = null;
+let categories = [];
+let currentStoreName = null;
 
 export async function updateProductController() {
   console.log('📝 updateProductController initialized');
 
+  const session = AdminService.getSession();
+  currentStoreName = session?.storeName;
+
+  if (!currentStoreName) {
+    console.error('❌ No store found in session');
+    await Swal.fire({
+      title: 'Error',
+      text: 'No se encontró la sesión de la tienda',
+      icon: 'error',
+      confirmButtonText: 'Aceptar',
+      confirmButtonColor: '#dc2626'
+    });
+    navigateTo('/productos');
+    return;
+  }
+
+  await loadCategories();
   await loadProductData();
   animateProductCard();
   initProductImageUpload();
   initProductFormSubmit();
   initBackButton();
+  initCancelButton();
+}
+
+/* ========================================================
+   NAVIGATE FUNCTION
+   ======================================================== */
+function navigateTo(path) {
+  if (typeof window.navigateTo === 'function') {
+    window.navigateTo(path);
+  } else if (window.router && typeof window.router.navigate === 'function') {
+    window.router.navigate(path);
+  } else {
+    window.location.href = path;
+  }
+}
+
+/* ========================================================
+   LOAD CATEGORIES
+   ======================================================== */
+async function loadCategories() {
+  try {
+    console.log('📂 Loading categories for edit...');
+    categories = await CategoryService.getActive(currentStoreName);
+    console.log(`✅ ${categories.length} categories loaded`);
+  } catch (error) {
+    console.warn('⚠️ Could not load categories:', error);
+    categories = [];
+  }
+}
+
+function populateCategorySelect(selectedId) {
+  const select = document.getElementById('categoryId');
+  if (!select) return;
+
+  // Limpiar opciones existentes
+  select.innerHTML = '';
+
+  // Opción "Sin categoría"
+  const emptyOption = document.createElement('option');
+  emptyOption.value = '';
+  emptyOption.textContent = 'Sin categoría';
+  select.appendChild(emptyOption);
+
+  if (categories.length === 0) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = '-- No hay categorías disponibles --';
+    option.disabled = true;
+    select.appendChild(option);
+    return;
+  }
+
+  categories.forEach(category => {
+    const option = document.createElement('option');
+    option.value = category.id;
+    option.textContent = category.name;
+    if (category.id === selectedId) {
+      option.selected = true;
+    }
+    select.appendChild(option);
+  });
+
+  console.log(`✅ Category select populated, selected: ${selectedId || 'none'}`);
 }
 
 /* ========================================================
@@ -38,12 +121,12 @@ async function loadProductData() {
   if (!productId) {
     await Swal.fire({
       title: 'Error',
-      text: 'Product ID not specified',
+      text: 'ID de producto no especificado',
       icon: 'error',
-      confirmButtonText: 'Accept',
+      confirmButtonText: 'Aceptar',
       confirmButtonColor: '#dc2626'
     });
-    window.location.href = '/productos';
+    navigateTo('/productos');
     return;
   }
 
@@ -55,7 +138,8 @@ async function loadProductData() {
       throw new Error('Admin session not found');
     }
 
-    const product = await ProductService.getById(productId, adminId);
+    console.log('🔍 Loading product:', productId);
+    const product = await ProductService.getById(productId, adminId, currentStoreName);
 
     if (!product) {
       throw new Error('Product not found');
@@ -63,6 +147,7 @@ async function loadProductData() {
 
     originalProductData = product;
 
+    // Asignar valores al formulario
     document.getElementById('productId').value = product.id;
     document.getElementById('name').value = product.name || '';
     document.getElementById('barcode').value = product.barcode || '';
@@ -72,8 +157,17 @@ async function loadProductData() {
     document.getElementById('cost').value = product.cost || 0;
     document.getElementById('stock').value = product.stock || 0;
     document.getElementById('minStock').value = product.minStock || 0;
-    document.getElementById('unitOfMeasure').value = product.unitOfMeasure || '';
 
+    // ✅ Seleccionar unidad de medida
+    const unitSelect = document.getElementById('unitOfMeasure');
+    if (unitSelect && product.unitOfMeasure) {
+      unitSelect.value = product.unitOfMeasure;
+    }
+
+    // ✅ Poblar select de categorías con la categoría actual
+    populateCategorySelect(product.categoryId);
+
+    // Cargar imagen si existe
     if (product.imageUrl && product.imageUrl.startsWith('data:image')) {
       currentImageBase64 = product.imageUrl;
       const avatarPreview = document.getElementById('productAvatarPreview');
@@ -92,18 +186,18 @@ async function loadProductData() {
       if (removeBtn) removeBtn.style.display = 'inline-block';
     }
 
-    console.log('✅ Product loaded successfully');
+    console.log('✅ Product loaded successfully:', product.name);
 
   } catch (error) {
     console.error('Error loading product:', error);
     await Swal.fire({
       title: 'Error',
-      text: error.message || 'Could not load product',
+      text: error.message || 'No se pudo cargar el producto',
       icon: 'error',
-      confirmButtonText: 'Accept',
+      confirmButtonText: 'Aceptar',
       confirmButtonColor: '#dc2626'
     });
-    window.location.href = '/productos';
+    navigateTo('/productos');
   }
 }
 
@@ -146,10 +240,10 @@ function initProductImageUpload() {
 
     if (!file.type.startsWith('image/')) {
       Swal.fire({
-        title: 'Invalid format',
-        text: 'Please select a valid image (JPG, PNG, GIF)',
+        title: 'Formato no válido',
+        text: 'Selecciona una imagen válida (JPG, PNG, GIF)',
         icon: 'error',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#456da2'
       });
       fileInput.value = '';
@@ -158,10 +252,10 @@ function initProductImageUpload() {
 
     if (file.size > 2 * 1024 * 1024) {
       Swal.fire({
-        title: 'Image too large',
-        text: 'Image must not exceed 2MB',
+        title: 'Imagen muy pesada',
+        text: 'La imagen no debe superar los 2MB',
         icon: 'error',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#456da2'
       });
       fileInput.value = '';
@@ -191,9 +285,9 @@ function initProductImageUpload() {
     reader.onerror = () => {
       Swal.fire({
         title: 'Error',
-        text: 'Could not process the image',
+        text: 'No se pudo procesar la imagen',
         icon: 'error',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#456da2'
       });
       currentImageBase64 = '';
@@ -240,18 +334,20 @@ function initProductFormSubmit() {
     const barcode = document.getElementById('barcode')?.value.trim();
     const brand = document.getElementById('brand')?.value.trim();
     const description = document.getElementById('description')?.value.trim();
+    const categoryId = document.getElementById('categoryId')?.value || null;
     const price = parseFloat(document.getElementById('price')?.value) || 0;
     const cost = parseFloat(document.getElementById('cost')?.value) || 0;
     const stock = parseInt(document.getElementById('stock')?.value) || 0;
     const minStock = parseInt(document.getElementById('minStock')?.value) || 0;
-    const unitOfMeasure = document.getElementById('unitOfMeasure')?.value.trim();
+    const unitOfMeasure = document.getElementById('unitOfMeasure')?.value || 'pieza';
 
+    // Validaciones
     if (!name) {
       Swal.fire({
-        title: 'Required field',
-        text: 'Product name is required',
+        title: 'Campo requerido',
+        text: 'El nombre del producto es obligatorio',
         icon: 'warning',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#456da2'
       });
       document.getElementById('name')?.focus();
@@ -260,10 +356,10 @@ function initProductFormSubmit() {
 
     if (!barcode) {
       Swal.fire({
-        title: 'Required field',
-        text: 'Barcode is required',
+        title: 'Campo requerido',
+        text: 'El código de barras es obligatorio',
         icon: 'warning',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#456da2'
       });
       document.getElementById('barcode')?.focus();
@@ -272,10 +368,10 @@ function initProductFormSubmit() {
 
     if (!brand) {
       Swal.fire({
-        title: 'Required field',
-        text: 'Brand is required',
+        title: 'Campo requerido',
+        text: 'La marca es obligatoria',
         icon: 'warning',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#456da2'
       });
       document.getElementById('brand')?.focus();
@@ -284,10 +380,10 @@ function initProductFormSubmit() {
 
     if (price <= 0) {
       Swal.fire({
-        title: 'Invalid price',
-        text: 'Price must be greater than 0',
+        title: 'Precio inválido',
+        text: 'El precio debe ser mayor a 0',
         icon: 'error',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#456da2'
       });
       document.getElementById('price')?.focus();
@@ -298,7 +394,14 @@ function initProductFormSubmit() {
     const adminId = adminSession?.id;
 
     if (!adminId) {
-      throw new Error('Admin session not found');
+      await Swal.fire({
+        title: 'Error',
+        text: 'No se encontró la sesión del administrador',
+        icon: 'error',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#dc2626'
+      });
+      return;
     }
 
     const updateData = {
@@ -306,14 +409,16 @@ function initProductFormSubmit() {
       barcode: barcode.toUpperCase(),
       brand: brand,
       description: description || '',
+      categoryId: categoryId,
       price: price,
       cost: cost,
       stock: stock,
       minStock: minStock,
-      unitOfMeasure: unitOfMeasure || 'piece',
+      unitOfMeasure: unitOfMeasure,
       active: originalProductData?.active !== undefined ? originalProductData.active : true
     };
 
+    // Manejar imagen
     if (currentImageBase64 && currentImageBase64 !== originalProductData?.imageUrl) {
       updateData.imageUrl = currentImageBase64;
     } else if (currentImageBase64 === '' && originalProductData?.imageUrl) {
@@ -325,43 +430,56 @@ function initProductFormSubmit() {
     const originalText = submitBtn.innerHTML;
 
     Swal.fire({
-      title: 'Updating product...',
-      text: 'Please wait a moment',
+      title: 'Actualizando producto...',
+      text: 'Por favor espera un momento',
       allowOutsideClick: false,
       didOpen: () => { Swal.showLoading(); }
     });
 
     try {
-      const result = await ProductService.update(productId, updateData, adminId);
+      console.log('📤 Updating product:', productId);
+      console.log('  - updateData:', updateData);
+
+      const result = await ProductService.update(productId, updateData, adminId, currentStoreName);
 
       Swal.close();
 
+      // Obtener nombre de categoría
+      let categoryName = 'Sin categoría';
+      if (categoryId) {
+        const selectedCategory = categories.find(c => c.id === categoryId);
+        if (selectedCategory) {
+          categoryName = selectedCategory.name;
+        }
+      }
+
       await Swal.fire({
-        title: 'Product updated',
+        title: '¡Producto actualizado! 🎉',
         html: `
                     <div style="text-align: left;">
-                        <p><strong>${name}</strong> has been updated successfully</p>
-                        <p>Code: ${barcode.toUpperCase()}</p>
-                        <p>Price: ${formatCurrency(price)}</p>
-                        <p>Stock: ${stock} units</p>
+                        <p><i class="fas fa-check-circle" style="color: #456da2;"></i> <strong>${name}</strong> ha sido actualizado exitosamente</p>
+                        <p><i class="fas fa-barcode"></i> <strong>Código:</strong> ${barcode.toUpperCase()}</p>
+                        <p><i class="fas fa-tag"></i> <strong>Categoría:</strong> ${categoryName}</p>
+                        <p><i class="fas fa-dollar-sign"></i> <strong>Precio:</strong> ${formatCurrency(price)}</p>
+                        <p><i class="fas fa-boxes"></i> <strong>Stock:</strong> ${stock} unidades</p>
                     </div>
                 `,
         icon: 'success',
-        confirmButtonText: 'Accept',
+        confirmButtonText: 'Aceptar',
         confirmButtonColor: '#22c55e'
       });
 
-      window.location.href = '/productos';
+      navigateTo('/productos');
 
     } catch (error) {
-      console.error('Error:', error);
+      console.error('❌ Error updating product:', error);
       Swal.close();
 
       await Swal.fire({
-        title: 'Update error',
-        html: `<p>${error.message || 'Please try again'}</p>`,
+        title: 'Error al actualizar',
+        html: `<p>${error.message || 'Intenta nuevamente'}</p>`,
         icon: 'error',
-        confirmButtonText: 'Understood',
+        confirmButtonText: 'Entendido',
         confirmButtonColor: '#dc2626'
       });
     } finally {
@@ -380,7 +498,22 @@ function initBackButton() {
   if (backBtn) {
     backBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      window.location.href = '/productos';
+      navigateTo('/productos');
+    });
+  }
+}
+
+/* ========================================================
+   CANCEL BUTTON
+   ======================================================== */
+function initCancelButton() {
+  const cancelBtn = document.getElementById('cancelBtn');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+
+      // Verificar si hay cambios sin guardar
+      navigateTo('/productos');
     });
   }
 }
