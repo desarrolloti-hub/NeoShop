@@ -2,7 +2,7 @@
 <div class="credContainer">
     <div class="product-list-container">
         <div class="product-list-card">
-            <!-- HEADER USANDO COMPONENTE page-header CORRECTAMENTE -->
+            <!-- HEADER -->
             <div class="page-header">
                 <h2 class="header-title">
                     <i class="fas fa-boxes"></i> Mis Productos
@@ -14,14 +14,12 @@
                 </div>
             </div>
 
-            <!-- Filtros: Buscador + Toggle de estado -->
+            <!-- Filtros -->
             <div class="filters-wrapper">
                 <div class="search-wrapper">
                     <input type="text" id="searchProduct" class="search-input"
-                        placeholder="Buscar por nombre, código o marca...">
+                        placeholder="Buscar por nombre, código, marca o categoría...">
                 </div>
-
-                <!-- Toggle Switch para mostrar activos/inactivos -->
                 <div class="status-toggle-wrapper">
                     <span class="status-label">Inactivos</span>
                     <div class="status-filter-switch" id="statusFilterSwitch">
@@ -33,17 +31,18 @@
 
             <!-- TABLA -->
             <div class="component-table-wrapper desktop-view">
-                <table class="component-table">
+                <table class="component-table product-table">
                     <thead>
                         <tr>
-                            <th>Imagen</th>
-                            <th>Código</th>
-                            <th>Nombre</th>
-                            <th>Marca</th>
-                            <th>Precio</th>
-                            <th>Stock</th>
-                            <th>Estado</th>
-                            <th>Activar/Desactivar</th>
+                            <th class="product-col-img">Imagen</th>
+                            <th class="product-col-code">Código</th>
+                            <th class="product-col-name">Nombre</th>
+                            <th class="product-col-brand">Marca</th>
+                            <th class="product-col-category">Categoría</th>
+                            <th class="product-col-price">Precio</th>
+                            <th class="product-col-stock">Stock</th>
+                            <th class="product-col-status">Estado</th>
+                            <th class="product-col-actions">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="productTableBody"></tbody>
@@ -53,8 +52,20 @@
             <!-- CARDS -->
             <div id="productCardsContainer" class="mobile-view"></div>
 
-            <div class="list-footer">
-                <p class="total-count" id="totalProductsCount">Total: 0 productos</p>
+            <!-- Paginación -->
+            <div class="pagination-container" id="paginationContainer">
+                <div class="pagination-info">
+                    <span id="paginationInfo">Mostrando 0 - 0 de 0 productos</span>
+                </div>
+                <div class="pagination-controls">
+                    <button class="btn-pagination" id="prevPageBtn" disabled>
+                        <i class="fas fa-chevron-left"></i> Anterior
+                    </button>
+                    <span class="pagination-current" id="currentPageDisplay">Página 1</span>
+                    <button class="btn-pagination" id="nextPageBtn" disabled>
+                        Siguiente <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -63,24 +74,29 @@
 <!-- TEMPLATE TABLA -->
 <template id="productRowTemplate">
     <tr>
-        <td class="product-img-container"></td>
-        <td>
+        <td class="product-col-img">
+            <div class="product-img-container"></div>
+        </td>
+        <td class="product-col-code">
             <div class="middle-block"><span class="product-barcode"></span></div>
         </td>
-        <td>
+        <td class="product-col-name">
             <div class="middle-block"><span class="product-name"></span></div>
         </td>
-        <td>
+        <td class="product-col-brand">
             <div class="middle-block"><span class="product-brand"></span></div>
         </td>
-        <td>
+        <td class="product-col-category">
+            <div class="middle-block"><span class="product-category"></span></div>
+        </td>
+        <td class="product-col-price">
             <div class="middle-block"><span class="product-price"></span></div>
         </td>
-        <td>
+        <td class="product-col-stock">
             <div class="middle-block"><span class="product-stock"></span></div>
         </td>
-        <td><span class="product-status"></span></td>
-        <td>
+        <td class="product-col-status"><span class="product-status"></span></td>
+        <td class="product-col-actions">
             <div class="action-badge">
                 <button class="btn-view" title="Ver detalles"><i class="fas fa-eye"></i></button>
                 <button class="btn-edit" title="Editar"><i class="fas fa-edit"></i></button>
@@ -106,6 +122,7 @@
         </div>
         <div class="product-card-info">
             <p><i class="fas fa-tag"></i> <span class="card-brand"></span></p>
+            <p><i class="fas fa-tags"></i> <span class="card-category"></span></p>
             <p><i class="fas fa-dollar-sign"></i> <span class="card-price"></span></p>
             <p><i class="fas fa-box"></i> <span class="card-stock"></span></p>
         </div>
@@ -141,6 +158,7 @@
                     <p><strong>Código:</strong> <span id="modalBarcode"></span></p>
                     <p><strong>Nombre:</strong> <span id="modalName"></span></p>
                     <p><strong>Marca:</strong> <span id="modalBrand"></span></p>
+                    <p><strong>Categoría:</strong> <span id="modalCategory"></span></p>
                     <p><strong>Precio:</strong> <span id="modalPrice"></span></p>
                     <p><strong>Stock:</strong> <span id="modalStock"></span></p>
                     <p><strong>Descripción:</strong> <span id="modalDescription"></span></p>

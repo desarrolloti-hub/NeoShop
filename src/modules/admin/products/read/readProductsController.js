@@ -6,6 +6,7 @@
 
 import { ProductService } from '/services/productService.js';
 import { AdminService } from '/services/adminService.js';
+import { CategoryService } from '/services/categoryService.js';
 
 let rowTemplate = null;
 let cardTemplate = null;
@@ -14,12 +15,26 @@ let currentFilter = 'active';
 let currentPage = 1;
 const ITEMS_PER_PAGE = 10;
 let totalPages = 0;
+let currentStoreName = null;
+let categoriesMap = {}; // ✅ Mapa de categorías id -> nombre
 
 export async function readProductsController() {
     console.log('📋 readProductsController initialized');
 
+    const session = AdminService.getSession();
+    currentStoreName = session?.storeName;
+
+    if (!currentStoreName) {
+        console.error('❌ No store found in session');
+        showNoStoreMessage();
+        return;
+    }
+
     rowTemplate = document.getElementById('productRowTemplate');
     cardTemplate = document.getElementById('productCardTemplate');
+
+    // ✅ Cargar categorías primero
+    await loadCategories();
 
     await loadProducts();
 
@@ -29,6 +44,84 @@ export async function readProductsController() {
     initSearchFilter();
     initStatusFilterToggle();
     initPagination();
+    initClearSearch();
+}
+
+/* ========================================================
+   LOAD CATEGORIES - Crear mapa de categorías
+   ======================================================== */
+async function loadCategories() {
+    try {
+        console.log('📂 Loading categories for product list...');
+        const categories = await CategoryService.getActive();
+
+        // ✅ Crear mapa: id -> nombre
+        categoriesMap = {};
+        categories.forEach(cat => {
+            categoriesMap[cat.id] = cat.name;
+        });
+
+        console.log(`✅ ${Object.keys(categoriesMap).length} categories loaded for mapping`);
+    } catch (error) {
+        console.warn('⚠️ Could not load categories:', error);
+        categoriesMap = {};
+    }
+}
+
+/* ========================================================
+   GET CATEGORY NAME BY ID
+   ======================================================== */
+function getCategoryName(categoryId) {
+    if (!categoryId) return 'Sin categoría';
+    return categoriesMap[categoryId] || 'Sin categoría';
+}
+
+/* ========================================================
+   NAVIGATE FUNCTION
+   ======================================================== */
+function navigateTo(path) {
+    if (typeof window.navigateTo === 'function') {
+        window.navigateTo(path);
+    } else if (window.router && typeof window.router.navigate === 'function') {
+        window.router.navigate(path);
+    } else {
+        window.location.href = path;
+    }
+}
+
+/* ========================================================
+   SHOW NO STORE MESSAGE
+   ======================================================== */
+function showNoStoreMessage() {
+    const tbody = document.getElementById('productTableBody');
+    const cardsContainer = document.getElementById('productCardsContainer');
+
+    const emptyHtml = `
+        <tr class="empty-row">
+            <td colspan="9" class="empty-state-cell">
+                <div class="empty-state-content">
+                    <i class="fas fa-store-slash"></i>
+                    <p>Configura tu tienda primero</p>
+                    <p style="font-size: 0.8rem;">Para gestionar productos, primero debes configurar los datos de tu negocio</p>
+                    <button class="btn btn-primary" onclick="window.navigateTo('/crearTienda')">Configurar tienda</button>
+                </div>
+            </td>
+        </tr>
+    `;
+
+    if (tbody) tbody.innerHTML = emptyHtml;
+    if (cardsContainer) {
+        cardsContainer.innerHTML = `
+            <div class="cards-empty-state">
+                <i class="fas fa-store-slash"></i>
+                <p>Configura tu tienda primero</p>
+                <p style="font-size: 0.8rem;">Para gestionar productos, primero debes configurar los datos de tu negocio</p>
+                <button class="btn btn-primary" onclick="window.navigateTo('/crearTienda')">Configurar tienda</button>
+            </div>
+        `;
+    }
+
+    updatePagination(0);
 }
 
 /* ========================================================
@@ -38,11 +131,10 @@ async function loadProducts() {
     try {
         const adminSession = AdminService.getSession();
         const adminId = adminSession?.id;
-        const storeName = adminSession?.storeName;
 
         if (!adminId) {
             console.error('❌ Admin session not found');
-            await Swal.fire({
+            Swal.fire({
                 title: 'Error',
                 text: 'No se encontró la sesión del administrador. Por favor, inicia sesión nuevamente.',
                 icon: 'error',
@@ -52,22 +144,7 @@ async function loadProducts() {
             return;
         }
 
-        if (!storeName) {
-            console.warn('⚠️ Store name not found. Redirecting to create store.');
-            await Swal.fire({
-                title: 'Tienda no configurada',
-                text: 'Para ver productos, primero debes crear una tienda.',
-                icon: 'info',
-                confirmButtonText: 'Crear tienda',
-                confirmButtonColor: '#2563eb',
-                allowOutsideClick: false
-            });
-            window.location.href = '/crearTienda';
-            return;
-        }
-
-        // ✅ Ahora sí, llamamos al servicio con storeName
-        const products = await ProductService.getAll(adminId, storeName, {}, false);
+        const products = await ProductService.getAll(adminId, {}, false, currentStoreName);
         allProducts = products;
         console.log('✅ Products loaded:', allProducts.length);
 
@@ -136,6 +213,7 @@ function renderProductsTable(products) {
         const row = rowTemplate.content.cloneNode(true);
         const rowElement = row.querySelector('tr');
 
+        // Imagen
         const imgContainer = row.querySelector('.product-img-container');
         if (imgContainer) {
             const hasImage = product.imageUrl && product.imageUrl.startsWith('data:image');
@@ -153,9 +231,14 @@ function renderProductsTable(products) {
             }
         }
 
+        // ✅ Obtener nombre de categoría
+        const categoryName = getCategoryName(product.categoryId);
+
+        // Asignar valores
         const barcodeCell = row.querySelector('.product-barcode');
         const nameCell = row.querySelector('.product-name');
         const brandCell = row.querySelector('.product-brand');
+        const categoryCell = row.querySelector('.product-category');
         const priceCell = row.querySelector('.product-price');
         const stockCell = row.querySelector('.product-stock');
         const statusSpan = row.querySelector('.product-status');
@@ -163,6 +246,7 @@ function renderProductsTable(products) {
         if (barcodeCell) barcodeCell.textContent = product.barcode || 'N/A';
         if (nameCell) nameCell.textContent = product.name || 'N/A';
         if (brandCell) brandCell.textContent = product.brand || 'N/A';
+        if (categoryCell) categoryCell.textContent = categoryName;
         if (priceCell) priceCell.textContent = formatCurrency(product.price || 0);
         if (stockCell) stockCell.textContent = product.stock || 0;
 
@@ -174,12 +258,14 @@ function renderProductsTable(products) {
 
         rowElement.dataset.id = product.id;
 
+        // Botones
         const viewBtn = rowElement.querySelector('.btn-view');
         const editBtn = rowElement.querySelector('.btn-edit');
 
         if (viewBtn) viewBtn.addEventListener('click', () => viewProductDetails(product.id));
         if (editBtn) editBtn.addEventListener('click', () => editProduct(product.id));
 
+        // Toggle switch
         const toggleSwitch = row.querySelector('.status-row-switch');
         if (toggleSwitch) {
             toggleSwitch.setAttribute('data-product-id', product.id);
@@ -210,6 +296,7 @@ function renderProductsCards(products) {
         const card = cardTemplate.content.cloneNode(true);
         const cardDiv = card.querySelector('.product-card-item');
 
+        // Avatar
         const avatarDiv = card.querySelector('.product-card-avatar');
         if (avatarDiv) {
             const hasImage = product.imageUrl && product.imageUrl.startsWith('data:image');
@@ -227,9 +314,14 @@ function renderProductsCards(products) {
             }
         }
 
+        // ✅ Obtener nombre de categoría
+        const categoryName = getCategoryName(product.categoryId);
+
+        // Asignar valores
         const nameEl = card.querySelector('.card-name');
         const barcodeEl = card.querySelector('.card-barcode');
         const brandEl = card.querySelector('.card-brand');
+        const categoryEl = card.querySelector('.card-category');
         const priceEl = card.querySelector('.card-price');
         const stockEl = card.querySelector('.card-stock');
         const statusSpan = card.querySelector('.card-status');
@@ -237,6 +329,7 @@ function renderProductsCards(products) {
         if (nameEl) nameEl.textContent = product.name || 'N/A';
         if (barcodeEl) barcodeEl.textContent = `Código: ${product.barcode || 'N/A'}`;
         if (brandEl) brandEl.textContent = product.brand || 'N/A';
+        if (categoryEl) categoryEl.textContent = `Categoría: ${categoryName}`;
         if (priceEl) priceEl.textContent = formatCurrency(product.price || 0);
         if (stockEl) stockEl.textContent = `Stock: ${product.stock || 0}`;
 
@@ -252,12 +345,14 @@ function renderProductsCards(products) {
 
         cardDiv.dataset.id = product.id;
 
+        // Botones
         const viewBtn = cardDiv.querySelector('.btn-view');
         const editBtn = cardDiv.querySelector('.btn-edit');
 
         if (viewBtn) viewBtn.addEventListener('click', () => viewProductDetails(product.id));
         if (editBtn) editBtn.addEventListener('click', () => editProduct(product.id));
 
+        // Toggle switch
         const toggleSwitch = card.querySelector('.status-row-switch');
         if (toggleSwitch) {
             toggleSwitch.setAttribute('data-product-id', product.id);
@@ -394,13 +489,12 @@ async function handleToggleSwitch(id, name, isCurrentlyActive, toggleElement) {
 
         const adminSession = AdminService.getSession();
         const adminId = adminSession?.id;
-        const storeName = adminSession?.storeName;
 
-        if (!adminId || !storeName) {
-            throw new Error('Admin session or store name not found');
+        if (!adminId) {
+            throw new Error('Admin session not found');
         }
 
-        await ProductService.toggleStatus(id, !isCurrentlyActive, adminId, storeName);
+        await ProductService.toggleStatus(id, !isCurrentlyActive, adminId, currentStoreName);
         Swal.close();
 
         await Swal.fire({
@@ -473,13 +567,12 @@ async function viewProductDetails(id) {
     try {
         const adminSession = AdminService.getSession();
         const adminId = adminSession?.id;
-        const storeName = adminSession?.storeName;
 
-        if (!adminId || !storeName) {
-            throw new Error('Admin session or store name not found');
+        if (!adminId) {
+            throw new Error('Admin session not found');
         }
 
-        const product = await ProductService.getById(id, adminId, storeName);
+        const product = await ProductService.getById(id, adminId, currentStoreName);
 
         if (!product) {
             await Swal.fire({
@@ -504,10 +597,14 @@ async function viewProductDetails(id) {
             if (modalAvatarIcon) modalAvatarIcon.style.display = 'block';
         }
 
+        // ✅ Obtener nombre de categoría
+        const categoryName = getCategoryName(product.categoryId);
+
         document.getElementById('modalTitle').textContent = `Detalles: ${product.name}`;
         document.getElementById('modalBarcode').textContent = product.barcode || 'N/A';
         document.getElementById('modalName').textContent = product.name || 'N/A';
         document.getElementById('modalBrand').textContent = product.brand || 'N/A';
+        document.getElementById('modalCategory').textContent = categoryName;
         document.getElementById('modalPrice').textContent = formatCurrency(product.price || 0);
         document.getElementById('modalStock').textContent = product.stock || 0;
         document.getElementById('modalDescription').textContent = product.description || 'Sin descripción';
@@ -531,7 +628,7 @@ async function viewProductDetails(id) {
    REDIRECT TO EDIT
    ======================================================== */
 function editProduct(id) {
-    window.location.href = `/editarProducto?id=${id}`;
+    navigateTo(`/editarProducto?id=${id}`);
 }
 
 /* ========================================================
@@ -553,10 +650,12 @@ function initSearchFilter() {
         });
 
         const filteredProducts = filteredByStatus.filter(product => {
+            const categoryName = getCategoryName(product.categoryId);
             const matchesName = product.name && product.name.toLowerCase().includes(searchTerm);
             const matchesBarcode = product.barcode && product.barcode.toLowerCase().includes(searchTerm);
             const matchesBrand = product.brand && product.brand.toLowerCase().includes(searchTerm);
-            return matchesName || matchesBarcode || matchesBrand;
+            const matchesCategory = categoryName && categoryName.toLowerCase().includes(searchTerm);
+            return matchesName || matchesBarcode || matchesBrand || matchesCategory;
         });
 
         currentPage = 1;
@@ -586,7 +685,7 @@ function showEmptySearchState() {
     if (tableBody) {
         tableBody.innerHTML = `
             <tr class="empty-row">
-                <td colspan="8" class="empty-state-cell">
+                <td colspan="9" class="empty-state-cell">
                     <div class="empty-state-content">
                         <i class="fas fa-search"></i>
                         <p>No se encontraron productos</p>
@@ -629,8 +728,33 @@ function initAddProductButton() {
 
     addButton.addEventListener('click', (event) => {
         event.preventDefault();
-        window.location.href = '/crearProducto';
+        navigateTo('/crearProducto');
     });
+}
+
+/* ========================================================
+   CLEAR SEARCH
+   ======================================================== */
+function initClearSearch() {
+    const clearBtn = document.getElementById('clearSearchBtn');
+    const searchInput = document.getElementById('searchProduct');
+
+    if (clearBtn && searchInput) {
+        clearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            const event = new Event('input');
+            searchInput.dispatchEvent(event);
+        });
+
+        searchInput.addEventListener('input', () => {
+            if (searchInput.value.length > 0) {
+                clearBtn.style.display = 'flex';
+            } else {
+                clearBtn.style.display = 'none';
+            }
+        });
+    }
 }
 
 /* ========================================================
@@ -668,11 +792,11 @@ function showEmptyState() {
     if (tableBody) {
         tableBody.innerHTML = `
             <tr class="empty-row">
-                <td colspan="8" class="empty-state-cell">
+                <td colspan="9" class="empty-state-cell">
                     <div class="empty-state-content">
                         <i class="fas fa-box-open"></i>
                         <p>No hay productos ${statusText} registrados</p>
-                        <a href="/crearProducto" class="btn btn-primary">Agregar producto</a>
+                        <button class="btn btn-primary" onclick="window.navigateTo('/crearProducto')">Agregar producto</button>
                     </div>
                 </td>
             </tr>
@@ -685,7 +809,7 @@ function showEmptyState() {
             <div class="cards-empty-state">
                 <i class="fas fa-box-open"></i>
                 <p>No hay productos ${statusText} registrados</p>
-                <a href="/crearProducto" class="btn btn-primary">Agregar producto</a>
+                <button class="btn btn-primary" onclick="window.navigateTo('/crearProducto')">Agregar producto</button>
             </div>
         `;
     }
