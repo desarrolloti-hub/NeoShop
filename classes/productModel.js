@@ -15,6 +15,9 @@ export class Product {
         this.brand = data.brand || '';
         this.unitOfMeasure = data.unitOfMeasure || '';
 
+        // ✅ NUEVO: Categoría
+        this.categoryId = data.categoryId || null;
+
         // Prices
         this.price = data.price || 0;
         this.cost = data.cost || 0;
@@ -64,6 +67,11 @@ export class Product {
         return ((this.price - this.cost) / this.cost) * 100;
     }
 
+    // ✅ NUEVO: Verifica si tiene categoría asignada
+    get hasCategory() {
+        return !!this.categoryId;
+    }
+
     get summary() {
         return {
             id: this.id,
@@ -73,7 +81,8 @@ export class Product {
             price: this.price,
             stock: this.stock,
             active: this.active,
-            imageUrl: this.imageUrl
+            imageUrl: this.imageUrl,
+            categoryId: this.categoryId  // ✅ Incluimos categoría
         };
     }
 

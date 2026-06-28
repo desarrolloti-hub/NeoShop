@@ -123,6 +123,8 @@ export const ProductService = {
             description: productData.description?.trim() || '',
             brand: productData.brand.trim(),
             unitOfMeasure: productData.unitOfMeasure?.trim() || 'piece',
+            // ✅ NUEVO: Asignar categoría
+            categoryId: productData.categoryId || null,
             price: parseFloat(productData.price),
             cost: parseFloat(productData.cost) || 0,
             stock: parseInt(productData.stock) || 0,
@@ -190,6 +192,24 @@ export const ProductService = {
 
         const productData = await ProductRepository.getByBarcode(barcode, storeNameClean);
         return productData ? new Product(productData) : null;
+    },
+
+    // ✅ NUEVO: Obtener productos por categoría
+    async getByCategory(categoryId, adminId, storeName = null) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get products by category');
+            }
+        }
+
+        const store = await this.getCurrentStore(adminId, storeName);
+        const storeNameClean = store.name;
+
+        const productsData = await ProductRepository.getByCategory(categoryId, storeNameClean);
+        return productsData.map(p => new Product(p));
     },
 
     /**
@@ -404,5 +424,17 @@ export const ProductService = {
     async getOutOfStockProducts(adminId, storeName = null) {
         const products = await this.getAll(adminId, { active: true }, false, storeName);
         return products.filter(p => p.isOutOfStock);
+    },
+
+    // ✅ NUEVO: Obtener productos sin categoría
+    async getUncategorizedProducts(adminId, storeName = null) {
+        const products = await this.getAll(adminId, { active: true }, false, storeName);
+        return products.filter(p => !p.hasCategory);
+    },
+
+    // ✅ NUEVO: Contar productos por categoría
+    async countByCategory(categoryId, adminId, storeName = null) {
+        const products = await this.getByCategory(categoryId, adminId, storeName);
+        return products.length;
     }
 };

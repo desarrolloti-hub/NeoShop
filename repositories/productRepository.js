@@ -68,6 +68,8 @@ export const ProductRepository = {
             description: productData.description || '',
             brand: productData.brand || '',
             unitOfMeasure: productData.unitOfMeasure || '',
+            // ✅ NUEVO: Guardar categoría
+            categoryId: productData.categoryId || null,
             price: productData.price || 0,
             cost: productData.cost || 0,
             stock: productData.stock || 0,
@@ -110,6 +112,29 @@ export const ProductRepository = {
         return querySnapshot.empty ? null : { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
     },
 
+    // ✅ NUEVO: Obtener productos por categoría
+    async getByCategory(categoryId, storeName, limitCount = 100) {
+        if (!storeName) {
+            throw new Error('storeName is required to get products by category');
+        }
+        if (!categoryId) {
+            throw new Error('categoryId is required');
+        }
+        const collectionName = getProductsCollectionName(storeName);
+        const q = query(
+            collection(db, collectionName),
+            where('categoryId', '==', categoryId),
+            where('active', '==', true),
+            limit(limitCount)
+        );
+        const querySnapshot = await getDocs(q);
+        const products = [];
+        querySnapshot.forEach((doc) => {
+            products.push({ id: doc.id, ...doc.data() });
+        });
+        return products;
+    },
+
     async getAll(storeName, filters = {}, limitCount = 100) {
         if (!storeName) {
             throw new Error('storeName is required to get all products');
@@ -119,6 +144,11 @@ export const ProductRepository = {
 
         if (filters.active !== undefined) {
             constraints.push(where('active', '==', filters.active));
+        }
+
+        // ✅ NUEVO: Filtrar por categoría
+        if (filters.categoryId) {
+            constraints.push(where('categoryId', '==', filters.categoryId));
         }
 
         constraints.push(limit(limitCount));
