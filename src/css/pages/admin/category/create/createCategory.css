@@ -1,11 +1,6 @@
 /* FILE: createCategory.css */
 /* Category form styles - matching createProduct design system */
 
-.category-list-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: var(--spacing-lg) 0;
-}
 
 .category-list-card {
     background: var(--bg-white);
