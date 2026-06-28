@@ -1,0 +1,56 @@
+<!-- FILE: createCategory.html -->
+<div class="credContainer">
+    <div class="category-list-container">
+        <div class="category-list-card">
+            <!-- HEADER -->
+            <div class="page-header">
+                <h2 class="header-title">
+                    <i class="fas fa-tags"></i> Registrar Categoría
+                </h2>
+                <div class="header-actions">
+                    <a href="/categorias" class="btn btn-primary" id="backToListBtn" data-link>
+                        <i class="fas fa-arrow-left"></i> Volver al listado
+                    </a>
+                </div>
+            </div>
+
+            <!-- Formulario -->
+            <div class="category-form-wrapper">
+                <div class="category-card">
+                    <form id="categoryForm">
+                        <!-- Nombre de la categoría -->
+                        <div class="form-group">
+                            <label for="name">
+                                <i class="fas fa-tag"></i> Nombre de la categoría <span class="required">*</span>
+                            </label>
+                            <input type="text" id="name" name="name" placeholder="Ej: Electrónicos, Ropa, Calzado..."
+                                required maxlength="50">
+                            <small class="field-note">Mínimo 2 caracteres, máximo 50</small>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="form-group">
+                            <label for="description">
+                                <i class="fas fa-align-left"></i> Descripción
+                            </label>
+                            <textarea id="description" name="description" rows="3"
+                                placeholder="Descripción detallada de la categoría..."></textarea>
+                            <small class="field-note">Opcional. Describe qué productos pertenecen a esta
+                                categoría</small>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="form-actions">
+                            <button type="button" id="cancelBtn" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Registrar categoría
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
