@@ -1,0 +1,175 @@
+<!-- FILE: readCategories.html -->
+<div class="credContainer">
+
+    <div class="category-list-card">
+        <!-- HEADER -->
+        <div class="page-header">
+            <h2 class="header-title">
+                <i class="fas fa-tags"></i> Mis Categorías
+            </h2>
+            <div class="header-actions">
+                <a href="/crearCategoria" class="btn btn-primary" id="addNewCategoryBtn" data-link>
+                    <i class="fas fa-plus"></i> Nueva categoría
+                </a>
+            </div>
+        </div>
+
+        <!-- Filtros: Buscador + Toggle de estado -->
+        <div class="filters-wrapper">
+            <div class="search-wrapper">
+                <input type="text" id="searchCategory" class="search-input"
+                    placeholder="Buscar por nombre o descripción...">
+            </div>
+
+            <!-- Toggle Switch para mostrar activos/inactivos -->
+            <div class="status-toggle-wrapper">
+                <span class="status-label">Inactivos</span>
+                <div class="status-filter-switch" id="statusFilterSwitch">
+                    <div class="status-filter-slider"></div>
+                </div>
+                <span class="status-label active">Activos</span>
+            </div>
+        </div>
+
+        <!-- TABLA -->
+        <div class="component-table-wrapper desktop-view">
+            <table class="component-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Fecha creación</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="categoryTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- CARDS MÓVIL -->
+        <div id="categoryCardsContainer" class="mobile-view"></div>
+
+        <!-- Paginación -->
+        <div class="pagination-container" id="paginationContainer">
+            <div class="pagination-info">
+                <span id="paginationInfo">Mostrando 0 - 0 de 0 categorías</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="btn-pagination" id="prevPageBtn" disabled>
+                    <i class="fas fa-chevron-left"></i> Anterior
+                </button>
+                <span class="pagination-current" id="currentPageDisplay">Página 1</span>
+                <button class="btn-pagination" id="nextPageBtn" disabled>
+                    Siguiente <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- TEMPLATE TABLA -->
+<template id="categoryRowTemplate">
+    <tr>
+        <td>
+            <div class="middle-block"><span class="category-name"></span></div>
+        </td>
+        <td>
+            <div class="middle-block"><span class="category-description"></span></div>
+        </td>
+        <td>
+            <div class="middle-block"><span class="category-created-at"></span></div>
+        </td>
+        <td><span class="category-status"></span></td>
+        <td>
+            <div class="action-badge">
+                <button class="btn-view" title="Ver detalles"><i class="fas fa-eye"></i></button>
+                <button class="btn-edit" title="Editar"><i class="fas fa-edit"></i></button>
+                <div class="status-switch-wrapper">
+                    <div class="status-row-switch" data-category-id="">
+                        <div class="status-row-slider"></div>
+                    </div>
+                </div>
+            </div>
+        </td>
+    </tr>
+</template>
+
+<!-- TEMPLATE CARDS MÓVIL -->
+<template id="categoryCardTemplate">
+    <div class="category-card-item">
+        <div class="category-card-header">
+            <div class="category-card-icon">
+                <i class="fas fa-tag"></i>
+            </div>
+            <div class="category-card-title">
+                <h4 class="card-name"></h4>
+                <span class="card-status"></span>
+            </div>
+        </div>
+        <div class="category-card-body">
+            <p class="card-description"></p>
+            <div class="card-meta">
+                <span><i class="fas fa-calendar-alt"></i> <span class="card-created-at"></span></span>
+            </div>
+        </div>
+        <div class="category-card-actions">
+            <button class="btn-action btn-view" title="Ver detalles">
+                <i class="fas fa-eye"></i> Ver
+            </button>
+            <button class="btn-action btn-edit" title="Editar">
+                <i class="fas fa-edit"></i> Editar
+            </button>
+            <div class="status-switch-wrapper">
+                <div class="status-row-switch" data-category-id="">
+                    <div class="status-row-slider"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- MODAL -->
+<div id="categoryModal" class="modal-container" style="display: none;">
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Detalles de la categoría</h3>
+                <button class="modal-close-btn" id="modalCloseBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-icon">
+                    <i class="fas fa-tags"></i>
+                </div>
+                <div class="modal-info">
+                    <div class="modal-info-row">
+                        <span class="modal-label"><i class="fas fa-tag"></i> Nombre:</span>
+                        <span id="modalName"></span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-label"><i class="fas fa-align-left"></i> Descripción:</span>
+                        <span id="modalDescription"></span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-label"><i class="fas fa-calendar-alt"></i> Creado:</span>
+                        <span id="modalCreatedAt"></span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-label"><i class="fas fa-user"></i> Creado por:</span>
+                        <span id="modalCreatedBy"></span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-label"><i class="fas fa-circle"></i> Estado:</span>
+                        <span id="modalStatus"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="closeModalBtn">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
