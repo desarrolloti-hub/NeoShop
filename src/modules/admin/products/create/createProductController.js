@@ -4,13 +4,15 @@
    DYNAMIC COLLECTIONS: products + StoreName
    ======================================================== */
 
-import { ProductService } from '/services/productService.js';
-import { AdminService } from '/services/adminService.js';
+import { ProductService } from '../../../../../services/productService.js';
+import { AdminService } from '../../../../../services/adminService.js';
+import { CategoryService } from '../../../../../services/categoryService.js'; // ✅ IMPORTAR
 
 let isLoading = false;
 let currentImageBase64 = '';
 let currentAdmin = null;
 let currentStoreName = null;
+let categories = []; // ✅ Almacenar categorías
 
 export async function createProductController() {
   console.log('📦 Create Product Controller - Initialized');
@@ -49,6 +51,9 @@ export async function createProductController() {
   console.log('✅ Store:', currentStoreName);
   console.log('📁 Products collection:', `${currentStoreName}Products`);
 
+  // ✅ Cargar categorías
+  await loadCategories();
+
   animateProductCard();
   initProductImageUpload();
   initProductFormSubmit();
@@ -80,6 +85,40 @@ function loadAdminSession() {
   } catch (error) {
     console.error('❌ Error loading session:', error);
     return false;
+  }
+}
+
+// ✅ NUEVO: Cargar categorías
+async function loadCategories() {
+  try {
+    console.log('📂 Loading categories...');
+    categories = await CategoryService.getActive();
+    console.log(`✅ ${categories.length} categories loaded`);
+
+    const categorySelect = document.getElementById('categoryId');
+    if (categorySelect) {
+      // Limpiar opciones existentes
+      categorySelect.innerHTML = '';
+
+      // Opción por defecto
+      const defaultOption = document.createElement('option');
+      defaultOption.value = '';
+      defaultOption.textContent = 'Sin categoría';
+      categorySelect.appendChild(defaultOption);
+
+      // Agregar categorías
+      categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.id;
+        option.textContent = category.name;
+        categorySelect.appendChild(option);
+      });
+
+      console.log('✅ Category select populated');
+    }
+  } catch (error) {
+    console.error('❌ Error loading categories:', error);
+    // No mostrar error al usuario, solo continuar sin categorías
   }
 }
 
@@ -234,6 +273,8 @@ function initProductFormSubmit() {
     const stock = parseInt(document.getElementById('stock')?.value) || 0;
     const minStock = parseInt(document.getElementById('minStock')?.value) || 0;
     const unitOfMeasure = document.getElementById('unitOfMeasure')?.value.trim();
+    // ✅ NUEVO: Obtener categoría seleccionada
+    const categoryId = document.getElementById('categoryId')?.value || null;
 
     // Validaciones
     if (!name) {
@@ -318,7 +359,8 @@ function initProductFormSubmit() {
       stock: stock,
       minStock: minStock,
       unitOfMeasure: unitOfMeasure || 'pieza',
-      imageUrl: currentImageBase64
+      imageUrl: currentImageBase64,
+      categoryId: categoryId // ✅ Incluir categoría
     };
 
     isLoading = true;
@@ -337,6 +379,7 @@ function initProductFormSubmit() {
       console.log('  - adminId:', adminId);
       console.log('  - storeName:', currentStoreName);
       console.log('  - productData:', productData);
+      console.log('  - categoryId:', categoryId);
 
       const result = await ProductService.create(productData, adminId, currentStoreName);
 
@@ -344,6 +387,15 @@ function initProductFormSubmit() {
       console.log('📁 Collection:', `${currentStoreName}Products`);
 
       Swal.close();
+
+      // Obtener nombre de la categoría para mostrar
+      let categoryName = 'Sin categoría';
+      if (categoryId) {
+        const selectedCategory = categories.find(c => c.id === categoryId);
+        if (selectedCategory) {
+          categoryName = selectedCategory.name;
+        }
+      }
 
       await Swal.fire({
         title: '¡Producto registrado! 🎉',
@@ -353,6 +405,7 @@ function initProductFormSubmit() {
                         <p><i class="fas fa-barcode"></i> <strong>Código:</strong> ${barcode.toUpperCase()}</p>
                         <p><i class="fas fa-dollar-sign"></i> <strong>Precio:</strong> ${formatCurrency(price)}</p>
                         <p><i class="fas fa-boxes"></i> <strong>Stock:</strong> ${stock} unidades</p>
+                        <p><i class="fas fa-tag"></i> <strong>Categoría:</strong> ${categoryName}</p>
                     </div>
                 `,
         icon: 'success',
@@ -376,6 +429,12 @@ function initProductFormSubmit() {
       if (fileInput) fileInput.value = '';
 
       currentImageBase64 = '';
+
+      // ✅ Restablecer selector de categoría
+      const categorySelect = document.getElementById('categoryId');
+      if (categorySelect) {
+        categorySelect.value = '';
+      }
 
       const resultConfirm = await Swal.fire({
         title: '¿Qué deseas hacer ahora?',
