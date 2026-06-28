@@ -51,7 +51,7 @@ async function checkStoreAndRedirect() {
         // ✅ Si no tiene storeId, mostrar alerta para configurar tienda
         if (!adminData?.storeId) {
             const result = await Swal.fire({
-                title: '📋 Configura tu tienda',
+                title: 'Configura tu tienda',
                 html: `
                     <div style="text-align: left;">
                         <p>Para comenzar a usar NeoShop, necesitas configurar los datos de tu negocio.</p>
@@ -182,17 +182,6 @@ function redirectByRole() {
     }
 
     let targetUrl = '/inicioAdmin'; // por defecto
-
-    // Lógica según el plan
-    if (plan === 'trial') {
-        // Prueba gratuita: acceso al dashboard (podrías agregar un flag en la URL)
-        targetUrl = '/inicioAdmin?trial=true';
-    } else if (plan === 'custom') {
-        targetUrl = '/contacto';
-    } else if (['basic', 'pro', 'enterprise'].includes(plan)) {
-        // Planes de pago: redirigir al checkout para completar el pago
-        targetUrl = `/checkout?plan=${plan}&period=${period}`;
-    }
 
     window.location.href = targetUrl;
 }
