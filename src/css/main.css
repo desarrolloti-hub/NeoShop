@@ -98,3 +98,8 @@
 @import url(./pages/admin/partners/create/createPartner.css);
 @import url(./pages/admin/partners/read/readPartners.css);
 @import url(./pages/admin/partners/update/updatePartner.css);
+
+/* categorias */
+@import url(./pages/admin/category/create/createCategory.css);
+@import url(./pages/admin/category/read/readCategories.css);
+@import url(./pages/admin/category/update/updateCategory.css);

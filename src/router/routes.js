@@ -79,10 +79,14 @@ import { saleListController } from '../modules/admin/sales/read/readSaleControll
 import { saleCreateController } from '../modules/admin/sales/create/createSaleController.js';
 
 /* colaboradores */
-import { createPartnerController } from '../modules/admin/partners/create/createPartnerController.js'
-import { updatePartnerController } from '../modules/admin/partners/update/updatePartnerController.js'
-import { readPartnersController } from '../modules/admin/partners/read/readPartnersController.js'
+import { createPartnerController } from '../modules/admin/partners/create/createPartnerController.js';
+import { updatePartnerController } from '../modules/admin/partners/update/updatePartnerController.js';
+import { readPartnersController } from '../modules/admin/partners/read/readPartnersController.js';
 
+/* categorias */
+import { updateCategoryController } from '../modules/admin/category/update/updateCategoryController.js';
+import { createCategoryController } from '../modules/admin/category/create/createCategoryController.js';
+import { readCategoriesController } from '../modules/admin/category/read/readCategoriesController.js';
 
 /* ========================================
                 Rutas HTML 
@@ -241,7 +245,19 @@ export const routes = {
         view: "/modules/admin/partners/update/updatePartner.html",
         controller: updatePartnerController
     },
-
+    /* categorias */
+    "/crearCategoria": {
+        view: "/modules/admin/category/create/createCategory.html",
+        controller: createCategoryController
+    },
+    "/catalogoProductos": {
+        view: "/modules/admin/category/read/readCategories.html",
+        controller: readCategoriesController
+    },
+    "/editarCategoria": {
+        view: "/modules/admin/category/update/updateCategory.html",
+        controller: updateCategoryController
+    },
     /* ========================================
          ----------- Todos -----------
    ======================================== */
