@@ -69,7 +69,7 @@
 @import url('./pages/admin/home/adminHome.css');
 
 /* customers */
-@import url('./pages/admin/customer/readCustomer.css');
+@import url(./pages/admin/customer/read/readCustomers.css);
 
 /* profile */
 @import url('./pages/admin/profile/updateProfile.css');
