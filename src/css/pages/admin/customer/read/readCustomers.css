@@ -1,0 +1,106 @@
+/* FILE: customers.css */
+/* Estilos específicos para la tabla de clientes */
+
+/* ======================================================== */
+/* TABLA DE CLIENTES - Texto con elipsis */
+/* ======================================================== */
+
+.customer-table td,
+.customer-table th {
+    padding: 10px 8px;
+    vertical-align: middle;
+}
+
+/* Contenedor para texto con elipsis */
+.customer-table .ellipsis-text {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ======================================================== */
+/* ACCIONES EN LA TABLA */
+/* ======================================================== */
+
+.customer-table .action-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex-wrap: nowrap;
+}
+
+.customer-table .btn-view,
+.customer-table .btn-edit {
+    flex-shrink: 0;
+}
+
+.customer-table .status-switch-wrapper {
+    flex-shrink: 0;
+}
+
+/* ======================================================== */
+/* RESPONSIVE */
+/* ======================================================== */
+
+@media (max-width: 1024px) {
+
+    .customer-table th,
+    .customer-table td {
+        font-size: 0.8rem;
+        padding: 8px 6px;
+    }
+
+    .customer-table .action-badge {
+        gap: 2px;
+    }
+
+    .customer-table .btn-action {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .customer-table .status-row-switch {
+        width: 36px;
+        height: 18px;
+    }
+
+    .customer-table .status-row-slider {
+        width: 14px;
+        height: 14px;
+    }
+
+    .customer-table .status-row-switch.active .status-row-slider {
+        transform: translateX(18px);
+    }
+}
+
+@media (max-width: 768px) {
+    .customer-table {
+        font-size: 0.75rem;
+    }
+
+    .customer-table th,
+    .customer-table td {
+        padding: 6px 4px;
+    }
+}
+
+@media (max-width: 600px) {
+    .customer-table .ellipsis-text {
+        max-width: 80px;
+    }
+
+    .customer-table .action-badge {
+        gap: 1px;
+    }
+
+    .customer-table .btn-action {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
+    }
+}

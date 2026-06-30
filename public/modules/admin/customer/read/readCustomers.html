@@ -1,0 +1,195 @@
+<!-- FILE: readCustomers.html -->
+<div class="credContainer">
+    <div class="category-list-card">
+        <!-- HEADER -->
+        <div class="page-header">
+            <h2 class="header-title">
+                <i class="fas fa-users"></i> Mis Clientes
+            </h2>
+            <div class="header-actions">
+                <a href="/crearCliente" class="btn btn-primary" id="addNewCustomerBtn" data-link>
+                    <i class="fas fa-plus"></i> Nuevo cliente
+                </a>
+            </div>
+        </div>
+
+        <!-- Filtros: Buscador + Toggle de estado -->
+        <div class="filters-wrapper">
+            <div class="search-wrapper">
+                <input type="text" id="searchCustomer" class="search-input"
+                    placeholder="Buscar por nombre, email, RFC o teléfono...">
+            </div>
+
+            <!-- Toggle Switch para mostrar activos/inactivos -->
+            <div class="status-toggle-wrapper">
+                <span class="status-label">Inactivos</span>
+                <div class="status-filter-switch" id="statusFilterSwitch">
+                    <div class="status-filter-slider"></div>
+                </div>
+                <span class="status-label active">Activos</span>
+            </div>
+        </div>
+
+        <!-- TABLA -->
+        <div class="component-table-wrapper desktop-view">
+            <table class="component-table customer-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>RFC</th>
+                        <th>Teléfono</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="customerTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- CARDS MÓVIL -->
+        <div id="customerCardsContainer" class="mobile-view"></div>
+
+        <!-- Paginación -->
+        <div class="pagination-container" id="paginationContainer">
+            <div class="pagination-info">
+                <span id="paginationInfo">Mostrando 0 - 0 de 0 clientes</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="btn-pagination" id="prevPageBtn" disabled>
+                    <i class="fas fa-chevron-left"></i> Anterior
+                </button>
+                <span class="pagination-current" id="currentPageDisplay">Página 1</span>
+                <button class="btn-pagination" id="nextPageBtn" disabled>
+                    Siguiente <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TEMPLATE TABLA -->
+<template id="customerRowTemplate">
+    <tr>
+        <td>
+            <div class="middle-block ellipsis-text"><span class="customer-name"></span></div>
+        </td>
+        <td>
+            <div class="middle-block ellipsis-text"><span class="customer-email"></span></div>
+        </td>
+        <td>
+            <div class="middle-block ellipsis-text"><span class="customer-rfc"></span></div>
+        </td>
+        <td>
+            <div class="middle-block ellipsis-text"><span class="customer-phone"></span></div>
+        </td>
+        <td>
+            <div class="action-badge">
+                <button class="btn-view" title="Ver detalles"><i class="fas fa-eye"></i></button>
+                <button class="btn-edit" title="Editar"><i class="fas fa-edit"></i></button>
+                <div class="status-switch-wrapper">
+                    <div class="status-row-switch" data-customer-id="">
+                        <div class="status-row-slider"></div>
+                    </div>
+                </div>
+            </div>
+        </td>
+    </tr>
+</template>
+
+<!-- TEMPLATE CARDS MÓVIL -->
+<template id="customerCardTemplate">
+    <div class="category-card-item">
+        <div class="category-card-header">
+            <div class="category-card-icon">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="category-card-title">
+                <h4 class="card-name"></h4>
+                <span class="card-status"></span>
+            </div>
+        </div>
+        <div class="category-card-body">
+            <p class="card-description">
+                <i class="fas fa-envelope"></i> <span class="card-email"></span>
+            </p>
+            <p class="card-description">
+                <i class="fas fa-id-card"></i> <span class="card-rfc"></span>
+            </p>
+            <p class="card-description">
+                <i class="fas fa-phone"></i> <span class="card-phone"></span>
+            </p>
+            <div class="card-meta">
+                <span><i class="fas fa-map-marker-alt"></i> <span class="card-address"></span></span>
+            </div>
+        </div>
+        <div class="category-card-actions">
+            <button class="btn-action btn-view" title="Ver detalles">
+                <i class="fas fa-eye"></i> Ver
+            </button>
+            <button class="btn-action btn-edit" title="Editar">
+                <i class="fas fa-edit"></i> Editar
+            </button>
+            <div class="status-switch-wrapper">
+                <div class="status-row-switch" data-customer-id="">
+                    <div class="status-row-slider"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- MODAL -->
+<div id="customerModal" class="modal-container" style="display: none;">
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Detalles del cliente</h3>
+                <button class="modal-close-btn" id="modalCloseBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-icon">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="modal-info">
+                    <div class="modal-info-row">
+                        <span class="modal-label"><i class="fas fa-user"></i> Nombre:</span>
+                        <span id="modalName"></span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-label"><i class="fas fa-envelope"></i> Email:</span>
+                        <span id="modalEmail"></span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-label"><i class="fas fa-id-card"></i> RFC:</span>
+                        <span id="modalRfc"></span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-label"><i class="fas fa-phone"></i> Teléfono:</span>
+                        <span id="modalPhone"></span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-label"><i class="fas fa-map-marker-alt"></i> Dirección:</span>
+                        <span id="modalAddress"></span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-label"><i class="fas fa-calendar-alt"></i> Creado:</span>
+                        <span id="modalCreatedAt"></span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-label"><i class="fas fa-user"></i> Creado por:</span>
+                        <span id="modalCreatedBy"></span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-label"><i class="fas fa-circle"></i> Estado:</span>
+                        <span id="modalStatus"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="closeModalBtn">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
