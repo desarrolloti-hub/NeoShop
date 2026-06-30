@@ -1,18 +1,18 @@
 /* ============================================
    SALE CREATE CONTROLLER - Nueva Venta con Escáner SKU
-   Con vista previa de producto, foto, selector de cantidad
+   VERSIÓN SIMPLIFICADA Y ROBUSTA
    ============================================ */
 
 import { SaleService } from '../../../../../services/saleService.js';
 import { AdminService } from '../../../../../services/adminService.js';
 import { ProductService } from '../../../../../services/productService.js';
+import { showTicket } from '../../../shared/ticketPrinter/ticketPrinter.js';
 
 // ========== ESTADO GLOBAL ==========
 let cartItems = [];
 let searchTimeout = null;
 let currentAdmin = null;
-let currentStoreName = null;
-let currentStoreId = null;
+let currentStore = null;
 let currentPreviewProduct = null;
 
 // ========== ELEMENTOS DOM ==========
@@ -30,27 +30,47 @@ function formatCurrency(value) {
 function loadAdminSession() {
     currentAdmin = AdminService.getSession();
     if (currentAdmin) {
-        currentStoreName = currentAdmin.storeName || 'default-store';
-        currentStoreId = currentAdmin.storeId || 'default-branch';
         console.log('✅ Admin session loaded:', currentAdmin.name);
-        console.log('✅ Store name:', currentStoreName);
-        console.log('✅ Store ID:', currentStoreId);
         return true;
     }
     return false;
 }
 
-function updateAdminInfoInUI() {
-    if (!currentAdmin) return;
-    if (elements.adminName) {
-        elements.adminName.textContent = currentAdmin.fullName || currentAdmin.name || currentAdmin.email;
+async function loadStoreData() {
+    // Si el admin ya tiene storeId, usarlo directamente
+    if (currentAdmin && currentAdmin.storeId) {
+        currentStore = {
+            id: currentAdmin.storeId,
+            name: currentAdmin.storeName || 'Mi Tienda',
+            address: currentAdmin.storeAddress || '',
+            phone: currentAdmin.storePhone || '',
+            rfc: currentAdmin.storeRfc || '',
+            logo: currentAdmin.storeLogo || ''
+        };
+        return true;
     }
-    if (elements.adminInitials) {
-        elements.adminInitials.textContent = currentAdmin.initials || 'A';
+
+    // Si no, intentar cargar desde el servicio, pero si falla, usar datos por defecto
+    try {
+        const store = await ProductService.getCurrentStore(currentAdmin.id);
+        if (store) {
+            currentStore = store;
+            return true;
+        }
+    } catch (e) {
+        console.warn('⚠️ Error cargando tienda, usando datos por defecto:', e.message);
     }
-    if (elements.storeName) {
-        elements.storeName.textContent = currentStoreName || 'Sin tienda';
-    }
+
+    // Datos por defecto
+    currentStore = {
+        id: 0,
+        name: 'Mi Tienda',
+        address: 'Dirección no registrada',
+        phone: '000-000-0000',
+        rfc: 'XXXXXX',
+        logo: ''
+    };
+    return true;
 }
 
 function cacheElements() {
@@ -96,44 +116,30 @@ function cacheElements() {
     };
 }
 
-// ========== FUNCIONES PARA LOS BOTONES DE CANTIDAD ==========
-function updateQuantityInput(change) {
-    if (!elements.quantityInput) return;
-    let currentValue = parseInt(elements.quantityInput.value) || 1;
-    let newValue = currentValue + change;
-    let maxStock = currentPreviewProduct?.stock ?? 999;
-    if (newValue < 1) newValue = 1;
-    if (newValue > maxStock) newValue = maxStock;
-    elements.quantityInput.value = newValue;
+function updateAdminInfoInUI() {
+    if (!currentAdmin) return;
+    if (elements.adminName) elements.adminName.textContent = currentAdmin.fullName || currentAdmin.name || currentAdmin.email;
+    if (elements.adminInitials) elements.adminInitials.textContent = currentAdmin.initials || 'A';
+    if (elements.storeName) {
+        const storeName = currentStore?.name || currentAdmin.storeName || 'Sin tienda';
+        elements.storeName.textContent = storeName;
+    }
 }
 
-function validateQuantityInput() {
-    if (!elements.quantityInput) return;
-    let value = parseInt(elements.quantityInput.value) || 1;
-    let maxStock = currentPreviewProduct?.stock ?? 999;
-    if (value < 1) value = 1;
-    if (value > maxStock) value = maxStock;
-    elements.quantityInput.value = value;
-}
-
-// ========== MOSTRAR VISTA PREVIA DEL PRODUCTO ==========
+// ========== MOSTRAR VISTA PREVIA ==========
 function showProductPreview(product) {
     if (!elements.previewSection) return;
     currentPreviewProduct = product;
     elements.previewSection.style.display = 'block';
-
     if (elements.previewName) elements.previewName.textContent = product.name;
     if (elements.previewBrand) elements.previewBrand.textContent = product.brand || 'Sin marca';
     if (elements.previewPrice) elements.previewPrice.textContent = formatCurrency(product.price);
-
     if (elements.previewStock) {
         const stockEl = elements.previewStock;
         stockEl.textContent = product.stock;
         stockEl.className = 'stock-value' + (product.stock <= 0 ? ' out-of-stock' : product.isLowStock ? ' low-stock' : '');
     }
-
     if (elements.previewBarcode) elements.previewBarcode.textContent = product.barcode;
-
     if (elements.previewImage && elements.previewNoImage) {
         if (product.imageUrl && product.imageUrl.startsWith('data:image')) {
             elements.previewImage.src = product.imageUrl;
@@ -144,13 +150,11 @@ function showProductPreview(product) {
             elements.previewNoImage.style.display = 'flex';
         }
     }
-
     if (elements.quantityInput) {
         elements.quantityInput.max = product.stock;
         elements.quantityInput.value = 1;
         elements.quantityInput.disabled = product.stock <= 0;
     }
-
     if (elements.addToCartBtn) {
         elements.addToCartBtn.disabled = product.stock <= 0;
         elements.addToCartBtn.dataset.productId = product.id;
@@ -167,9 +171,7 @@ function hideProductPreview() {
 // ========== RENDERIZAR CARRITO ==========
 function renderCart() {
     if (!elements.cartItemsList) return;
-    if (elements.cartCount) {
-        elements.cartCount.textContent = cartItems.length;
-    }
+    if (elements.cartCount) elements.cartCount.textContent = cartItems.length;
 
     if (cartItems.length === 0) {
         elements.cartItemsList.innerHTML = `
@@ -185,12 +187,9 @@ function renderCart() {
 
     let html = '';
     cartItems.forEach((item, index) => {
-        let imageHtml = '';
-        if (item.imageUrl && item.imageUrl.startsWith('data:image')) {
-            imageHtml = `<img src="${item.imageUrl}" alt="${escapeHtml(item.name)}" class="cart-item-image">`;
-        } else {
-            imageHtml = `<div class="cart-item-image-placeholder"><i class="fas fa-box"></i></div>`;
-        }
+        let imageHtml = item.imageUrl && item.imageUrl.startsWith('data:image') 
+            ? `<img src="${item.imageUrl}" alt="${escapeHtml(item.name)}" class="cart-item-image">`
+            : `<div class="cart-item-image-placeholder"><i class="fas fa-box"></i></div>`;
 
         html += `
         <div class="cart-item" data-index="${index}">
@@ -243,7 +242,7 @@ function handleRemoveClick(e) {
     removeFromCart(index);
 }
 
-// ========== AGREGAR PRODUCTO AL CARRITO ==========
+// ========== AGREGAR AL CARRITO ==========
 async function addToCart(product, quantity = 1) {
     if (product.stock < quantity) {
         showSkuStatus(`❌ Stock insuficiente. Disponible: ${product.stock}`, 'error');
@@ -312,26 +311,20 @@ function removeFromCart(index) {
 function calculateTotals() {
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const discount = parseFloat(elements.discount?.value) || 0;
-
     const includeTax = elements.includeTaxCheckbox?.checked || false;
     const tax = includeTax ? subtotal * 0.16 : 0;
-
     const total = subtotal - discount + tax;
 
     if (elements.summarySubtotal) elements.summarySubtotal.textContent = formatCurrency(subtotal);
     if (elements.summaryTax) elements.summaryTax.textContent = formatCurrency(tax);
     if (elements.summaryTotal) elements.summaryTotal.textContent = formatCurrency(total);
-
     updateChange(total);
 }
 
-// ========== ACTUALIZAR CAMBIO ==========
 function updateChange(total) {
     if (!elements.cashAmount || !elements.changeDisplay) return;
-
     const cashAmount = parseFloat(elements.cashAmount.value) || 0;
     const change = cashAmount - total;
-
     if (elements.changeDisplay) {
         if (cashAmount > 0 && cashAmount >= total) {
             elements.changeDisplay.textContent = formatCurrency(change);
@@ -346,7 +339,6 @@ function updateChange(total) {
     }
 }
 
-// ========== MOSTRAR/OCULTAR CAMPO DE EFECTIVO ==========
 function toggleCashField() {
     const selectedMethod = getSelectedPaymentMethod();
     if (elements.cashPaymentContainer) {
@@ -365,7 +357,7 @@ function getSelectedPaymentMethod() {
     return method;
 }
 
-// ========== MOSTRAR ESTADO DEL SKU ==========
+// ========== MOSTRAR ESTADO SKU ==========
 function showSkuStatus(message, type = 'info') {
     if (!elements.skuStatus) return;
     elements.skuStatus.textContent = message;
@@ -387,7 +379,7 @@ function clearSkuInput() {
     }
 }
 
-// ========== BUSCAR PRODUCTO POR SKU ==========
+// ========== BUSCAR POR SKU ==========
 async function searchProductBySku() {
     const sku = elements.skuInput?.value.trim();
     if (!sku) {
@@ -432,7 +424,7 @@ async function searchProductBySku() {
     }
 }
 
-// ========== BUSCAR PRODUCTOS POR NOMBRE ==========
+// ========== BUSCAR POR NOMBRE ==========
 async function searchProductsByName() {
     const searchTerm = elements.productSearchInput?.value.trim();
     if (!searchTerm || searchTerm.length < 2) {
@@ -485,13 +477,14 @@ async function searchProductsByName() {
             });
         });
     } catch (error) {
-        // Error silencioso
+        // Silencio
     }
 }
 
-// ========== CREAR VENTA ==========
+// ========== CREAR VENTA (CORAZÓN DEL PROBLEMA) ==========
 async function createSale() {
     try {
+        // Validaciones básicas
         if (cartItems.length === 0) {
             Swal.fire('Aviso', 'Agregue al menos un producto a la venta', 'warning');
             return;
@@ -507,6 +500,7 @@ async function createSale() {
             return;
         }
 
+        // Calcular totales
         const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         const discount = parseFloat(elements.discount?.value) || 0;
         const includeTax = elements.includeTaxCheckbox?.checked || false;
@@ -532,6 +526,7 @@ async function createSale() {
             subtotal: item.price * item.quantity
         }));
 
+        // Preparar datos de la venta (con valores por defecto para la tienda)
         const saleData = {
             customerId: elements.customerId?.value || null,
             customerName: elements.customerName?.value?.trim() || 'Cliente general',
@@ -546,11 +541,13 @@ async function createSale() {
             userId: currentAdmin.id,
             userName: currentAdmin.fullName || currentAdmin.name,
             userEmail: currentAdmin.email,
-            // ✅ Usar storeName y storeId de la sesión
-            storeSlug: currentStoreName || 'default-store',
-            branchId: currentStoreId || 'default-branch'
+            storeSlug: currentStore?.name || 'Mi Tienda',
+            branchId: currentStore?.id || 0
         };
 
+        console.log('📤 Enviando venta:', saleData);
+
+        // Mostrar loading
         Swal.fire({
             title: 'Procesando...',
             text: 'Registrando venta',
@@ -558,29 +555,39 @@ async function createSale() {
             didOpen: () => Swal.showLoading()
         });
 
-        const result = await SaleService.createSale(saleData, currentAdmin.id);
+        // Llamar al servicio con timeout de 15 segundos
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Tiempo de espera agotado. Revise su conexión.')), 15000)
+        );
 
+        const result = await Promise.race([
+            SaleService.createSale(saleData, currentAdmin.id),
+            timeoutPromise
+        ]);
+
+        console.log('✅ Venta creada:', result);
+
+        // Actualizar stock (no crítico, puede fallar)
         for (const item of cartItems) {
             try {
                 await ProductService.updateStock(item.id, -item.quantity, currentAdmin.id);
-            } catch (error) {
-                // Error silencioso
+            } catch (e) {
+                console.warn('Error actualizando stock:', e);
             }
         }
 
-        Swal.fire({
-            title: '¡Venta registrada!',
-            text: `Venta ${result.folio || 'registrada'} exitosamente`,
-            icon: 'success',
-            confirmButtonText: 'Ver detalle'
-        }).then((resultSwal) => {
-            if (resultSwal.isConfirmed && window.router) {
-                window.router.navigate(`/admin/ventas/detalle/${result.id}`);
-            } else if (window.router) {
-                window.router.navigate('/admin/ventas');
-            }
-        });
+        // Guardar copia de los datos para el ticket (antes de limpiar)
+        const ticketProductos = [...productos];
+        const ticketTotal = total;
+        const ticketSubtotal = subtotal;
+        const ticketDiscount = discount;
+        const ticketTax = tax;
+        const ticketChange = changeAmount;
+        const ticketPayment = paymentMethod;
+        const ticketCustomer = saleData.customerName;
+        const ticketFolio = result.folio;
 
+        // LIMPIAR CARRITO Y UI
         cartItems = [];
         if (elements.customerName) elements.customerName.value = '';
         if (elements.customerId) elements.customerId.value = '';
@@ -588,8 +595,53 @@ async function createSale() {
         if (elements.cashAmount) elements.cashAmount.value = '';
         renderCart();
         hideProductPreview();
+
+        // Cerrar el loading de Swal ANTES de mostrar el ticket
+        Swal.close();
+
+        // Preparar datos del ticket
+        const ticketData = {
+            id: result.id,
+            folio: ticketFolio,
+            date: new Date().toISOString(),
+            userName: currentAdmin.fullName || currentAdmin.name || 'Sistema',
+            customerName: ticketCustomer,
+            productos: ticketProductos,
+            subtotal: ticketSubtotal,
+            discount: ticketDiscount,
+            tax: ticketTax,
+            total: ticketTotal,
+            change: ticketChange,
+            paymentMethod: ticketPayment
+        };
+
+        const storeData = {
+            name: currentStore?.name || 'Mi Tienda',
+            logo: currentStore?.logo || '',
+            address: typeof currentStore?.address === 'string' ? currentStore.address : '',
+            phone: currentStore?.phone || '',
+            rfc: currentStore?.rfc || ''
+        };
+
+        // Mostrar ticket con callback
+        showTicket(ticketData, storeData, () => {
+            console.log('🔄 Cerrando ticket y redirigiendo...');
+            // Remover modal si existe
+            const ticketModal = document.getElementById('ticketModal');
+            if (ticketModal) {
+                ticketModal.remove();
+            }
+            // Redirigir a la lista de ventas
+            if (window.router) {
+                window.router.navigate('/admin/ventas');
+            }
+        });
+
     } catch (error) {
-        Swal.fire('Error', error.message, 'error');
+        // Cerrar cualquier loading que pueda estar abierto
+        Swal.close();
+        console.error('❌ Error en createSale:', error);
+        Swal.fire('Error', error.message || 'Ocurrió un error al procesar la venta', 'error');
     }
 }
 
@@ -684,8 +736,41 @@ function bindEvents() {
     }
 }
 
-// ========== INICIALIZAR CONTROLADOR ==========
+// ========== FUNCIONES DE CANTIDAD (FALTANTES) ==========
+function updateQuantityInput(change) {
+    if (!elements.quantityInput) return;
+    let currentValue = parseInt(elements.quantityInput.value) || 1;
+    let newValue = currentValue + change;
+    let maxStock = currentPreviewProduct?.stock ?? 999;
+    if (newValue < 1) newValue = 1;
+    if (newValue > maxStock) newValue = maxStock;
+    elements.quantityInput.value = newValue;
+}
+
+function validateQuantityInput() {
+    if (!elements.quantityInput) return;
+    let value = parseInt(elements.quantityInput.value) || 1;
+    let maxStock = currentPreviewProduct?.stock ?? 999;
+    if (value < 1) value = 1;
+    if (value > maxStock) value = maxStock;
+    elements.quantityInput.value = value;
+}
+
+// ========== LIMPIEZA ==========
+function cleanup() {
+    cartItems = [];
+    searchTimeout = null;
+    currentPreviewProduct = null;
+    const ticketModal = document.getElementById('ticketModal');
+    if (ticketModal) ticketModal.remove();
+    const styleTag = document.getElementById('ticketPrinterStyles');
+    if (styleTag) styleTag.remove();
+}
+
+// ========== INICIALIZAR ==========
 export async function saleCreateController() {
+    cleanup();
+    
     const sessionLoaded = loadAdminSession();
     if (!sessionLoaded) {
         Swal.fire('Error', 'No se pudo cargar la sesión. Por favor inicie sesión nuevamente.', 'error');
@@ -693,15 +778,17 @@ export async function saleCreateController() {
         return;
     }
 
+    await loadStoreData();
     cacheElements();
     updateAdminInfoInUI();
     bindEvents();
     renderCart();
     hideProductPreview();
-
     toggleCashField();
 
     if (elements.skuInput) {
         elements.skuInput.focus();
     }
+    
+    console.log('✅ Sale Create Controller inicializado correctamente');
 }
