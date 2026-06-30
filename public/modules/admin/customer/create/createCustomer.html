@@ -1,0 +1,107 @@
+<!-- FILE: createCustomer.html -->
+<div class="credContainer">
+    <div class="category-list-container">
+        <div class="category-list-card">
+            <!-- HEADER -->
+            <div class="page-header">
+                <h2 class="header-title">
+                    <i class="fas fa-user-plus"></i> Registrar Cliente
+                </h2>
+                <div class="header-actions">
+                    <a href="/clientes" class="btn btn-primary" id="backToListBtn" data-link>
+                        <i class="fas fa-arrow-left"></i> Volver al listado
+                    </a>
+                </div>
+            </div>
+
+            <!-- Formulario -->
+            <div class="category-form-wrapper">
+                <div class="category-card">
+                    <form id="customerForm">
+                        <!-- Nombre completo -->
+                        <div class="form-group">
+                            <label for="name">
+                                <i class="fas fa-user"></i> Nombre completo <span class="required">*</span>
+                            </label>
+                            <input type="text" id="name" name="name" placeholder="Ej: Juan Pérez García" required
+                                maxlength="100">
+                            <small class="field-note">Mínimo 2 caracteres, máximo 100</small>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label for="email">
+                                <i class="fas fa-envelope"></i> Correo electrónico <span class="required">*</span>
+                            </label>
+                            <input type="email" id="email" name="email" placeholder="Ej: juan@ejemplo.com" required>
+                            <small class="field-note">Ingresa un correo electrónico válido</small>
+                        </div>
+
+                        <!-- RFC -->
+                        <div class="form-group">
+                            <label for="rfc">
+                                <i class="fas fa-id-card"></i> RFC <span class="required">*</span>
+                            </label>
+                            <input type="text" id="rfc" name="rfc" placeholder="Ej: JUAN123456P31" required
+                                maxlength="13" style="text-transform: uppercase;">
+                            <small class="field-note">Mínimo 12 caracteres (Persona física o moral)</small>
+                        </div>
+
+                        <!-- Teléfono -->
+                        <div class="form-group">
+                            <label for="phone">
+                                <i class="fas fa-phone"></i> Teléfono <span class="required">*</span>
+                            </label>
+                            <input type="tel" id="phone" name="phone" placeholder="Ej: 5512345678" required
+                                maxlength="15">
+                            <small class="field-note">Mínimo 10 dígitos</small>
+                        </div>
+
+                        <!-- Dirección Fiscal -->
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-map-marker-alt"></i> Dirección fiscal <span class="required">*</span>
+                            </label>
+
+                            <!-- Calle -->
+                            <input type="text" id="street" name="street" placeholder="Calle y número" required
+                                style="margin-bottom: 8px;">
+
+                            <!-- Colonia -->
+                            <input type="text" id="neighborhood" name="neighborhood" placeholder="Colonia"
+                                style="margin-bottom: 8px;">
+
+                            <!-- Código Postal -->
+                            <input type="text" id="postalCode" name="postalCode" placeholder="Código postal"
+                                style="margin-bottom: 8px;" maxlength="5">
+
+                            <!-- Ciudad -->
+                            <input type="text" id="city" name="city" placeholder="Ciudad" required
+                                style="margin-bottom: 8px;">
+
+                            <!-- Estado -->
+                            <input type="text" id="state" name="state" placeholder="Estado" required
+                                style="margin-bottom: 8px;">
+
+                            <!-- Referencias -->
+                            <textarea id="references" name="references" rows="2"
+                                placeholder="Referencias adicionales (opcional)"></textarea>
+
+                            <small class="field-note">Todos los campos marcados con * son obligatorios</small>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="form-actions">
+                            <button type="button" id="cancelBtn" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Registrar cliente
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
