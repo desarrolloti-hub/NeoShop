@@ -44,7 +44,9 @@ import { adminHomeController } from '../modules/admin/home/adminHomeController.j
 /* ========================================
        ----------- customer -----------
  ======================================== */
-import { readCustomerController } from '../modules/admin/customer/readCustomerController.js';
+import { readCustomersController } from '../modules/admin/customer/read/readCustomersController.js';
+import { createCustomerController } from '../modules/admin/customer/create/createCustomerController.js';
+import { updateCustomerController } from '../modules/admin/customer/update/updateCustomerController.js';
 
 
 
@@ -140,8 +142,16 @@ export const routes = {
 
     /* customer */
     "/clientes": {
-        view: "/modules/admin/customer/readCustomer.html",
-        controller: readCustomerController
+        view: "/modules/admin/customer/read/readCustomers.html",
+        controller: readCustomersController
+    },
+    "/nuevoCliente": {
+        view: "/modules/admin/customer/create/createCustomer.html",
+        controller: createCustomerController
+    },
+    "/editarCliente": {
+        view: "/modules/admin/customer/update/updateCustomer.html",
+        controller: updateCustomerController
     },
 
     /* supplier */
