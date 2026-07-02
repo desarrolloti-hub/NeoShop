@@ -6,11 +6,13 @@
 import { SaleService } from '../../../../../services/saleService.js';
 import { AdminService } from '../../../../../services/adminService.js';
 import { ProductService } from '../../../../../services/productService.js';
+import { CustomerService } from '../../../../../services/customerService.js';
 import { showTicket } from '../../../shared/ticketPrinter/ticketPrinter.js';
 
 // ========== ESTADO GLOBAL ==========
 let cartItems = [];
 let searchTimeout = null;
+let customerSearchTimeout = null;
 let currentAdmin = null;
 let currentStore = null;
 let currentPreviewProduct = null;
@@ -37,7 +39,6 @@ function loadAdminSession() {
 }
 
 async function loadStoreData() {
-    // Si el admin ya tiene storeId, usarlo directamente
     if (currentAdmin && currentAdmin.storeId) {
         currentStore = {
             id: currentAdmin.storeId,
@@ -50,7 +51,6 @@ async function loadStoreData() {
         return true;
     }
 
-    // Si no, intentar cargar desde el servicio, pero si falla, usar datos por defecto
     try {
         const store = await ProductService.getCurrentStore(currentAdmin.id);
         if (store) {
@@ -61,7 +61,6 @@ async function loadStoreData() {
         console.warn('⚠️ Error cargando tienda, usando datos por defecto:', e.message);
     }
 
-    // Datos por defecto
     currentStore = {
         id: 0,
         name: 'Mi Tienda',
@@ -104,6 +103,10 @@ function cacheElements() {
         summaryTotal: document.getElementById('summaryTotal'),
         customerName: document.getElementById('customerName'),
         customerId: document.getElementById('customerId'),
+        // 🔹 Elementos para búsqueda de clientes
+        customerSearchInput: document.getElementById('customerSearchInput'),
+        customerSearchResults: document.getElementById('customerSearchResults'),
+        clearCustomerBtn: document.getElementById('clearCustomerBtn'),
         adminName: document.getElementById('adminName'),
         adminInitials: document.getElementById('adminInitials'),
         adminEmail: document.getElementById('adminEmail'),
@@ -477,14 +480,115 @@ async function searchProductsByName() {
             });
         });
     } catch (error) {
-        // Silencio
+        console.warn('Error buscando productos:', error);
     }
 }
 
-// ========== CREAR VENTA (CORAZÓN DEL PROBLEMA) ==========
+// ========== 🔹 BUSCAR CLIENTES (SIN ÍNDICE) ==========
+async function searchCustomers() {
+    const queryText = elements.customerSearchInput?.value.trim();
+    if (!queryText || queryText.length < 2) {
+        if (elements.customerSearchResults) {
+            elements.customerSearchResults.style.display = 'none';
+            elements.customerSearchResults.innerHTML = '';
+        }
+        return;
+    }
+    if (!currentAdmin) return;
+
+    try {
+        // 🔹 Usamos CustomerService para buscar (sin orderBy)
+        const storeId = currentAdmin.storeId || currentStore.id;
+        const customers = await CustomerService.search(queryText, storeId, 10);
+
+        if (!elements.customerSearchResults) return;
+
+        if (customers.length === 0) {
+            elements.customerSearchResults.innerHTML = 
+                '<div class="customer-search-item">No se encontraron clientes</div>';
+            elements.customerSearchResults.style.display = 'block';
+            return;
+        }
+
+        elements.customerSearchResults.innerHTML = customers.map(customer => `
+            <div class="customer-search-item" data-id="${customer.id}">
+                <div class="customer-search-info">
+                    <div class="customer-search-name">${escapeHtml(customer.name || customer.fullName)}</div>
+                    <div class="customer-search-id">ID: ${escapeHtml(customer.id)}</div>
+                    ${customer.phone ? `<div class="customer-search-phone">${escapeHtml(customer.phone)}</div>` : ''}
+                </div>
+            </div>
+        `).join('');
+
+        elements.customerSearchResults.style.display = 'block';
+
+        // Evento click para seleccionar cliente
+        document.querySelectorAll('.customer-search-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const customerId = item.dataset.id;
+                const selectedCustomer = customers.find(c => c.id === customerId);
+                if (selectedCustomer) {
+                    selectCustomer(selectedCustomer);
+                }
+            });
+        });
+
+    } catch (error) {
+        console.warn('Error buscando clientes:', error);
+        // Si falla, mostrar mensaje de error
+        if (elements.customerSearchResults) {
+            elements.customerSearchResults.innerHTML = 
+                `<div class="customer-search-item error">Error al buscar clientes</div>`;
+            elements.customerSearchResults.style.display = 'block';
+        }
+    }
+}
+
+// ========== 🔹 SELECCIONAR CLIENTE ==========
+function selectCustomer(customer) {
+    if (elements.customerName) {
+        elements.customerName.value = customer.name || customer.fullName || '';
+    }
+    if (elements.customerId) {
+        elements.customerId.value = customer.id || '';
+    }
+    // Limpiar campo de búsqueda y ocultar resultados
+    if (elements.customerSearchInput) {
+        elements.customerSearchInput.value = '';
+    }
+    if (elements.customerSearchResults) {
+        elements.customerSearchResults.style.display = 'none';
+        elements.customerSearchResults.innerHTML = '';
+    }
+    // Enfocar el siguiente campo
+    if (elements.skuInput) {
+        elements.skuInput.focus();
+    }
+}
+
+// ========== 🔹 LIMPIAR CLIENTE ==========
+function clearCustomerSelection() {
+    if (elements.customerName) {
+        elements.customerName.value = '';
+    }
+    if (elements.customerId) {
+        elements.customerId.value = '';
+    }
+    if (elements.customerSearchInput) {
+        elements.customerSearchInput.value = '';
+    }
+    if (elements.customerSearchResults) {
+        elements.customerSearchResults.style.display = 'none';
+        elements.customerSearchResults.innerHTML = '';
+    }
+    if (elements.customerSearchInput) {
+        elements.customerSearchInput.focus();
+    }
+}
+
+// ========== CREAR VENTA ==========
 async function createSale() {
     try {
-        // Validaciones básicas
         if (cartItems.length === 0) {
             Swal.fire('Aviso', 'Agregue al menos un producto a la venta', 'warning');
             return;
@@ -500,7 +604,6 @@ async function createSale() {
             return;
         }
 
-        // Calcular totales
         const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         const discount = parseFloat(elements.discount?.value) || 0;
         const includeTax = elements.includeTaxCheckbox?.checked || false;
@@ -526,7 +629,6 @@ async function createSale() {
             subtotal: item.price * item.quantity
         }));
 
-        // Preparar datos de la venta (con valores por defecto para la tienda)
         const saleData = {
             customerId: elements.customerId?.value || null,
             customerName: elements.customerName?.value?.trim() || 'Cliente general',
@@ -547,7 +649,6 @@ async function createSale() {
 
         console.log('📤 Enviando venta:', saleData);
 
-        // Mostrar loading
         Swal.fire({
             title: 'Procesando...',
             text: 'Registrando venta',
@@ -555,7 +656,6 @@ async function createSale() {
             didOpen: () => Swal.showLoading()
         });
 
-        // Llamar al servicio con timeout de 15 segundos
         const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Tiempo de espera agotado. Revise su conexión.')), 15000)
         );
@@ -567,7 +667,6 @@ async function createSale() {
 
         console.log('✅ Venta creada:', result);
 
-        // Actualizar stock (no crítico, puede fallar)
         for (const item of cartItems) {
             try {
                 await ProductService.updateStock(item.id, -item.quantity, currentAdmin.id);
@@ -576,7 +675,6 @@ async function createSale() {
             }
         }
 
-        // Guardar copia de los datos para el ticket (antes de limpiar)
         const ticketProductos = [...productos];
         const ticketTotal = total;
         const ticketSubtotal = subtotal;
@@ -587,19 +685,21 @@ async function createSale() {
         const ticketCustomer = saleData.customerName;
         const ticketFolio = result.folio;
 
-        // LIMPIAR CARRITO Y UI
         cartItems = [];
         if (elements.customerName) elements.customerName.value = '';
         if (elements.customerId) elements.customerId.value = '';
+        if (elements.customerSearchInput) elements.customerSearchInput.value = '';
+        if (elements.customerSearchResults) {
+            elements.customerSearchResults.style.display = 'none';
+            elements.customerSearchResults.innerHTML = '';
+        }
         if (elements.discount) elements.discount.value = '0';
         if (elements.cashAmount) elements.cashAmount.value = '';
         renderCart();
         hideProductPreview();
 
-        // Cerrar el loading de Swal ANTES de mostrar el ticket
         Swal.close();
 
-        // Preparar datos del ticket
         const ticketData = {
             id: result.id,
             folio: ticketFolio,
@@ -623,22 +723,18 @@ async function createSale() {
             rfc: currentStore?.rfc || ''
         };
 
-        // Mostrar ticket con callback
         showTicket(ticketData, storeData, () => {
             console.log('🔄 Cerrando ticket y redirigiendo...');
-            // Remover modal si existe
             const ticketModal = document.getElementById('ticketModal');
             if (ticketModal) {
                 ticketModal.remove();
             }
-            // Redirigir a la lista de ventas
             if (window.router) {
                 window.router.navigate('/admin/ventas');
             }
         });
 
     } catch (error) {
-        // Cerrar cualquier loading que pueda estar abierto
         Swal.close();
         console.error('❌ Error en createSale:', error);
         Swal.fire('Error', error.message || 'Ocurrió un error al procesar la venta', 'error');
@@ -650,6 +746,26 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// ========== FUNCIONES DE CANTIDAD ==========
+function updateQuantityInput(change) {
+    if (!elements.quantityInput) return;
+    let currentValue = parseInt(elements.quantityInput.value) || 1;
+    let newValue = currentValue + change;
+    let maxStock = currentPreviewProduct?.stock ?? 999;
+    if (newValue < 1) newValue = 1;
+    if (newValue > maxStock) newValue = maxStock;
+    elements.quantityInput.value = newValue;
+}
+
+function validateQuantityInput() {
+    if (!elements.quantityInput) return;
+    let value = parseInt(elements.quantityInput.value) || 1;
+    let maxStock = currentPreviewProduct?.stock ?? 999;
+    if (value < 1) value = 1;
+    if (value > maxStock) value = maxStock;
+    elements.quantityInput.value = value;
 }
 
 // ========== EVENTOS ==========
@@ -734,32 +850,33 @@ function bindEvents() {
             await createSale();
         });
     }
-}
 
-// ========== FUNCIONES DE CANTIDAD (FALTANTES) ==========
-function updateQuantityInput(change) {
-    if (!elements.quantityInput) return;
-    let currentValue = parseInt(elements.quantityInput.value) || 1;
-    let newValue = currentValue + change;
-    let maxStock = currentPreviewProduct?.stock ?? 999;
-    if (newValue < 1) newValue = 1;
-    if (newValue > maxStock) newValue = maxStock;
-    elements.quantityInput.value = newValue;
-}
+    // ========== EVENTOS PARA BÚSQUEDA DE CLIENTES ==========
+    if (elements.customerSearchInput) {
+        elements.customerSearchInput.addEventListener('input', () => {
+            clearTimeout(customerSearchTimeout);
+            customerSearchTimeout = setTimeout(searchCustomers, 300);
+        });
 
-function validateQuantityInput() {
-    if (!elements.quantityInput) return;
-    let value = parseInt(elements.quantityInput.value) || 1;
-    let maxStock = currentPreviewProduct?.stock ?? 999;
-    if (value < 1) value = 1;
-    if (value > maxStock) value = maxStock;
-    elements.quantityInput.value = value;
+        document.addEventListener('click', (e) => {
+            if (elements.customerSearchResults &&
+                !elements.customerSearchInput?.contains(e.target) &&
+                !elements.customerSearchResults.contains(e.target)) {
+                elements.customerSearchResults.style.display = 'none';
+            }
+        });
+    }
+
+    if (elements.clearCustomerBtn) {
+        elements.clearCustomerBtn.addEventListener('click', clearCustomerSelection);
+    }
 }
 
 // ========== LIMPIEZA ==========
 function cleanup() {
     cartItems = [];
     searchTimeout = null;
+    customerSearchTimeout = null;
     currentPreviewProduct = null;
     const ticketModal = document.getElementById('ticketModal');
     if (ticketModal) ticketModal.remove();
