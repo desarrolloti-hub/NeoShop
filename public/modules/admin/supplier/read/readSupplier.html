@@ -1,18 +1,18 @@
 <!-- FILE: supplierList.html -->
 <div class="credContainer">
+    <!-- HEADER -->
+    <div class="page-header">
+        <h2 class="header-title">
+            <i class="fas fa-truck"></i> Mis Proveedores
+        </h2>
+        <div class="header-actions">
+            <a href="/crearProveedor" class="btn btn-primary" data-link>
+                <i class="fas fa-plus"></i> Nueva Proveedor
+            </a>
+        </div>
+    </div>
     <div class="supplier-list-container">
         <div class="supplier-list-card">
-            <!-- Header con contador -->
-            <div class="list-header">
-                <div class="list-header-left">
-                    <h2><i class="fas fa-truck"></i> Mis Proveedores</h2>
-                    <span class="supplier-count" id="totalSuppliersCount">0 proveedores</span>
-                </div>
-                <a href="/crearProveedor" class="btn btn-primary" id="addNewSupplierBtn" data-link>
-                    <i class="fas fa-plus"></i> Nuevo proveedor
-                </a>
-            </div>
-
             <!-- Filtros: Buscador + Toggle de estado -->
             <div class="filters-wrapper">
                 <div class="search-wrapper">
