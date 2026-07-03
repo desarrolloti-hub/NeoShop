@@ -51,6 +51,7 @@
     --font-size-5xl: 3.5rem;
 
     /* Espaciado */
+    --spacing-xxs: 0.2rem;
     --spacing-xs: 0.5rem;
     --spacing-sm: 0.8rem;
     --spacing-md: 1rem;
