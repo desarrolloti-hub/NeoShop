@@ -359,7 +359,7 @@ function loadUserProfilePhoto(userData) {
             };
 
             avatarImg.onerror = () => {
-                console.warn('⚠️ Failed to load profile photo, using default avatar');
+
                 avatarImg.style.display = 'none';
                 avatarIcon.style.display = 'flex';
                 avatarImg.src = '';

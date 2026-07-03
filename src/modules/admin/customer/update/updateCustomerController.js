@@ -41,6 +41,8 @@ export async function updateCustomerController() {
     initBackButton();
     initCancelButton();
     initStatusToggle();
+    initInputValidation();
+    initMaxLengthValidation();
     await loadCustomerData();
 }
 
@@ -72,6 +74,369 @@ function animateCustomerCard() {
         card.style.opacity = '1';
         card.style.transform = 'translateY(0)';
     }, 10);
+}
+
+/* ========================================================
+   MAX LENGTH VALIDATION - Atributos HTML
+   ======================================================== */
+function initMaxLengthValidation() {
+    const nameInput = document.getElementById('name');
+    if (nameInput) nameInput.setAttribute('maxlength', '100');
+
+    const emailInput = document.getElementById('email');
+    if (emailInput) emailInput.setAttribute('maxlength', '100');
+
+    const rfcInput = document.getElementById('rfc');
+    if (rfcInput) rfcInput.setAttribute('maxlength', '13');
+
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) phoneInput.setAttribute('maxlength', '10');
+
+    const streetInput = document.getElementById('street');
+    if (streetInput) streetInput.setAttribute('maxlength', '150');
+
+    const neighborhoodInput = document.getElementById('neighborhood');
+    if (neighborhoodInput) neighborhoodInput.setAttribute('maxlength', '100');
+
+    const postalCodeInput = document.getElementById('postalCode');
+    if (postalCodeInput) postalCodeInput.setAttribute('maxlength', '5');
+
+    const cityInput = document.getElementById('city');
+    if (cityInput) cityInput.setAttribute('maxlength', '100');
+
+    const stateInput = document.getElementById('state');
+    if (stateInput) stateInput.setAttribute('maxlength', '100');
+
+    const referencesInput = document.getElementById('references');
+    if (referencesInput) referencesInput.setAttribute('maxlength', '150');
+}
+
+/* ========================================================
+   INPUT VALIDATION - En tiempo real
+   ======================================================== */
+function initInputValidation() {
+    // Nombre - Solo letras, espacios, ñ y acentos - Máximo 100
+    const nameInput = document.getElementById('name');
+    if (nameInput) {
+        nameInput.addEventListener('input', function () {
+            this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+            if (this.value.length > 100) {
+                this.value = this.value.substring(0, 100);
+            }
+            validateField(this);
+        });
+        nameInput.addEventListener('blur', function () {
+            validateField(this);
+        });
+    }
+
+    // Email - Validación de formato - Máximo 100
+    const emailInput = document.getElementById('email');
+    if (emailInput) {
+        emailInput.addEventListener('input', function () {
+            if (this.value.length > 100) {
+                this.value = this.value.substring(0, 100);
+            }
+            validateField(this);
+        });
+        emailInput.addEventListener('blur', function () {
+            validateField(this);
+        });
+    }
+
+    // RFC - Solo letras mayúsculas y números - Máximo 13
+    const rfcInput = document.getElementById('rfc');
+    if (rfcInput) {
+        rfcInput.addEventListener('input', function () {
+            this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+            if (this.value.length > 13) {
+                this.value = this.value.substring(0, 13);
+            }
+            validateField(this);
+        });
+        rfcInput.addEventListener('blur', function () {
+            validateField(this);
+        });
+    }
+
+    // Teléfono - Solo números - Máximo 10
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function () {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value.length > 10) {
+                this.value = this.value.substring(0, 10);
+            }
+            validateField(this);
+        });
+        phoneInput.addEventListener('blur', function () {
+            validateField(this);
+        });
+    }
+
+    // Calle - Máximo 150
+    const streetInput = document.getElementById('street');
+    if (streetInput) {
+        streetInput.addEventListener('input', function () {
+            if (this.value.length > 150) {
+                this.value = this.value.substring(0, 150);
+            }
+            validateField(this);
+        });
+        streetInput.addEventListener('blur', function () {
+            validateField(this);
+        });
+    }
+
+    // Código Postal - Solo números - Máximo 5
+    const postalCodeInput = document.getElementById('postalCode');
+    if (postalCodeInput) {
+        postalCodeInput.addEventListener('input', function () {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value.length > 5) {
+                this.value = this.value.substring(0, 5);
+            }
+            validateField(this);
+        });
+        postalCodeInput.addEventListener('blur', function () {
+            validateField(this);
+        });
+    }
+
+    // Ciudad - Solo letras, espacios, ñ y acentos - Máximo 100
+    const cityInput = document.getElementById('city');
+    if (cityInput) {
+        cityInput.addEventListener('input', function () {
+            this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+            if (this.value.length > 100) {
+                this.value = this.value.substring(0, 100);
+            }
+            validateField(this);
+        });
+        cityInput.addEventListener('blur', function () {
+            validateField(this);
+        });
+    }
+
+    // Estado - Solo letras, espacios, ñ y acentos - Máximo 100
+    const stateInput = document.getElementById('state');
+    if (stateInput) {
+        stateInput.addEventListener('input', function () {
+            this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+            if (this.value.length > 100) {
+                this.value = this.value.substring(0, 100);
+            }
+            validateField(this);
+        });
+        stateInput.addEventListener('blur', function () {
+            validateField(this);
+        });
+    }
+
+    // Colonia - Solo letras, espacios, ñ y acentos - Máximo 100 (opcional)
+    const neighborhoodInput = document.getElementById('neighborhood');
+    if (neighborhoodInput) {
+        neighborhoodInput.addEventListener('input', function () {
+            this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+            if (this.value.length > 100) {
+                this.value = this.value.substring(0, 100);
+            }
+        });
+    }
+
+    // Referencias - Máximo 150 (opcional)
+    const referencesInput = document.getElementById('references');
+    if (referencesInput) {
+        referencesInput.addEventListener('input', function () {
+            if (this.value.length > 150) {
+                this.value = this.value.substring(0, 150);
+            }
+        });
+    }
+}
+
+/* ========================================================
+   VALIDATE INDIVIDUAL FIELD
+   ======================================================== */
+function validateField(input) {
+    const id = input.id;
+    const value = input.value.trim();
+    const errorSpan = document.getElementById(`${id}Error`);
+
+    let isValid = true;
+    let errorMessage = '';
+
+    switch (id) {
+        case 'name':
+            if (!value) {
+                isValid = false;
+                errorMessage = 'El nombre es obligatorio';
+            } else if (value.length < 2) {
+                isValid = false;
+                errorMessage = 'El nombre debe tener al menos 2 caracteres';
+            } else if (value.length > 100) {
+                isValid = false;
+                errorMessage = 'El nombre no debe exceder los 100 caracteres';
+            } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
+                isValid = false;
+                errorMessage = 'El nombre solo debe contener letras y espacios';
+            }
+            break;
+
+        case 'email':
+            if (!value) {
+                isValid = false;
+                errorMessage = 'El email es obligatorio';
+            } else if (!validateEmail(value)) {
+                isValid = false;
+                errorMessage = 'Ingresa un email válido (ej: usuario@dominio.com)';
+            } else if (value.length > 100) {
+                isValid = false;
+                errorMessage = 'El email no debe exceder los 100 caracteres';
+            }
+            break;
+
+        case 'rfc':
+            if (!value) {
+                isValid = false;
+                errorMessage = 'El RFC es obligatorio';
+            } else if (value.length < 12) {
+                isValid = false;
+                errorMessage = 'El RFC debe tener al menos 12 caracteres';
+            } else if (value.length > 13) {
+                isValid = false;
+                errorMessage = 'El RFC no debe exceder los 13 caracteres';
+            } else if (!/^[A-Z0-9]+$/.test(value)) {
+                isValid = false;
+                errorMessage = 'El RFC solo debe contener letras y números';
+            }
+            break;
+
+        case 'phone':
+            if (!value) {
+                isValid = false;
+                errorMessage = 'El teléfono es obligatorio';
+            } else if (value.length < 10) {
+                isValid = false;
+                errorMessage = 'El teléfono debe tener exactamente 10 dígitos';
+            } else if (value.length > 10) {
+                isValid = false;
+                errorMessage = 'El teléfono no debe exceder los 10 dígitos';
+            } else if (!/^[0-9]+$/.test(value)) {
+                isValid = false;
+                errorMessage = 'El teléfono solo debe contener números';
+            }
+            break;
+
+        case 'street':
+            if (!value) {
+                isValid = false;
+                errorMessage = 'La calle es obligatoria';
+            } else if (value.length < 3) {
+                isValid = false;
+                errorMessage = 'La calle debe tener al menos 3 caracteres';
+            } else if (value.length > 150) {
+                isValid = false;
+                errorMessage = 'La calle no debe exceder los 150 caracteres';
+            }
+            break;
+
+        case 'postalCode':
+            if (value && !/^[0-9]{5}$/.test(value)) {
+                isValid = false;
+                errorMessage = 'El código postal debe tener exactamente 5 dígitos';
+            }
+            break;
+
+        case 'city':
+            if (!value) {
+                isValid = false;
+                errorMessage = 'La ciudad es obligatoria';
+            } else if (value.length < 2) {
+                isValid = false;
+                errorMessage = 'La ciudad debe tener al menos 2 caracteres';
+            } else if (value.length > 100) {
+                isValid = false;
+                errorMessage = 'La ciudad no debe exceder los 100 caracteres';
+            } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
+                isValid = false;
+                errorMessage = 'La ciudad solo debe contener letras y espacios';
+            }
+            break;
+
+        case 'state':
+            if (!value) {
+                isValid = false;
+                errorMessage = 'El estado es obligatorio';
+            } else if (value.length < 2) {
+                isValid = false;
+                errorMessage = 'El estado debe tener al menos 2 caracteres';
+            } else if (value.length > 100) {
+                isValid = false;
+                errorMessage = 'El estado no debe exceder los 100 caracteres';
+            } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
+                isValid = false;
+                errorMessage = 'El estado solo debe contener letras y espacios';
+            }
+            break;
+    }
+
+    // Mostrar/ocultar mensaje de error
+    if (errorSpan) {
+        if (!isValid) {
+            errorSpan.textContent = errorMessage;
+            errorSpan.style.display = 'block';
+            input.classList.add('input-error');
+            input.classList.remove('input-valid');
+        } else {
+            errorSpan.style.display = 'none';
+            input.classList.remove('input-error');
+            input.classList.add('input-valid');
+        }
+    }
+
+    return isValid;
+}
+
+/* ========================================================
+   VALIDATE EMAIL
+   ======================================================== */
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+/* ========================================================
+   VALIDATE COMPLETE FORM
+   ======================================================== */
+function validateForm() {
+    const fields = [
+        'name', 'email', 'rfc', 'phone',
+        'street', 'city', 'state'
+    ];
+
+    let isValid = true;
+
+    fields.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            const fieldValid = validateField(input);
+            if (!fieldValid) {
+                isValid = false;
+            }
+        }
+    });
+
+    // Validar código postal si tiene valor
+    const postalCodeInput = document.getElementById('postalCode');
+    if (postalCodeInput && postalCodeInput.value.trim()) {
+        const postalValid = validateField(postalCodeInput);
+        if (!postalValid) {
+            isValid = false;
+        }
+    }
+
+    return isValid;
 }
 
 /* ========================================================
@@ -126,6 +491,13 @@ async function loadCustomerData() {
             document.getElementById('state').value = customer.fiscalAddress.state || '';
             document.getElementById('references').value = customer.fiscalAddress.references || '';
         }
+
+        // Marcar campos como válidos inicialmente
+        document.querySelectorAll('.form-group input, .form-group textarea').forEach(input => {
+            if (input.value.trim() && input.id !== 'references' && input.id !== 'neighborhood' && input.id !== 'postalCode') {
+                input.classList.add('input-valid');
+            }
+        });
 
         // Estado actual
         const toggleSwitch = document.getElementById('statusToggle');
@@ -185,14 +557,6 @@ function initStatusToggle() {
 }
 
 /* ========================================================
-   VALIDATE EMAIL
-   ======================================================== */
-function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-}
-
-/* ========================================================
    FORM SUBMIT
    ======================================================== */
 function initCustomerFormSubmit() {
@@ -203,6 +567,24 @@ function initCustomerFormSubmit() {
         e.preventDefault();
 
         if (isLoading) return;
+
+        // Validar todo el formulario
+        if (!validateForm()) {
+            const firstError = document.querySelector('.input-error');
+            if (firstError) {
+                firstError.focus();
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            Swal.fire({
+                title: 'Campos incompletos o inválidos',
+                text: 'Por favor revisa los campos marcados en rojo',
+                icon: 'warning',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#456da2'
+            });
+            return;
+        }
 
         const customerId = document.getElementById('customerId')?.value;
         const name = document.getElementById('name')?.value.trim();
@@ -220,90 +602,6 @@ function initCustomerFormSubmit() {
 
         if (!customerId) {
             showToast('ID de cliente no encontrado', 'error');
-            return;
-        }
-
-        if (!name || name.length < 2) {
-            Swal.fire({
-                title: 'Campo requerido',
-                text: 'El nombre completo es obligatorio y debe tener al menos 2 caracteres',
-                icon: 'warning',
-                confirmButtonText: 'Aceptar',
-                confirmButtonColor: '#456da2'
-            });
-            document.getElementById('name')?.focus();
-            return;
-        }
-
-        if (!email || !validateEmail(email)) {
-            Swal.fire({
-                title: 'Correo inválido',
-                text: 'Ingresa un correo electrónico válido',
-                icon: 'warning',
-                confirmButtonText: 'Aceptar',
-                confirmButtonColor: '#456da2'
-            });
-            document.getElementById('email')?.focus();
-            return;
-        }
-
-        if (!rfc || rfc.length < 12) {
-            Swal.fire({
-                title: 'RFC inválido',
-                text: 'El RFC debe tener al menos 12 caracteres',
-                icon: 'warning',
-                confirmButtonText: 'Aceptar',
-                confirmButtonColor: '#456da2'
-            });
-            document.getElementById('rfc')?.focus();
-            return;
-        }
-
-        if (!phone || phone.length < 10) {
-            Swal.fire({
-                title: 'Teléfono inválido',
-                text: 'El teléfono debe tener al menos 10 dígitos',
-                icon: 'warning',
-                confirmButtonText: 'Aceptar',
-                confirmButtonColor: '#456da2'
-            });
-            document.getElementById('phone')?.focus();
-            return;
-        }
-
-        if (!street) {
-            Swal.fire({
-                title: 'Campo requerido',
-                text: 'La calle es obligatoria',
-                icon: 'warning',
-                confirmButtonText: 'Aceptar',
-                confirmButtonColor: '#456da2'
-            });
-            document.getElementById('street')?.focus();
-            return;
-        }
-
-        if (!city) {
-            Swal.fire({
-                title: 'Campo requerido',
-                text: 'La ciudad es obligatoria',
-                icon: 'warning',
-                confirmButtonText: 'Aceptar',
-                confirmButtonColor: '#456da2'
-            });
-            document.getElementById('city')?.focus();
-            return;
-        }
-
-        if (!state) {
-            Swal.fire({
-                title: 'Campo requerido',
-                text: 'El estado es obligatorio',
-                icon: 'warning',
-                confirmButtonText: 'Aceptar',
-                confirmButtonColor: '#456da2'
-            });
-            document.getElementById('state')?.focus();
             return;
         }
 

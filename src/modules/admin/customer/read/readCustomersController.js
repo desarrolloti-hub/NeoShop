@@ -175,7 +175,6 @@ function renderCustomersTable(customers) {
         const rfcEl = row.querySelector('.customer-rfc');
         const phoneEl = row.querySelector('.customer-phone');
 
-        // Asignar texto con tooltip para ver completo
         if (nameEl) {
             nameEl.textContent = customer.name || 'N/A';
             nameEl.parentElement.title = customer.name || 'N/A';
@@ -373,7 +372,13 @@ function initStatusFilterToggle() {
 }
 
 /* ========================================================
-   VIEW CUSTOMER DETAILS IN MODAL
+   VIEW CUSTOMER DETAILS IN MODAL - MEJORADO
+   ======================================================== */
+/* ========================================================
+   VIEW CUSTOMER DETAILS IN MODAL - CORREGIDO
+   ======================================================== */
+/* ========================================================
+   VIEW CUSTOMER DETAILS IN MODAL - CON SCROLL
    ======================================================== */
 async function viewCustomerDetails(id) {
     try {
@@ -390,25 +395,93 @@ async function viewCustomerDetails(id) {
             return;
         }
 
-        document.getElementById('modalTitle').textContent = `Detalles: ${customer.name}`;
-        document.getElementById('modalName').textContent = customer.name || 'N/A';
-        document.getElementById('modalEmail').textContent = customer.email || 'N/A';
-        document.getElementById('modalRfc').textContent = customer.rfc || 'N/A';
-        document.getElementById('modalPhone').textContent = customer.phone || 'N/A';
+        // Actualizar título del modal
+        const modalTitle = document.getElementById('modalTitle');
+        if (modalTitle) {
+            const nameDisplay = customer.name || 'Cliente';
+            modalTitle.textContent = `Detalles: ${nameDisplay}`;
+            modalTitle.title = nameDisplay;
+        }
 
+        // Asignar valores con manejo de texto largo
+        const nameEl = document.getElementById('modalName');
+        if (nameEl) {
+            nameEl.textContent = customer.name || 'N/A';
+            nameEl.title = customer.name || 'N/A';
+        }
+
+        const emailEl = document.getElementById('modalEmail');
+        if (emailEl) {
+            emailEl.textContent = customer.email || 'N/A';
+            emailEl.title = customer.email || 'N/A';
+        }
+
+        const rfcEl = document.getElementById('modalRfc');
+        if (rfcEl) {
+            rfcEl.textContent = customer.rfc || 'N/A';
+            rfcEl.title = customer.rfc || 'N/A';
+        }
+
+        const phoneEl = document.getElementById('modalPhone');
+        if (phoneEl) {
+            phoneEl.textContent = customer.phone || 'N/A';
+            phoneEl.title = customer.phone || 'N/A';
+        }
+
+        // Formatear dirección de manera más legible
         const address = customer.fiscalAddress || {};
-        const addressStr = `${address.street || ''}, ${address.neighborhood || ''}, CP ${address.postalCode || ''}, ${address.city || ''}, ${address.state || ''}`;
-        document.getElementById('modalAddress').textContent = addressStr || 'Sin dirección';
+        let addressStr = 'Sin dirección';
+        if (address.street || address.city || address.state) {
+            const parts = [];
+            if (address.street) parts.push(address.street);
+            if (address.neighborhood) parts.push(address.neighborhood);
+            if (address.postalCode) parts.push(`CP ${address.postalCode}`);
+            if (address.city) parts.push(address.city);
+            if (address.state) parts.push(address.state);
+            if (address.references) parts.push(`(${address.references})`);
+            addressStr = parts.join(', ');
+        }
 
-        document.getElementById('modalCreatedAt').textContent = formatDate(customer.createdAt);
-        document.getElementById('modalCreatedBy').textContent = customer.createdBy || 'Desconocido';
+        const addressEl = document.getElementById('modalAddress');
+        if (addressEl) {
+            addressEl.textContent = addressStr;
+            addressEl.title = addressStr;
+        }
 
-        const statusText = customer.active ? 'Activo' : 'Inactivo';
-        const statusColor = customer.active ? '#22c55e' : '#dc2626';
-        document.getElementById('modalStatus').innerHTML = `<span style="color: ${statusColor}; font-weight: 600;">${statusText}</span>`;
+        const createdAtEl = document.getElementById('modalCreatedAt');
+        if (createdAtEl) {
+            const formattedDate = formatDate(customer.createdAt);
+            createdAtEl.textContent = formattedDate;
+            createdAtEl.title = formattedDate;
+        }
 
+        const createdByEl = document.getElementById('modalCreatedBy');
+        if (createdByEl) {
+            const createdBy = customer.createdBy || 'Desconocido';
+            createdByEl.textContent = createdBy;
+            createdByEl.title = createdBy;
+        }
+
+        const statusEl = document.getElementById('modalStatus');
+        if (statusEl) {
+            const statusText = customer.active ? 'Activo' : 'Inactivo';
+            const statusColor = customer.active ? '#22c55e' : '#dc2626';
+            const bgColor = customer.active ? '#dcfce7' : '#fee2e2';
+            statusEl.innerHTML = `<span style="color: ${statusColor}; background: ${bgColor}; padding: 4px 14px; border-radius: 20px; font-weight: 600; display: inline-block;">${statusText}</span>`;
+        }
+
+        // Mostrar modal
         const modal = document.getElementById('customerModal');
-        if (modal) modal.style.display = 'block';
+        if (modal) {
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+
+            // Resetear scroll del body del modal
+            const modalBody = document.getElementById('modalBody');
+            if (modalBody) {
+                modalBody.scrollTop = 0;
+            }
+        }
 
     } catch (error) {
         console.error('Error loading details:', error);
@@ -422,6 +495,60 @@ async function viewCustomerDetails(id) {
     }
 }
 
+/* ========================================================
+   CLOSE MODAL - Mejorado
+   ======================================================== */
+function closeModal() {
+    const modal = document.getElementById('customerModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+
+        // Resetear scroll del body del modal
+        const modalBody = document.getElementById('modalBody');
+        if (modalBody) {
+            modalBody.scrollTop = 0;
+        }
+    }
+}
+
+// Actualizar los event listeners del modal
+function initModalClose() {
+    const closeButton = document.getElementById('modalCloseBtn');
+    const closeModalButton = document.getElementById('closeModalBtn');
+    const modal = document.getElementById('customerModal');
+
+    if (!modal) return;
+
+    // Cerrar con botón X
+    if (closeButton) {
+        closeButton.addEventListener('click', closeModal);
+    }
+
+    // Cerrar con botón Cerrar
+    if (closeModalButton) {
+        closeModalButton.addEventListener('click', closeModal);
+    }
+}
+
+function initOutsideModalClose() {
+    const modal = document.getElementById('customerModal');
+    if (!modal) return;
+
+    // Cerrar al hacer clic fuera
+    modal.addEventListener('click', (event) => {
+        if (event.target.classList.contains('modal-overlay')) {
+            closeModal();
+        }
+    });
+
+    // Cerrar con Escape
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && modal.style.display === 'block') {
+            closeModal();
+        }
+    });
+}
 /* ========================================================
    REDIRECT TO EDIT
    ======================================================== */
@@ -522,7 +649,7 @@ function showEmptyState() {
         const addBtn = document.getElementById('addCustomerFromEmptyBtn');
         if (addBtn) {
             addBtn.addEventListener('click', () => {
-                navigateTo('/nuevoCliente');
+                navigateTo('/crearCliente');
             });
         }
     }
@@ -540,7 +667,7 @@ function showEmptyState() {
         const addBtn = document.getElementById('addCustomerFromEmptyCardBtn');
         if (addBtn) {
             addBtn.addEventListener('click', () => {
-                navigateTo('/nuevoCliente');
+                navigateTo('/crearCliente');
             });
         }
     }
@@ -619,34 +746,12 @@ function initAddCustomerButton() {
     if (!addButton) return;
     addButton.addEventListener('click', (event) => {
         event.preventDefault();
-        navigateTo('/nuevoCliente');
+        navigateTo('/crearCliente');
     });
 }
 
 /* ========================================================
-   MODAL CLOSE
-   ======================================================== */
-function initModalClose() {
-    const closeButton = document.getElementById('modalCloseBtn');
-    const closeModalButton = document.getElementById('closeModalBtn');
-    const modal = document.getElementById('customerModal');
 
-    if (!modal) return;
-
-    if (closeButton) closeButton.onclick = () => modal.style.display = 'none';
-    if (closeModalButton) closeModalButton.onclick = () => modal.style.display = 'none';
-}
-
-function initOutsideModalClose() {
-    const modal = document.getElementById('customerModal');
-    if (!modal) return;
-
-    modal.onclick = (event) => {
-        if (event.target.classList.contains('modal-overlay')) {
-            modal.style.display = 'none';
-        }
-    };
-}
 
 /* ========================================================
    UTILITY FUNCTIONS
@@ -665,5 +770,6 @@ export function cleanupCustomersList() {
     const modal = document.getElementById('customerModal');
     if (modal && modal.style.display === 'block') {
         modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
     }
 }
