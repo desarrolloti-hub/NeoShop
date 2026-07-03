@@ -180,3 +180,438 @@
         font-size: 0.85rem;
     }
 }
+
+/* ========================================================
+   FILTER TOOLBAR - Adaptativo al ancho disponible
+   ======================================================== */
+
+.sales-toolbar,
+.filter-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    /* ← permite que los elementos salten de línea */
+    gap: var(--spacing-md, 16px);
+    margin-bottom: var(--spacing-xl, 32px);
+    padding: var(--spacing-md, 16px) var(--spacing-lg, 24px);
+    background: var(--bg-white, #ffffff);
+    border-radius: var(--border-radius-lg, 12px);
+    border: 1px solid var(--border-light, #e2e8f0);
+}
+
+.filters {
+    display: flex;
+    gap: var(--spacing-md, 16px);
+    flex-wrap: wrap;
+    /* ← los filtros se envuelven */
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    /* ← permite que se encoja */
+}
+
+/* ========================================================
+   ELEMENTOS DEL FILTRO - Con flex-shrink para adaptarse
+   ======================================================== */
+
+.filter-select,
+.filter-input {
+    padding: 8px 14px;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--border-radius-md, 8px);
+    background: var(--bg-white, #ffffff);
+    font-family: var(--font-family, 'Inter', sans-serif);
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--text-dark, #1e293b);
+    transition: var(--transition-fast, 0.2s ease);
+    min-height: 40px;
+    flex: 0 1 auto;
+    /* ← crece hasta su tamaño natural, se encoge si es necesario */
+    min-width: 120px;
+}
+
+.filter-select:focus,
+.filter-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(69, 109, 162, 0.1);
+}
+
+.filter-select {
+    min-width: 140px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
+.filter-input {
+    min-width: 140px;
+}
+
+.filter-input[type="date"] {
+    min-width: 130px;
+}
+
+.filter-input::placeholder {
+    color: var(--text-muted, #94a3b8);
+}
+
+/* ========================================================
+   BOTONES DE FILTRO
+   ======================================================== */
+
+.btn-filter {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: var(--border-radius-md, 8px);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: var(--font-size-sm, 0.875rem);
+    font-family: var(--font-family, 'Inter', sans-serif);
+    transition: all var(--transition-fast, 0.2s ease);
+    min-height: 40px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 1 auto;
+}
+
+.btn-filter:hover {
+    background: var(--color-primary-dark, #1a365d);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md, 0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.btn-filter:active {
+    transform: translateY(0);
+}
+
+.btn-filter-secondary {
+    background: var(--bg-gray, #f1f5f9);
+    color: var(--text-dark, #1e293b);
+    border: 1px solid var(--border-light, #e2e8f0);
+}
+
+.btn-filter-secondary:hover {
+    background: var(--border-light, #e2e8f0);
+    color: var(--text-dark, #1e293b);
+}
+
+.btn-filter-clear {
+    background: #64748b;
+    color: white;
+}
+
+.btn-filter-clear:hover {
+    background: #475569;
+}
+
+/* Grupo de acciones */
+.filter-actions {
+    display: flex;
+    gap: var(--spacing-sm, 8px);
+    align-items: center;
+    flex: 0 1 auto;
+}
+
+/* ========================================================
+   FILTER TOOLBAR CON BÚSQUEDA
+   ======================================================== */
+
+.filter-toolbar .search-wrapper {
+    flex: 1 1 200px;
+    /* ← crece para ocupar espacio, mínimo 200px */
+    min-width: 150px;
+    max-width: 350px;
+    position: relative;
+}
+
+.filter-toolbar .search-wrapper .search-input {
+    width: 100%;
+    padding: 8px 14px;
+    padding-right: 36px;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--border-radius-md, 8px);
+    font-size: var(--font-size-sm, 0.875rem);
+    font-family: var(--font-family, 'Inter', sans-serif);
+    transition: var(--transition-fast, 0.2s ease);
+    background: var(--bg-white, #ffffff);
+    min-height: 40px;
+}
+
+.filter-toolbar .search-wrapper .search-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(69, 109, 162, 0.1);
+}
+
+.filter-toolbar .search-wrapper .clear-search-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted, #94a3b8);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    display: none;
+}
+
+.filter-toolbar .search-wrapper .clear-search-btn:hover {
+    color: var(--text-dark, #1e293b);
+}
+
+.filter-toolbar .search-wrapper .clear-search-btn.visible {
+    display: block;
+}
+
+/* ========================================================
+   FILTER TOOLBAR CON TOGGLE DE ESTADO
+   ======================================================== */
+
+.filter-toolbar .status-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 1 auto;
+    padding: 4px 12px;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--border-radius-md, 8px);
+    background: var(--bg-white, #ffffff);
+    min-height: 40px;
+}
+
+.filter-toolbar .status-toggle-wrapper .status-label {
+    font-size: var(--font-size-sm, 0.875rem);
+    font-weight: 500;
+    color: var(--text-muted, #94a3b8);
+    transition: var(--transition-fast, 0.2s ease);
+    cursor: default;
+    white-space: nowrap;
+}
+
+.filter-toolbar .status-toggle-wrapper .status-label.active {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.filter-toolbar .status-filter-switch {
+    width: 44px;
+    height: 24px;
+    background: var(--border-light, #e2e8f0);
+    position: relative;
+    cursor: pointer;
+    transition: background var(--transition-normal, 0.3s ease);
+    border-radius: 24px;
+    flex-shrink: 0;
+}
+
+.filter-toolbar .status-filter-switch.active {
+    background: var(--color-primary);
+}
+
+.filter-toolbar .status-filter-slider {
+    width: 20px;
+    height: 20px;
+    background: white;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform var(--transition-normal, 0.3s ease);
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
+    border-radius: 50%;
+}
+
+.filter-toolbar .status-filter-switch.active .status-filter-slider {
+    transform: translateX(20px);
+}
+
+/* ========================================================
+   RESPONSIVE - Se adapta automáticamente al ancho
+   ======================================================== */
+
+@media (max-width: 1024px) {
+    .filter-toolbar .search-wrapper {
+        flex: 1 1 150px;
+        min-width: 120px;
+        max-width: 250px;
+    }
+
+    .filter-select,
+    .filter-input {
+        min-width: 100px;
+        font-size: var(--font-size-sm, 0.875rem);
+    }
+}
+
+@media (max-width: 850px) {
+
+    .sales-toolbar,
+    .filter-toolbar {
+        padding: var(--spacing-md, 16px);
+        gap: var(--spacing-sm, 8px);
+    }
+
+    .filters {
+        gap: var(--spacing-sm, 8px);
+    }
+
+    .filter-toolbar .search-wrapper {
+        flex: 1 1 120px;
+        min-width: 100px;
+        max-width: 200px;
+    }
+
+    .filter-select,
+    .filter-input {
+        min-width: 90px;
+        font-size: var(--font-size-sm, 0.875rem);
+        padding: 6px 12px;
+        min-height: 36px;
+    }
+
+    .btn-filter {
+        padding: 6px 14px;
+        font-size: var(--font-size-sm, 0.875rem);
+        min-height: 36px;
+    }
+
+    .filter-toolbar .status-toggle-wrapper {
+        min-height: 36px;
+        padding: 2px 10px;
+    }
+
+    .filter-toolbar .status-toggle-wrapper .status-label {
+        font-size: var(--font-size-xs, 0.75rem);
+    }
+
+    .filter-toolbar .status-filter-switch {
+        width: 38px;
+        height: 22px;
+    }
+
+    .filter-toolbar .status-filter-slider {
+        width: 18px;
+        height: 18px;
+        top: 2px;
+        left: 2px;
+    }
+
+    .filter-toolbar .status-filter-switch.active .status-filter-slider {
+        transform: translateX(16px);
+    }
+}
+
+@media (max-width: 650px) {
+
+    .sales-toolbar,
+    .filter-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        padding: var(--spacing-sm, 8px);
+    }
+
+    .filters {
+        flex-wrap: wrap;
+        width: 100%;
+        gap: var(--spacing-sm, 8px);
+    }
+
+    .filter-toolbar .search-wrapper {
+        flex: 1 1 100%;
+        min-width: auto;
+        max-width: 100%;
+    }
+
+    .filter-select,
+    .filter-input {
+        flex: 1 1 calc(50% - 8px);
+        min-width: calc(50% - 8px);
+        font-size: var(--font-size-xs, 0.75rem);
+        padding: 6px 10px;
+        min-height: 34px;
+    }
+
+    .filter-select {
+        padding-right: 30px;
+    }
+
+    .filter-actions {
+        flex: 1 1 100%;
+        width: 100%;
+        gap: var(--spacing-sm, 8px);
+    }
+
+    .filter-actions .btn-filter {
+        flex: 1;
+        justify-content: center;
+        font-size: var(--font-size-xs, 0.75rem);
+        padding: 6px 12px;
+        min-height: 34px;
+    }
+
+    .filter-toolbar .status-toggle-wrapper {
+        flex: 1 1 calc(50% - 8px);
+        min-width: calc(50% - 8px);
+        justify-content: center;
+        min-height: 34px;
+        padding: 2px 10px;
+    }
+
+    .filter-toolbar .status-toggle-wrapper .status-label {
+        font-size: var(--font-size-xs, 0.75rem);
+    }
+
+    .filter-toolbar .status-filter-switch {
+        width: 36px;
+        height: 20px;
+    }
+
+    .filter-toolbar .status-filter-slider {
+        width: 16px;
+        height: 16px;
+        top: 2px;
+        left: 2px;
+    }
+
+    .filter-toolbar .status-filter-switch.active .status-filter-slider {
+        transform: translateX(16px);
+    }
+}
+
+@media (max-width: 450px) {
+
+    .filter-select,
+    .filter-input {
+        flex: 1 1 100%;
+        min-width: 100%;
+        width: 100%;
+    }
+
+    .filter-toolbar .status-toggle-wrapper {
+        flex: 1 1 100%;
+        min-width: 100%;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .filter-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .filter-actions .btn-filter {
+        width: 100%;
+        flex: none;
+        justify-content: center;
+    }
+}

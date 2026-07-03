@@ -9,7 +9,7 @@
 /* Card base */
 .customer-card-item,
 .supplier-card-item {
-    background: #f9fbfd;
+    background: #194979;
     border-radius: 16px;
     padding: 1rem;
     margin-bottom: 0.75rem;
@@ -218,11 +218,12 @@
 }
 
 @media (max-width: 550px) {
+
     .customer-card-field strong,
     .supplier-card-field strong {
         min-width: 60px;
     }
-    
+
     .customer-card-actions .card-action-icon,
     .supplier-card-actions .card-action-icon {
         padding: 4px 10px;

@@ -14,8 +14,8 @@
 }
 
 .component-table thead th {
-    background-color: var(--color-primary, #456da2);
-    color: white;
+    background-color: #dc2626;
+    color: rgb(115, 16, 16);
     font-weight: 600;
     padding: 12px;
     text-align: left;
@@ -25,11 +25,12 @@
     padding: 12px;
     text-align: left;
     border-bottom: 1px solid #e2e8f0;
-    background-color: white;
+    background-color: var();
+    color: var(--text-dark);
 }
 
 .component-table tbody tr:hover td {
-    background-color: #f8fafc;
+    background-color: var(--color-primary-extraligth);
 }
 
 /* Icono en tabla */
@@ -41,7 +42,7 @@
 
 /* Bloque medio */
 .component-table .middle-block span {
-    color: #1e293b;
+    color: var(--text-dark);
 }
 
 /* Acciones de tabla - USANDO ESTILOS DE BUTTONS.CSS */
