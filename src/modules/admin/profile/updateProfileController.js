@@ -4,8 +4,8 @@
    ACTUALIZADO PARA USAR LA ESTRUCTURA DE AVATAR DE CREATEPRODUCT
    ======================================================== */
 
-import { AdminService } from '/services/adminService.js';
-import { AdminRepository } from '/repositories/adminRepository.js';
+import { AdminService } from '/src/services/adminService.js';
+import { AdminRepository } from '/src/repositories/adminRepository.js';
 
 let currentStep = 1;
 let isTransitioning = false;

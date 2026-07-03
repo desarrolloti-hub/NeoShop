@@ -4,8 +4,8 @@
    CAPTURA PARÁMETROS DE PLAN Y PERÍODO DESDE LA URL
    ======================================== */
 
-import { AdminService } from '/services/adminService.js';
-import { AdminRepository } from '/repositories/adminRepository.js';
+import { AdminService } from '/src/services/adminService.js';
+import { AdminRepository } from '/src/repositories/adminRepository.js';
 
 let isLoading = false;
 

@@ -4,7 +4,7 @@
    IMPLEMENTA SWEETALERT2 TOASTS
    ======================================== */
 
-import { AdminService } from '/services/adminService.js';
+import { AdminService } from '/src/services/adminService.js';
 
 let isLoading = false;
 

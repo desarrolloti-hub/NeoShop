@@ -4,7 +4,7 @@
    Dependencias: CashSessionService, SweetAlert2
    ======================================================== */
 
-import { CashSessionService } from '/services/cashSessionService.js';
+import { CashSessionService } from '/src/services/cashSessionService.js';
 
 let allSessions = [];
 let filteredSessions = [];
@@ -30,14 +30,14 @@ export async function readCashSessionsController() {
 async function loadCashSessions() {
     try {
         showLoadingState();
-        
+
         const sessions = await CashSessionService.getClosedSessions();
         allSessions = sessions;
         filteredSessions = [...allSessions];
-        
+
         updateStats();
         renderCurrentPage();
-        
+
     } catch (error) {
         console.error('Error al cargar cortes:', error);
         showErrorState();
@@ -82,11 +82,11 @@ function updateStats() {
         return sum + (diff > 0 ? diff : 0);
     }, 0);
     const average = totalSessions > 0 ? totalSales / totalSessions : 0;
-    
+
     const totalCountEl = document.getElementById('totalSessionsCount');
     const totalSalesEl = document.getElementById('totalSales');
     const averageEl = document.getElementById('averageSale');
-    
+
     if (totalCountEl) totalCountEl.textContent = totalSessions;
     if (totalSalesEl) totalSalesEl.textContent = formatCurrency(totalSales);
     if (averageEl) averageEl.textContent = formatCurrency(average);
@@ -96,7 +96,7 @@ function renderCurrentPage() {
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
     const pageSessions = filteredSessions.slice(start, end);
-    
+
     renderTable(pageSessions);
     renderCards(pageSessions);
     updatePaginationInfo();
@@ -105,7 +105,7 @@ function renderCurrentPage() {
 function renderTable(sessions) {
     const tbody = document.getElementById('sessionsTableBody');
     if (!tbody) return;
-    
+
     if (sessions.length === 0) {
         tbody.innerHTML = `
             <tr class="loading-row">
@@ -118,12 +118,12 @@ function renderTable(sessions) {
         `;
         return;
     }
-    
+
     tbody.innerHTML = sessions.map(session => {
         const difference = session.closingCash - session.openingCash;
         const diffClass = difference > 0 ? 'difference-positive' : (difference < 0 ? 'difference-negative' : 'difference-neutral');
         const diffSign = difference >= 0 ? '+' : '';
-        
+
         return `
             <tr data-session-id="${session.id}">
                 <td><strong>${session.id || 'N/A'}</strong></td>
@@ -143,14 +143,14 @@ function renderTable(sessions) {
             </tr>
         `;
     }).join('');
-    
+
     initViewDetailsButtons();
 }
 
 function renderCards(sessions) {
     const container = document.getElementById('sessionsCardsContainer');
     if (!container) return;
-    
+
     if (sessions.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
@@ -160,12 +160,12 @@ function renderCards(sessions) {
         `;
         return;
     }
-    
+
     container.innerHTML = sessions.map(session => {
         const difference = session.closingCash - session.openingCash;
         const diffClass = difference > 0 ? 'difference-positive' : (difference < 0 ? 'difference-negative' : 'difference-neutral');
         const diffSign = difference >= 0 ? '+' : '';
-        
+
         return `
             <div class="session-card" data-session-id="${session.id}">
                 <div class="session-card-header">
@@ -193,7 +193,7 @@ function renderCards(sessions) {
             </div>
         `;
     }).join('');
-    
+
     initViewDetailsButtons();
 }
 
@@ -211,20 +211,20 @@ function initViewDetailsButtons() {
 async function handleViewDetails(event) {
     const button = event.currentTarget;
     const sessionId = button.getAttribute('data-id');
-    
+
     if (!sessionId) return;
-    
+
     try {
         const session = allSessions.find(s => s.id == sessionId);
-        
+
         if (!session) {
             await showSweetAlert('Sesión no encontrada', 'No se encontraron detalles de esta sesión', 'error');
             return;
         }
-        
+
         // Usamos el modal del HTML en lugar de inyectar HTML
         showModalWithSessionData(session);
-        
+
     } catch (error) {
         console.error('Error:', error);
         await showSweetAlert('Error', 'No se pudieron cargar los detalles', 'error');
@@ -235,7 +235,7 @@ function showModalWithSessionData(session) {
     const difference = session.closingCash - session.openingCash;
     const diffSign = difference >= 0 ? '+' : '';
     const diffColor = difference >= 0 ? '#22c55e' : '#dc2626';
-    
+
     // Llenar el modal existente en el HTML
     document.getElementById('modalSessionId').textContent = session.id || 'N/A';
     document.getElementById('modalStoreName').textContent = session.storeName || session.branchName || 'N/A';
@@ -248,15 +248,15 @@ function showModalWithSessionData(session) {
     document.getElementById('modalDifference').textContent = `${diffSign}${formatCurrency(Math.abs(difference))}`;
     document.getElementById('modalDifference').style.color = diffColor;
     document.getElementById('modalNotes').textContent = session.notes || 'Sin observaciones';
-    
+
     // Retiros
     const withdrawalsContainer = document.getElementById('modalWithdrawalsContainer');
     const withdrawalsCount = document.getElementById('modalWithdrawalsCount');
-    
+
     if (session.withdrawals && session.withdrawals.length > 0) {
         withdrawalsCount.textContent = session.withdrawals.length;
         withdrawalsContainer.style.display = 'block';
-        
+
         const withdrawalsList = document.getElementById('modalWithdrawalsList');
         withdrawalsList.innerHTML = session.withdrawals.map(w => `
             <div class="modal-withdrawal-item">
@@ -269,23 +269,23 @@ function showModalWithSessionData(session) {
         withdrawalsContainer.style.display = 'none';
         withdrawalsCount.textContent = '0';
     }
-    
+
     // Mostrar modal
     const modal = document.getElementById('sessionModal');
     if (modal) modal.style.display = 'block';
-    
+
     initModalClose();
 }
 
 function initModalClose() {
     const closeButtons = document.querySelectorAll('.modal-close, .close-modal-btn');
     const modal = document.getElementById('sessionModal');
-    
+
     closeButtons.forEach(btn => {
         btn.removeEventListener('click', () => closeModal(modal));
         btn.addEventListener('click', () => closeModal(modal));
     });
-    
+
     if (modal) {
         const overlay = modal.querySelector('.modal-overlay');
         if (overlay) {
@@ -312,7 +312,7 @@ function closeModal(modal) {
 function initSearchFilter() {
     const searchInput = document.getElementById('searchSession');
     if (!searchInput) return;
-    
+
     searchInput.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
         applyFilters(searchTerm);
@@ -322,7 +322,7 @@ function initSearchFilter() {
 function initDateFilters() {
     const startDate = document.getElementById('startDate');
     const endDate = document.getElementById('endDate');
-    
+
     if (startDate) startDate.addEventListener('change', () => applyFilters());
     if (endDate) endDate.addEventListener('change', () => applyFilters());
 }
@@ -330,34 +330,34 @@ function initDateFilters() {
 function applyFilters(searchTerm = '') {
     const searchInput = document.getElementById('searchSession');
     const term = searchTerm || (searchInput ? searchInput.value.toLowerCase() : '');
-    
+
     const startDate = document.getElementById('startDate')?.value;
     const endDate = document.getElementById('endDate')?.value;
-    
+
     filteredSessions = allSessions.filter(session => {
         let matchesSearch = true;
         let matchesDate = true;
-        
+
         if (term) {
             matchesSearch = (session.id && session.id.toLowerCase().includes(term)) ||
                 (session.storeName && session.storeName.toLowerCase().includes(term)) ||
                 (session.branchName && session.branchName.toLowerCase().includes(term)) ||
                 (session.userName && session.userName.toLowerCase().includes(term));
         }
-        
+
         if (startDate && session.closingTime) {
             const sessionDate = new Date(session.closingTime).toISOString().split('T')[0];
             if (sessionDate < startDate) matchesDate = false;
         }
-        
+
         if (endDate && session.closingTime && matchesDate) {
             const sessionDate = new Date(session.closingTime).toISOString().split('T')[0];
             if (sessionDate > endDate) matchesDate = false;
         }
-        
+
         return matchesSearch && matchesDate;
     });
-    
+
     currentPage = 1;
     updateStats();
     renderCurrentPage();
@@ -366,21 +366,21 @@ function applyFilters(searchTerm = '') {
 function initClearFilters() {
     const clearBtn = document.getElementById('clearFiltersBtn');
     if (!clearBtn) return;
-    
+
     clearBtn.addEventListener('click', () => {
         const searchInput = document.getElementById('searchSession');
         const startDate = document.getElementById('startDate');
         const endDate = document.getElementById('endDate');
-        
+
         if (searchInput) searchInput.value = '';
         if (startDate) startDate.value = '';
         if (endDate) endDate.value = '';
-        
+
         filteredSessions = [...allSessions];
         currentPage = 1;
         updateStats();
         renderCurrentPage();
-        
+
         showSweetAlert('Filtros limpiados', 'Se han eliminado todos los filtros', 'info', 2000);
     });
 }
@@ -391,14 +391,14 @@ function initClearFilters() {
 function initPagination() {
     const prevBtn = document.getElementById('prevPageBtn');
     const nextBtn = document.getElementById('nextPageBtn');
-    
+
     if (prevBtn) prevBtn.addEventListener('click', () => {
         if (currentPage > 1) {
             currentPage--;
             renderCurrentPage();
         }
     });
-    
+
     if (nextBtn) nextBtn.addEventListener('click', () => {
         const maxPage = Math.ceil(filteredSessions.length / itemsPerPage);
         if (currentPage < maxPage) {
@@ -413,7 +413,7 @@ function updatePaginationInfo() {
     const pageInfo = document.getElementById('pageInfo');
     const prevBtn = document.getElementById('prevPageBtn');
     const nextBtn = document.getElementById('nextPageBtn');
-    
+
     if (pageInfo) pageInfo.textContent = `Página ${currentPage} de ${maxPage || 1}`;
     if (prevBtn) prevBtn.disabled = currentPage === 1;
     if (nextBtn) nextBtn.disabled = currentPage === maxPage || maxPage === 0;
@@ -427,7 +427,7 @@ function initResponsiveView() {
         const isMobile = window.innerWidth <= 768;
         const tableWrapper = document.querySelector('.table-wrapper');
         const cardsContainer = document.getElementById('sessionsCardsContainer');
-        
+
         if (isMobile) {
             if (tableWrapper) tableWrapper.style.display = 'none';
             if (cardsContainer) cardsContainer.style.display = 'flex';
@@ -436,7 +436,7 @@ function initResponsiveView() {
             if (cardsContainer) cardsContainer.style.display = 'none';
         }
     };
-    
+
     checkView();
     window.addEventListener('resize', checkView);
 }
@@ -466,7 +466,7 @@ function formatDateTime(dateString) {
 
 function escapeHtml(str) {
     if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
+    return str.replace(/[&<>]/g, function (m) {
         if (m === '&') return '&amp;';
         if (m === '<') return '&lt;';
         if (m === '>') return '&gt;';
@@ -485,14 +485,14 @@ async function showSweetAlert(title, message, type = 'info', timer = null) {
             confirmButton: 'swal2-confirm'
         }
     };
-    
+
     if (timer) {
         config.timer = timer;
         config.showConfirmButton = false;
         config.toast = true;
         config.position = 'bottom-end';
     }
-    
+
     return Swal.fire(config);
 }
 

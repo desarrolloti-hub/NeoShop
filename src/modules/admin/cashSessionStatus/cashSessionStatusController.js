@@ -1,7 +1,7 @@
 /* FILE: cashSessionStatusController.js */
 /* Controller for cash session - With SweetAlert notifications */
 
-import { CashSessionService } from '/services/cashSessionService.js';
+import { CashSessionService } from '/src/services/cashSessionService.js';
 
 let isLoading = false;
 let currentSession = null;
@@ -11,7 +11,7 @@ let currentSession = null;
 function getCurrentUserFromStorage() {
     try {
         const possibleKeys = ['admin_user'];
-        
+
         for (const key of possibleKeys) {
             const data = localStorage.getItem(key);
             if (data) {
@@ -21,10 +21,10 @@ function getCurrentUserFromStorage() {
                         console.log(`✅ Usuario encontrado en localStorage con clave: ${key}`, parsed);
                         return parsed;
                     }
-                } catch (e) {}
+                } catch (e) { }
             }
         }
-        
+
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             const value = localStorage.getItem(key);
@@ -38,7 +38,7 @@ function getCurrentUserFromStorage() {
                 continue;
             }
         }
-        
+
         console.warn('⚠️ No se encontró usuario en localStorage');
         return null;
     } catch (error) {
@@ -55,7 +55,7 @@ function isAuthenticated() {
 
 export async function cashSessionStatusController() {
     console.log('💰 Cash session status controller inicializado');
-    
+
     if (!isAuthenticated()) {
         console.error('❌ No hay sesión de usuario en localStorage');
         await showSweetAlert('Sesión no encontrada', 'Debes iniciar sesión para continuar', 'error');
@@ -101,9 +101,9 @@ function setLastCloseDate() {
                     day: 'numeric'
                 });
                 return;
-            } catch(e) {}
+            } catch (e) { }
         }
-        
+
         lastCloseElement.textContent = 'Primer corte';
     }
 }
@@ -116,21 +116,21 @@ function initActionButtons() {
     const closeWithdrawalsBtn = document.getElementById('closeWithdrawalsBtn');
     const closeCashSectionBtn = document.getElementById('closeCashSectionBtn');
     const cancelCloseBtn = document.getElementById('cancelCloseBtn');
-    
+
     if (showWithdrawalsBtn) {
         showWithdrawalsBtn.addEventListener('click', () => {
             document.getElementById('withdrawalsSection').style.display = 'block';
             document.getElementById('closeCashSection').style.display = 'none';
         });
     }
-    
+
     if (showCloseCashBtn) {
         showCloseCashBtn.addEventListener('click', () => {
             document.getElementById('closeCashSection').style.display = 'block';
             document.getElementById('withdrawalsSection').style.display = 'none';
         });
     }
-    
+
     if (closeWithdrawalsBtn) {
         closeWithdrawalsBtn.addEventListener('click', () => {
             document.getElementById('withdrawalsSection').style.display = 'none';
@@ -140,7 +140,7 @@ function initActionButtons() {
             document.getElementById('customReasonGroup').style.display = 'none';
         });
     }
-    
+
     if (closeCashSectionBtn) {
         closeCashSectionBtn.addEventListener('click', () => {
             document.getElementById('closeCashSection').style.display = 'none';
@@ -148,7 +148,7 @@ function initActionButtons() {
             document.getElementById('cashDifference').value = '';
         });
     }
-    
+
     if (cancelCloseBtn) {
         cancelCloseBtn.addEventListener('click', () => {
             document.getElementById('closeCashSection').style.display = 'none';
@@ -165,17 +165,17 @@ async function initializeCashSession() {
     try {
         const user = getCurrentUserFromStorage();
         console.log('👤 Usuario obtenido:', user);
-        
+
         const branchId = 'SUC_001';
-        
+
         let activeSession = await CashSessionService.getActiveSession(branchId);
-        
+
         if (!activeSession) {
             console.log('📝 No hay sesión activa, creando una nueva...');
-            
+
             const userId = user?.id || user?.uid || user?.userId || 'USR_001';
             const userName = user?.nombreCompleto || user?.displayName || user?.name || user?.email || 'Administrador';
-            
+
             const sessionData = {
                 storeSlug: 'mi-tienda',
                 branchId: branchId,
@@ -185,16 +185,16 @@ async function initializeCashSession() {
                 userName: userName,
                 openingCash: 0
             };
-            
+
             activeSession = await CashSessionService.openSession(sessionData, userId);
             console.log('✅ Sesión creada automáticamente:', activeSession);
-            
+
             await showSweetAlert('Sesión iniciada', 'Se ha creado una nueva sesión de caja', 'success', 2000);
         }
-        
+
         currentSession = activeSession;
         displaySessionInfo(activeSession, user);
-        
+
         if (activeSession.withdrawals && activeSession.withdrawals.length > 0) {
             renderWithdrawalsList(activeSession.withdrawals, activeSession.totalWithdrawn);
             updateWithdrawalsCount(activeSession.withdrawals.length);
@@ -202,10 +202,10 @@ async function initializeCashSession() {
             renderWithdrawalsList([], 0);
             updateWithdrawalsCount(0);
         }
-        
+
         updateCurrentBalance(activeSession);
         updateExpectedCash(activeSession);
-        
+
     } catch (error) {
         console.error('Error inicializando sesión:', error);
         await showSweetAlert('Error al inicializar', `No se pudo iniciar la sesión de caja: ${error.message}`, 'error');
@@ -217,11 +217,11 @@ function displaySessionInfo(session, user) {
     document.getElementById('storeSlug').value = session.storeSlug;
     document.getElementById('branchId').value = session.branchId;
     document.getElementById('userId').value = session.userId;
-    
+
     document.getElementById('openingTime').textContent = session.openingTimeFormatted || new Date(session.openingTime).toLocaleString('es-MX');
     document.getElementById('storeInfo').innerHTML = `${session.storeName}<br><small>${session.branchName}</small>`;
     document.getElementById('userInfo').textContent = session.userName;
-    
+
     document.getElementById('cashCloseForm').dataset.sessionId = session.id;
     document.getElementById('cashCloseForm').dataset.totalSales = session.totalSales || 0;
 }
@@ -229,14 +229,14 @@ function displaySessionInfo(session, user) {
 function updateCurrentBalance(session) {
     const balanceElement = document.getElementById('currentBalance');
     const totalSalesElement = document.getElementById('totalSalesToday');
-    
+
     if (balanceElement) {
         const totalSales = session.totalSales || 0;
         const totalWithdrawn = session.totalWithdrawn || 0;
         const currentBalance = totalSales - totalWithdrawn;
-        
+
         balanceElement.textContent = `$${currentBalance.toFixed(2)}`;
-        
+
         balanceElement.classList.remove('negative', 'zero');
         if (currentBalance < 0) {
             balanceElement.classList.add('negative');
@@ -244,7 +244,7 @@ function updateCurrentBalance(session) {
             balanceElement.classList.add('zero');
         }
     }
-    
+
     if (totalSalesElement) {
         totalSalesElement.textContent = `$${(session.totalSales || 0).toFixed(2)}`;
     }
@@ -253,7 +253,7 @@ function updateCurrentBalance(session) {
 function updateExpectedCash(session) {
     const expectedCashNote = document.getElementById('expectedCashNote');
     const expectedCashAmount = document.getElementById('expectedCashAmount');
-    
+
     if (expectedCashNote && expectedCashAmount) {
         const totalWithdrawn = session.totalWithdrawn || 0;
         const totalSales = session.totalSales || 0;
@@ -276,7 +276,7 @@ function initWithdrawalsModule() {
     const confirmBtn = document.getElementById('confirmWithdrawalBtn');
     const reasonSelect = document.getElementById('withdrawalReason');
     const customReasonGroup = document.getElementById('customReasonGroup');
-    
+
     if (reasonSelect) {
         reasonSelect.addEventListener('change', () => {
             if (customReasonGroup) {
@@ -284,7 +284,7 @@ function initWithdrawalsModule() {
             }
         });
     }
-    
+
     if (confirmBtn) {
         confirmBtn.addEventListener('click', registerWithdrawal);
     }
@@ -294,44 +294,44 @@ async function registerWithdrawal() {
     const amount = parseFloat(document.getElementById('withdrawalAmount')?.value) || 0;
     let reason = document.getElementById('withdrawalReason')?.value || '';
     const customReason = document.getElementById('withdrawalCustomReason')?.value || '';
-    
+
     if (amount <= 0) {
         await showSweetAlert('Monto inválido', 'Ingresa un monto válido mayor a cero', 'warning');
         return;
     }
-    
+
     if (reason === 'Otro') {
         reason = customReason;
     }
-    
+
     if (!reason || reason.trim() === '') {
         await showSweetAlert('Motivo requerido', 'Debes especificar un motivo para el retiro', 'warning');
         return;
     }
-    
+
     const currentBalanceElement = document.getElementById('currentBalance');
     const currentBalance = parseFloat(currentBalanceElement?.textContent?.replace('$', '') || 0);
-    
+
     if (amount > currentBalance) {
         await showSweetAlert('Saldo insuficiente', `No puedes retirar más del saldo disponible ($${currentBalance.toFixed(2)})`, 'error');
         return;
     }
-    
+
     const sessionId = document.getElementById('sessionId')?.value;
     if (!sessionId) {
         await showSweetAlert('Error', 'No hay sesión activa', 'error');
         return;
     }
-    
+
     isLoading = true;
     const confirmBtn = document.getElementById('confirmWithdrawalBtn');
     const originalText = confirmBtn?.innerHTML;
-    
+
     if (confirmBtn) {
         confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
         confirmBtn.disabled = true;
     }
-    
+
     Swal.fire({
         title: 'Registrando retiro...',
         text: 'Por favor espera un momento',
@@ -340,35 +340,35 @@ async function registerWithdrawal() {
             Swal.showLoading();
         }
     });
-    
+
     try {
         const user = getCurrentUserFromStorage();
         const userId = user?.id || user?.uid || user?.userId;
         const userName = user?.nombreCompleto || user?.displayName || user?.name || user?.email || 'Usuario';
-        
+
         const result = await CashSessionService.addWithdrawal(sessionId, amount, reason, userId, userName);
-        
+
         currentSession = result.session;
-        
+
         renderWithdrawalsList(result.session.withdrawals, result.session.totalWithdrawn);
         updateWithdrawalsCount(result.session.withdrawals.length);
         updateCurrentBalance(result.session);
         updateExpectedCash(result.session);
-        
+
         document.getElementById('withdrawalAmount').value = '';
         document.getElementById('withdrawalReason').value = '';
         document.getElementById('withdrawalCustomReason').value = '';
         if (customReasonGroup) customReasonGroup.style.display = 'none';
-        
+
         Swal.close();
-        
+
         await showSweetAlert(
-            '¡Retiro registrado!', 
-            `Se ha retirado $${amount.toFixed(2)} por concepto de: ${reason}`, 
+            '¡Retiro registrado!',
+            `Se ha retirado $${amount.toFixed(2)} por concepto de: ${reason}`,
             'success',
             2500
         );
-        
+
     } catch (error) {
         console.error('Error registrando retiro:', error);
         Swal.close();
@@ -388,7 +388,7 @@ async function deleteWithdrawal(withdrawalId) {
         await showSweetAlert('Error', 'No hay sesión activa', 'error');
         return;
     }
-    
+
     const confirmResult = await Swal.fire({
         title: '¿Eliminar retiro?',
         text: 'Esta acción no se puede deshacer',
@@ -399,11 +399,11 @@ async function deleteWithdrawal(withdrawalId) {
         confirmButtonColor: '#dc2626',
         cancelButtonColor: '#64748b'
     });
-    
+
     if (!confirmResult.isConfirmed) return;
-    
+
     isLoading = true;
-    
+
     Swal.fire({
         title: 'Eliminando...',
         text: 'Por favor espera',
@@ -412,23 +412,23 @@ async function deleteWithdrawal(withdrawalId) {
             Swal.showLoading();
         }
     });
-    
+
     try {
         const result = await CashSessionService.removeWithdrawal(sessionId, withdrawalId);
-        
+
         renderWithdrawalsList(result.withdrawals, result.totalWithdrawn);
         updateWithdrawalsCount(result.withdrawals.length);
-        
+
         const updatedSession = await CashSessionService.getActiveSession('SUC_001');
         if (updatedSession) {
             currentSession = updatedSession;
             updateCurrentBalance(updatedSession);
             updateExpectedCash(updatedSession);
         }
-        
+
         Swal.close();
         await showSweetAlert('¡Retiro eliminado!', 'El retiro ha sido eliminado correctamente', 'success', 2000);
-        
+
     } catch (error) {
         console.error('Error eliminando retiro:', error);
         Swal.close();
@@ -441,13 +441,13 @@ async function deleteWithdrawal(withdrawalId) {
 function renderWithdrawalsList(withdrawals, totalWithdrawn) {
     const container = document.getElementById('withdrawalsList');
     const totalElement = document.getElementById('totalWithdrawn');
-    
+
     if (!container) return;
-    
+
     if (totalElement) {
         totalElement.textContent = `$${totalWithdrawn.toFixed(2)}`;
     }
-    
+
     if (!withdrawals || withdrawals.length === 0) {
         container.innerHTML = `
             <div class="empty-withdrawals">
@@ -457,7 +457,7 @@ function renderWithdrawalsList(withdrawals, totalWithdrawn) {
         `;
         return;
     }
-    
+
     container.innerHTML = withdrawals.map(w => `
         <div class="withdrawal-item" data-id="${w.id}">
             <div class="withdrawal-info">
@@ -473,7 +473,7 @@ function renderWithdrawalsList(withdrawals, totalWithdrawn) {
             </div>
         </div>
     `).join('');
-    
+
     document.querySelectorAll('.btn-delete-withdrawal').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const id = btn.dataset.id;
@@ -484,7 +484,7 @@ function renderWithdrawalsList(withdrawals, totalWithdrawn) {
 
 function escapeHtml(str) {
     if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
+    return str.replace(/[&<>]/g, function (m) {
         if (m === '&') return '&amp;';
         if (m === '<') return '&lt;';
         if (m === '>') return '&gt;';
@@ -504,7 +504,7 @@ function initClosingCashInput() {
         const totalWithdrawn = parseFloat(document.getElementById('totalWithdrawn')?.textContent?.replace('$', '') || 0);
         const expectedCash = totalSales - totalWithdrawn;
         const difference = closingCash - expectedCash;
-        
+
         const differenceElement = document.getElementById('cashDifference');
         if (differenceElement) {
             const absDifference = Math.abs(difference).toFixed(2);
@@ -521,7 +521,7 @@ function initCashCloseForm() {
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         if (isLoading) return;
 
         const sessionId = form.dataset.sessionId;
@@ -562,7 +562,7 @@ function initCashCloseForm() {
         isLoading = true;
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
-        
+
         Swal.fire({
             title: 'Cerrando sesión...',
             text: 'Por favor espera un momento',
@@ -576,13 +576,13 @@ function initCashCloseForm() {
             const user = getCurrentUserFromStorage();
             const userId = user?.id || user?.uid || user?.userId;
             const closedBy = userId || null;
-            
+
             await CashSessionService.closeSession(sessionId, closingCash, notes, closedBy);
-            
+
             localStorage.setItem('last_cash_close_date', JSON.stringify(new Date().toISOString()));
-            
+
             Swal.close();
-            
+
             await Swal.fire({
                 title: '¡Corte de caja realizado!',
                 html: `
@@ -596,15 +596,15 @@ function initCashCloseForm() {
                 confirmButtonText: 'Aceptar',
                 confirmButtonColor: '#456da2'
             });
-            
+
             form.reset();
             document.getElementById('cashDifference').value = '';
             document.getElementById('closeCashSection').style.display = 'none';
-            
+
             setTimeout(() => {
                 window.location.reload();
             }, 2000);
-            
+
         } catch (error) {
             console.error('Error cerrando sesión:', error);
             Swal.close();
@@ -637,7 +637,7 @@ async function showSweetAlert(title, message, type = 'info', timer = null) {
             confirmButton: 'swal2-confirm'
         }
     };
-    
+
     if (timer) {
         config.timer = timer;
         config.showConfirmButton = false;
@@ -645,7 +645,7 @@ async function showSweetAlert(title, message, type = 'info', timer = null) {
         config.position = 'bottom-end';
         config.showCloseButton = false;
     }
-    
+
     return Swal.fire(config);
 }
 

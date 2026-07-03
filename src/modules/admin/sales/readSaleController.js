@@ -3,9 +3,9 @@
    COLECCIONES DINÁMICAS: sales + NombreTienda
    ============================================ */
 
-import { SaleService } from '../../../../../services/saleService.js';
-import { AdminService } from '../../../../../services/adminService.js';
-import { ProductService } from '../../../../../services/productService.js';
+import { SaleService } from '/src/services/saleService.js';
+import { AdminService } from '/src/services/adminService.js';
+import { ProductService } from '/src/services/productService.js';
 
 // ========== ESTADO GLOBAL ==========
 let allSales = [];

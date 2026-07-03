@@ -3,9 +3,9 @@
    With full profile photo support (base64 & Google)
    ======================================== */
 
-import { AuthService } from '../../../../services/authService.js';
-import { AdminService } from '../../../../services/adminService.js';
-import { checkTrialStatus, resetTrialAlerts, getTrialDaysLeft } from '../../../../services/trialCheckService.js';
+import { AuthService } from '/src/services/authService.js';
+import { AdminService } from '/src/services/adminService.js';
+import { checkTrialStatus, resetTrialAlerts, getTrialDaysLeft } from '/src/services/trialCheckService.js';
 
 // ==================== CONFIGURATION ====================
 

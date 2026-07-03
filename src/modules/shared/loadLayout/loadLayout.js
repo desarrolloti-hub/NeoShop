@@ -2,7 +2,7 @@
    LOAD LAYOUT - Solo carga HTML, no controladores
    ======================================== */
 
-import { AuthService, ROLES } from '../../../../services/authService.js';
+import { AuthService, ROLES } from '/src/services/authService.js';
 
 const LAYOUT_PATHS = {
     [ROLES.ADMIN]: {

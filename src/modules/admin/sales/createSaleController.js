@@ -1,13 +1,13 @@
 /* ============================================
    SALE CREATE CONTROLLER - Nueva Venta con Escáner SKU
    VERSIÓN SIMPLIFICADA Y ROBUSTA
-   ============================================ */
+   ===========================================../../../../= */
 
-import { SaleService } from '../../../../../services/saleService.js';
-import { AdminService } from '../../../../../services/adminService.js';
-import { ProductService } from '../../../../../services/productService.js';
-import { CustomerService } from '../../../../../services/customerService.js';
-import { showTicket } from '../../../shared/ticketPrinter/ticketPrinter.js';
+import { SaleService } from '/src/services/saleService.js';
+import { AdminService } from '/src/services/adminService.js';
+import { ProductService } from '/src/services/productService.js';
+import { CustomerService } from '/src/services/customerService.js';
+import { showTicket } from '../../shared/ticketPrinter/ticketPrinter.js';
 
 // ========== ESTADO GLOBAL ==========
 let cartItems = [];
@@ -190,7 +190,7 @@ function renderCart() {
 
     let html = '';
     cartItems.forEach((item, index) => {
-        let imageHtml = item.imageUrl && item.imageUrl.startsWith('data:image') 
+        let imageHtml = item.imageUrl && item.imageUrl.startsWith('data:image')
             ? `<img src="${item.imageUrl}" alt="${escapeHtml(item.name)}" class="cart-item-image">`
             : `<div class="cart-item-image-placeholder"><i class="fas fa-box"></i></div>`;
 
@@ -504,7 +504,7 @@ async function searchCustomers() {
         if (!elements.customerSearchResults) return;
 
         if (customers.length === 0) {
-            elements.customerSearchResults.innerHTML = 
+            elements.customerSearchResults.innerHTML =
                 '<div class="customer-search-item">No se encontraron clientes</div>';
             elements.customerSearchResults.style.display = 'block';
             return;
@@ -537,7 +537,7 @@ async function searchCustomers() {
         console.warn('Error buscando clientes:', error);
         // Si falla, mostrar mensaje de error
         if (elements.customerSearchResults) {
-            elements.customerSearchResults.innerHTML = 
+            elements.customerSearchResults.innerHTML =
                 `<div class="customer-search-item error">Error al buscar clientes</div>`;
             elements.customerSearchResults.style.display = 'block';
         }
@@ -656,7 +656,7 @@ async function createSale() {
             didOpen: () => Swal.showLoading()
         });
 
-        const timeoutPromise = new Promise((_, reject) => 
+        const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error('Tiempo de espera agotado. Revise su conexión.')), 15000)
         );
 
@@ -887,7 +887,7 @@ function cleanup() {
 // ========== INICIALIZAR ==========
 export async function saleCreateController() {
     cleanup();
-    
+
     const sessionLoaded = loadAdminSession();
     if (!sessionLoaded) {
         Swal.fire('Error', 'No se pudo cargar la sesión. Por favor inicie sesión nuevamente.', 'error');
@@ -906,6 +906,6 @@ export async function saleCreateController() {
     if (elements.skuInput) {
         elements.skuInput.focus();
     }
-    
+
     console.log('✅ Sale Create Controller inicializado correctamente');
 }

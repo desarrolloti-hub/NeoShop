@@ -4,8 +4,8 @@
    DYNAMIC COLLECTIONS: customers + StoreName
    ======================================================== */
 
-import { CustomerService } from '../../../../../services/customerService.js';
-import { AdminService } from '../../../../../services/adminService.js';
+import { CustomerService } from '/src/services/customerService.js';
+import { AdminService } from '/src/services/adminService.js';
 
 let isLoading = false;
 let currentAdmin = null;

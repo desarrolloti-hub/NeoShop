@@ -4,8 +4,8 @@
    DYNAMIC COLLECTIONS: categories + StoreName
    ======================================================== */
 
-import { CategoryService } from '../../../../../services/categoryService.js';
-import { AdminService } from '../../../../../services/adminService.js';
+import { CategoryService } from '/src/services/categoryService.js';
+import { AdminService } from '/src/services/adminService.js';
 
 let isLoading = false;
 let originalCategoryData = null;
