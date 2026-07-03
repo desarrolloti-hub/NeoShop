@@ -19,6 +19,9 @@
                 <div class="search-wrapper">
                     <input type="text" id="searchProduct" class="search-input"
                         placeholder="Buscar por nombre, código, marca o categoría...">
+                    <button id="clearSearchBtn" title="Limpiar búsqueda">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
                 <div class="status-toggle-wrapper">
                     <span class="status-label">Inactivos</span>
@@ -29,7 +32,7 @@
                 </div>
             </div>
 
-            <!-- TABLA -->
+            <!-- TABLA - Usa componentes universales -->
             <div class="component-table-wrapper desktop-view">
                 <table class="component-table product-table">
                     <thead>
@@ -41,7 +44,6 @@
                             <th class="product-col-category">Categoría</th>
                             <th class="product-col-price">Precio</th>
                             <th class="product-col-stock">Stock</th>
-                            <th class="product-col-status">Estado</th>
                             <th class="product-col-actions">Acciones</th>
                         </tr>
                     </thead>
@@ -49,8 +51,10 @@
                 </table>
             </div>
 
-            <!-- CARDS -->
-            <div id="productCardsContainer" class="mobile-view"></div>
+            <!-- CARDS - Usa estructura de cards universal -->
+            <div id="productCardsContainer" class="mobile-view">
+                <!-- Las cards se renderizan dinámicamente -->
+            </div>
 
             <!-- Paginación -->
             <div class="pagination-container" id="paginationContainer">
@@ -71,11 +75,13 @@
     </div>
 </div>
 
-<!-- TEMPLATE TABLA -->
+<!-- TEMPLATE TABLA - Usa estructura de .component-table -->
 <template id="productRowTemplate">
     <tr>
         <td class="product-col-img">
-            <div class="product-img-container"></div>
+            <div class="product-img-container">
+                <!-- Se llena dinámicamente con imagen o ícono -->
+            </div>
         </td>
         <td class="product-col-code">
             <div class="middle-block"><span class="product-barcode"></span></div>
@@ -95,7 +101,6 @@
         <td class="product-col-stock">
             <div class="middle-block"><span class="product-stock"></span></div>
         </td>
-        <td class="product-col-status"><span class="product-status"></span></td>
         <td class="product-col-actions">
             <div class="action-badge">
                 <button class="btn-view" title="Ver detalles"><i class="fas fa-eye"></i></button>
@@ -110,12 +115,14 @@
     </tr>
 </template>
 
-<!-- TEMPLATE CARDS -->
+<!-- TEMPLATE CARDS - Usa estructura de .customer-card-item -->
 <template id="productCardTemplate">
-    <div class="product-card-item">
-        <div class="product-card-header">
-            <div class="product-card-avatar"></div>
-            <div class="product-card-title">
+    <div class="product-card-item customer-card-item">
+        <div class="product-card-header customer-card-header">
+            <div class="product-card-avatar customer-card-avatar">
+                <!-- Se llena dinámicamente con imagen o ícono -->
+            </div>
+            <div class="product-card-title customer-card-title">
                 <h4 class="card-name"></h4>
                 <small class="card-barcode"></small>
             </div>
@@ -126,10 +133,8 @@
             <p><i class="fas fa-dollar-sign"></i> <span class="card-price"></span></p>
             <p><i class="fas fa-box"></i> <span class="card-stock"></span></p>
         </div>
-        <div class="product-card-status">
-            <span class="card-status"></span>
-        </div>
-        <div class="product-card-actions">
+
+        <div class="product-card-actions customer-card-actions">
             <button class="card-action-icon btn-view" title="Ver detalles"><i class="fas fa-eye"></i> Ver</button>
             <button class="card-action-icon btn-edit" title="Editar"><i class="fas fa-edit"></i> Editar</button>
             <div class="status-switch-wrapper">
@@ -141,7 +146,7 @@
     </div>
 </template>
 
-<!-- MODAL -->
+<!-- MODAL - Product Detail -->
 <div id="productModal" class="modal-container" style="display: none;">
     <div class="modal-overlay">
         <div class="modal-content">

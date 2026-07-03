@@ -1,73 +1,77 @@
-<!-- FILE: supplierList.html -->
+<!-- FILE: readSupplier.html -->
 <div class="credContainer">
-    <!-- HEADER -->
+    <!-- HEADER - Usa .page-header global -->
     <div class="page-header">
         <h2 class="header-title">
             <i class="fas fa-truck"></i> Mis Proveedores
         </h2>
         <div class="header-actions">
-            <a href="/crearProveedor" class="btn btn-primary" data-link>
-                <i class="fas fa-plus"></i> Nueva Proveedor
+            <a href="/crearProveedor" class="btn btn-primary" id="addNewSupplierBtn" data-link>
+                <i class="fas fa-plus"></i> Nuevo Proveedor
             </a>
         </div>
     </div>
-    <div class="supplier-list-container">
-        <div class="supplier-list-card">
-            <!-- Filtros: Buscador + Toggle de estado -->
-            <div class="filters-wrapper">
-                <div class="search-wrapper">
-                    <input type="text" id="searchSupplier" class="search-input"
-                        placeholder="Buscar proveedor por nombre, RFC o correo...">
-                </div>
 
-                <div class="status-toggle-wrapper">
-                    <span class="status-label">Inactivos</span>
-                    <div class="status-filter-switch" id="statusFilterSwitch">
-                        <div class="status-filter-slider"></div>
-                    </div>
-                    <span class="status-label active">Activos</span>
-                </div>
+    <div class="supplier-list-card">
+        <!-- FILTROS - Reutiliza estilos de readProducts -->
+        <div class="filters-wrapper">
+            <div class="search-wrapper">
+                <input type="text" id="searchSupplier" class="search-input"
+                    placeholder="Buscar proveedor por nombre, RFC o correo...">
+                <button id="clearSearchBtn" title="Limpiar búsqueda">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
 
-            <!-- TABLA - Usando component-table -->
-            <div class="component-table-wrapper desktop-view">
-                <table class="component-table">
-                    <thead>
-                        <tr>
-                            <th>Proveedor</th>
-                            <th>Contacto</th>
-                            <th>RFC</th>
-                            <th>Estado</th>
-                            <th class="text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="supplierTableBody"></tbody>
-                </table>
+            <div class="status-toggle-wrapper">
+                <span class="status-label">Inactivos</span>
+                <div class="status-filter-switch" id="statusFilterSwitch">
+                    <div class="status-filter-slider"></div>
+                </div>
+                <span class="status-label active">Activos</span>
             </div>
+        </div>
 
-            <!-- CARDS MÓVIL -->
-            <div id="supplierCardsContainer" class="mobile-view"></div>
+        <!-- TABLA - Usa componente universal -->
+        <div class="component-table-wrapper desktop-view">
+            <table class="component-table">
+                <thead>
+                    <tr>
+                        <th>Proveedor</th>
+                        <th>Contacto</th>
+                        <th>RFC</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="supplierTableBody"></tbody>
+            </table>
+        </div>
 
-            <!-- Paginación -->
-            <div class="pagination-container" id="paginationContainer">
-                <div class="pagination-info">
-                    <span id="paginationInfo">Mostrando 0 - 0 de 0 proveedores</span>
-                </div>
-                <div class="pagination-controls">
-                    <button class="btn-pagination" id="prevPageBtn" disabled>
-                        <i class="fas fa-chevron-left"></i> Anterior
-                    </button>
-                    <span class="pagination-current" id="currentPageDisplay">Página 1</span>
-                    <button class="btn-pagination" id="nextPageBtn" disabled>
-                        Siguiente <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
+        <!-- CARDS MÓVIL - Usa estructura de cards universal -->
+        <div id="supplierCardsContainer" class="mobile-view">
+            <!-- Las cards se renderizan dinámicamente -->
+        </div>
+
+        <!-- PAGINACIÓN -->
+        <div class="pagination-container" id="paginationContainer">
+            <div class="pagination-info">
+                <span id="paginationInfo">Mostrando 0 - 0 de 0 proveedores</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="btn-pagination" id="prevPageBtn" disabled>
+                    <i class="fas fa-chevron-left"></i> Anterior
+                </button>
+                <span class="pagination-current" id="currentPageDisplay">Página 1</span>
+                <button class="btn-pagination" id="nextPageBtn" disabled>
+                    Siguiente <i class="fas fa-chevron-right"></i>
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- TEMPLATE TABLA -->
+<!-- TEMPLATE TABLA - Usa estructura de .component-table -->
 <template id="supplierRowTemplate">
     <tr>
         <td>
@@ -114,17 +118,17 @@
     </tr>
 </template>
 
-<!-- TEMPLATE CARDS MÓVIL -->
+<!-- TEMPLATE CARDS MÓVIL - Usa estructura de .customer-card-item -->
 <template id="supplierCardTemplate">
-    <div class="supplier-card-item">
-        <div class="supplier-card-header">
-            <div class="supplier-card-avatar">
+    <div class="supplier-card-item customer-card-item">
+        <div class="supplier-card-header customer-card-header">
+            <div class="supplier-card-avatar customer-card-avatar">
                 <img class="supplier-card-img" src="" alt="" style="display: none;">
                 <i class="fas fa-store"></i>
             </div>
-            <div class="supplier-card-title">
+            <div class="supplier-card-title customer-card-title">
                 <h4 class="card-name"></h4>
-                <span class="card-business-name"></span>
+                <small class="card-business-name"></small>
             </div>
             <span class="card-status"></span>
         </div>
@@ -144,7 +148,7 @@
                 </div>
             </div>
         </div>
-        <div class="supplier-card-actions">
+        <div class="supplier-card-actions customer-card-actions">
             <button class="btn-action btn-view" title="Ver detalles">
                 <i class="fas fa-eye"></i> Ver
             </button>
@@ -166,7 +170,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modalTitle">Detalles del proveedor</h3>
-                <span class="modal-close">&times;</span>
+                <span class="modal-close" id="modalCloseBtn">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="modal-avatar">

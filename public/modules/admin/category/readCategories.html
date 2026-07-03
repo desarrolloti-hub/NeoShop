@@ -11,12 +11,16 @@
             </a>
         </div>
     </div>
+
     <div class="category-list-card">
         <!-- Filtros: Buscador + Toggle de estado -->
         <div class="filters-wrapper">
             <div class="search-wrapper">
                 <input type="text" id="searchCategory" class="search-input"
                     placeholder="Buscar por nombre o descripción...">
+                <button id="clearSearchBtn" title="Limpiar búsqueda">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
 
             <!-- Toggle Switch para mostrar activos/inactivos -->
@@ -29,24 +33,26 @@
             </div>
         </div>
 
-        <!-- TABLA -->
+        <!-- TABLA - Usa componentes universales -->
         <div class="component-table-wrapper desktop-view">
-            <table class="component-table">
+            <table class="component-table category-table">
                 <thead>
                     <tr>
-                        <th>Nombre</th>
-                        <th>Descripción</th>
-                        <th>Fecha creación</th>
-                        <th>Estado</th>
-                        <th class="text-center">Acciones</th>
+                        <th class="category-col-name">Nombre</th>
+                        <th class="category-col-description">Descripción</th>
+                        <th class="category-col-created">Fecha creación</th>
+                        <th class="category-col-status">Estado</th>
+                        <th class="category-col-actions">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="categoryTableBody"></tbody>
             </table>
         </div>
 
-        <!-- CARDS MÓVIL -->
-        <div id="categoryCardsContainer" class="mobile-view"></div>
+        <!-- CARDS MÓVIL - Usa estructura de cards universal -->
+        <div id="categoryCardsContainer" class="mobile-view">
+            <!-- Las cards se renderizan dinámicamente -->
+        </div>
 
         <!-- Paginación -->
         <div class="pagination-container" id="paginationContainer">
@@ -65,22 +71,21 @@
         </div>
     </div>
 </div>
-</div>
 
-<!-- TEMPLATE TABLA -->
+<!-- TEMPLATE TABLA - Usa estructura de .component-table -->
 <template id="categoryRowTemplate">
     <tr>
-        <td>
+        <td class="category-col-name">
             <div class="middle-block"><span class="category-name"></span></div>
         </td>
-        <td>
+        <td class="category-col-description">
             <div class="middle-block"><span class="category-description"></span></div>
         </td>
-        <td>
+        <td class="category-col-created">
             <div class="middle-block"><span class="category-created-at"></span></div>
         </td>
-        <td><span class="category-status"></span></td>
-        <td>
+        <td class="category-col-status"><span class="category-status"></span></td>
+        <td class="category-col-actions">
             <div class="action-badge">
                 <button class="btn-view" title="Ver detalles"><i class="fas fa-eye"></i></button>
                 <button class="btn-edit" title="Editar"><i class="fas fa-edit"></i></button>
@@ -94,29 +99,33 @@
     </tr>
 </template>
 
-<!-- TEMPLATE CARDS MÓVIL -->
+<!-- TEMPLATE CARDS MÓVIL - Usa estructura de .customer-card-item -->
 <template id="categoryCardTemplate">
-    <div class="category-card-item">
-        <div class="category-card-header">
-            <div class="category-card-icon">
+    <div class="category-card-item customer-card-item">
+        <div class="category-card-header customer-card-header">
+            <div class="category-card-icon customer-card-avatar">
                 <i class="fas fa-tag"></i>
             </div>
-            <div class="category-card-title">
+            <div class="category-card-title customer-card-title">
                 <h4 class="card-name"></h4>
-                <span class="card-status"></span>
+                <small class="card-status"></small>
             </div>
         </div>
         <div class="category-card-body">
-            <p class="card-description"></p>
-            <div class="card-meta">
-                <span><i class="fas fa-calendar-alt"></i> <span class="card-created-at"></span></span>
+            <div class="category-card-field customer-card-field">
+                <strong>Descripción:</strong>
+                <span class="card-description"></span>
+            </div>
+            <div class="category-card-field customer-card-field">
+                <strong>Creado:</strong>
+                <span class="card-created-at"></span>
             </div>
         </div>
-        <div class="category-card-actions">
-            <button class="btn-action btn-view" title="Ver detalles">
+        <div class="category-card-actions customer-card-actions">
+            <button class="card-action-icon btn-view" title="Ver detalles">
                 <i class="fas fa-eye"></i> Ver
             </button>
-            <button class="btn-action btn-edit" title="Editar">
+            <button class="card-action-icon btn-edit" title="Editar">
                 <i class="fas fa-edit"></i> Editar
             </button>
             <div class="status-switch-wrapper">

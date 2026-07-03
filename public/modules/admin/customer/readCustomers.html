@@ -1,23 +1,26 @@
-<!-- FILE: readCustomers.html - Solo la parte del modal modificada -->
+<!-- FILE: readCustomers.html -->
 <div class="credContainer">
     <div class="category-list-card">
-        <!-- HEADER -->
+        <!-- HEADER - Usa .page-header global -->
         <div class="page-header">
             <h2 class="header-title">
                 <i class="fas fa-users"></i> Mis Clientes
             </h2>
             <div class="header-actions">
-                <a href="/nuevoCliente" class="btn btn-primary" data-link>
+                <a href="/crearCliente" class="btn btn-primary" id="addNewCustomerBtn" data-link>
                     <i class="fas fa-plus"></i> Nuevo cliente
                 </a>
             </div>
         </div>
 
-        <!-- Filtros: Buscador + Toggle de estado -->
+        <!-- FILTROS - Reutiliza estilos de readProducts -->
         <div class="filters-wrapper">
             <div class="search-wrapper">
                 <input type="text" id="searchCustomer" class="search-input"
                     placeholder="Buscar por nombre, email, RFC o teléfono...">
+                <button id="clearSearchBtn" title="Limpiar búsqueda">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
 
             <!-- Toggle Switch para mostrar activos/inactivos -->
@@ -30,7 +33,7 @@
             </div>
         </div>
 
-        <!-- TABLA -->
+        <!-- TABLA - Usa componente universal -->
         <div class="component-table-wrapper desktop-view">
             <table class="component-table customer-table">
                 <thead>
@@ -46,10 +49,12 @@
             </table>
         </div>
 
-        <!-- CARDS MÓVIL -->
-        <div id="customerCardsContainer" class="mobile-view"></div>
+        <!-- CARDS MÓVIL - Usa estructura de cards universal -->
+        <div id="customerCardsContainer" class="mobile-view">
+            <!-- Las cards se renderizan dinámicamente -->
+        </div>
 
-        <!-- Paginación -->
+        <!-- PAGINACIÓN -->
         <div class="pagination-container" id="paginationContainer">
             <div class="pagination-info">
                 <span id="paginationInfo">Mostrando 0 - 0 de 0 clientes</span>
@@ -67,7 +72,7 @@
     </div>
 </div>
 
-<!-- TEMPLATE TABLA -->
+<!-- TEMPLATE TABLA - Usa estructura de .component-table -->
 <template id="customerRowTemplate">
     <tr>
         <td>
@@ -96,37 +101,41 @@
     </tr>
 </template>
 
-<!-- TEMPLATE CARDS MÓVIL -->
+<!-- TEMPLATE CARDS MÓVIL - Usa estructura de .customer-card-item -->
 <template id="customerCardTemplate">
-    <div class="category-card-item">
-        <div class="category-card-header">
-            <div class="category-card-icon">
+    <div class="customer-card-item category-card-item">
+        <div class="customer-card-header category-card-header">
+            <div class="customer-card-avatar category-card-icon">
                 <i class="fas fa-user"></i>
             </div>
-            <div class="category-card-title">
+            <div class="customer-card-title category-card-title">
                 <h4 class="card-name"></h4>
-                <span class="card-status"></span>
+                <small class="card-status"></small>
             </div>
         </div>
-        <div class="category-card-body">
-            <p class="card-description">
-                <i class="fas fa-envelope"></i> <span class="card-email"></span>
-            </p>
-            <p class="card-description">
-                <i class="fas fa-id-card"></i> <span class="card-rfc"></span>
-            </p>
-            <p class="card-description">
-                <i class="fas fa-phone"></i> <span class="card-phone"></span>
-            </p>
-            <div class="card-meta">
-                <span><i class="fas fa-map-marker-alt"></i> <span class="card-address"></span></span>
+        <div class="customer-card-body category-card-body">
+            <div class="customer-card-field">
+                <strong><i class="fas fa-envelope"></i> Email:</strong>
+                <span class="card-email"></span>
+            </div>
+            <div class="customer-card-field">
+                <strong><i class="fas fa-id-card"></i> RFC:</strong>
+                <span class="card-rfc"></span>
+            </div>
+            <div class="customer-card-field">
+                <strong><i class="fas fa-phone"></i> Teléfono:</strong>
+                <span class="card-phone"></span>
+            </div>
+            <div class="customer-card-field">
+                <strong><i class="fas fa-map-marker-alt"></i> Dirección:</strong>
+                <span class="card-address"></span>
             </div>
         </div>
-        <div class="category-card-actions">
-            <button class="btn-action btn-view" title="Ver detalles">
+        <div class="customer-card-actions category-card-actions">
+            <button class="card-action-icon btn-view" title="Ver detalles">
                 <i class="fas fa-eye"></i> Ver
             </button>
-            <button class="btn-action btn-edit" title="Editar">
+            <button class="card-action-icon btn-edit" title="Editar">
                 <i class="fas fa-edit"></i> Editar
             </button>
             <div class="status-switch-wrapper">
@@ -137,7 +146,7 @@
         </div>
     </div>
 </template>
-<!-- FILE: readCustomers.html - Modal mejorado -->
+
 <!-- MODAL - VERSIÓN CON SCROLL -->
 <div id="customerModal" class="modal-container" style="display: none;">
     <div class="modal-overlay">

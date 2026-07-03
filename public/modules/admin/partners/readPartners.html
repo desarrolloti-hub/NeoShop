@@ -1,16 +1,19 @@
+<!-- FILE: readPartners.html -->
 <div class="credContainer">
     <div class="partners-list-container">
+        <!-- HEADER - Usa .page-header global -->
         <div class="page-header">
             <h2 class="header-title">
                 <i class="fas fa-users"></i> Mis Colaboradores
             </h2>
             <div class="header-actions">
-                <a href="/crearColaborador" class="btn btn-primary" id="addNewCustomerBtn" data-link>
+                <a href="/crearColaborador" class="btn btn-primary" id="createPartnerBtn" data-link>
                     <i class="fas fa-plus"></i> Nuevo colaborador
                 </a>
             </div>
         </div>
 
+        <!-- FILTROS -->
         <div class="partners-list-filters">
             <div class="filter-group">
                 <label><i class="fas fa-search"></i> Buscar</label>
@@ -39,15 +42,15 @@
             </div>
         </div>
 
-        <!-- Vista Desktop - Tabla -->
-        <div class="partners-list-table-wrapper desktop-view">
-            <table class="partners-list-table">
+        <!-- VISTA DESKTOP - TABLA con componente universal -->
+        <div class="component-table-wrapper desktop-view">
+            <table class="component-table">
                 <thead>
                     <tr>
                         <th>Colaborador</th>
                         <th>Contacto</th>
                         <th>Estado</th>
-                        <th>Acciones</th>
+                        <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="partnersTableBody">
@@ -61,7 +64,9 @@
             </table>
         </div>
 
-        <!-- Vista Mobile - Cards -->
-        <div id="partnersMobileCards" class="mobile-view"></div>
+        <!-- VISTA MOBILE - CARDS con componente universal -->
+        <div id="partnersMobileCards" class="mobile-view">
+            <!-- Las cards se renderizan dinámicamente -->
+        </div>
     </div>
 </div>

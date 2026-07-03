@@ -1,3 +1,4 @@
+<!-- FILE: readSale.html -->
 <div class="credContainer">
 
     <!-- HEADER -->
@@ -6,7 +7,7 @@
             <i class="fas fa-shopping-cart"></i> Mis Ventas
         </h2>
         <div class="header-actions">
-            <a href="/nuevaVenta" class="btn btn-primary" data-link>
+            <a href="/nuevaVenta" class="btn btn-primary" id="newSaleBtn" data-link>
                 <i class="fas fa-plus"></i> Nueva Venta
             </a>
         </div>
@@ -40,7 +41,7 @@
     <div class="chart-container">
         <div class="chart-header">
             <span><i class="fas fa-calendar-alt"></i> Ventas diarias (últimos 7 días)</span>
-            <button class="btn-refresh" id="refreshChartBtn">
+            <button class="btn-refresh" id="refreshChartBtn" title="Actualizar gráfico">
                 <i class="fas fa-sync-alt"></i>
             </button>
         </div>
@@ -83,8 +84,24 @@
         </div>
     </div>
 
+    <!-- FILTROS - Toolbar de ventas -->
+    <div class="sales-toolbar filters-wrapper">
+        <div class="filters">
+            <select id="statusFilter" class="filter-select">
+                <option value="">Todos los estados</option>
+                <option value="completed">Completado</option>
+                <option value="pending">Pendiente</option>
+                <option value="cancelled">Cancelado</option>
+                <option value="refunded">Reembolsado</option>
+            </select>
+            <input type="date" id="startDateFilter" class="filter-input" placeholder="Fecha inicio">
+            <input type="date" id="endDateFilter" class="filter-input" placeholder="Fecha fin">
+            <button class="btn-filter" id="applyFiltersBtn">Aplicar filtros</button>
+            <button class="btn-filter" id="clearFiltersBtn" style="background: #64748b;">Limpiar</button>
+        </div>
+    </div>
 
-    <!-- Tabla de ventas - Desktop -->
+    <!-- TABLA DE VENTAS - Desktop con componente universal -->
     <div class="component-table-wrapper desktop-view">
         <table class="component-table">
             <thead>
@@ -111,19 +128,24 @@
         </table>
     </div>
 
-    <!-- Vista móvil - Cards -->
+    <!-- VISTA MÓVIL - Cards con componente universal -->
     <div class="mobile-view" id="salesMobileCards">
+        <!-- Las cards se renderizan dinámicamente por el controlador -->
         <div class="cards-empty-state">
             <i class="fas fa-spinner fa-spin"></i>
             Cargando ventas...
         </div>
     </div>
 
-    <!-- Paginación -->
+    <!-- PAGINACIÓN -->
     <div class="pagination" id="pagination">
-        <button class="page-item" id="prevPageBtn" disabled>Anterior</button>
+        <button class="page-item" id="prevPageBtn" disabled>
+            <i class="fas fa-chevron-left"></i> Anterior
+        </button>
         <span class="page-info" id="pageInfo">Página 1</span>
-        <button class="page-item" id="nextPageBtn">Siguiente</button>
+        <button class="page-item" id="nextPageBtn">
+            Siguiente <i class="fas fa-chevron-right"></i>
+        </button>
     </div>
 
 </div>
