@@ -2,7 +2,7 @@
    TRIAL CHECK SERVICE - Verifica estado de prueba gratuita
    ======================================== */
 
-import { AdminService } from '/services/adminService.js';
+import { AdminService } from './adminService.js';
 
 let hasShownExpiredAlert = false;
 let hasShownGraceAlert = false;

@@ -4,7 +4,7 @@
 
 import { Sale } from '../classes/saleModel.js';
 import { SaleRepository } from '../repositories/saleRepository.js';
-import { CacheService, STORES } from '../services/cacheService.js';
+import { CacheService, STORES } from './cacheService.js';
 
 export const SALE_STATUS = {
     PENDING: 'pending',

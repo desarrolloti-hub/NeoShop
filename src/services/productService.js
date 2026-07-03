@@ -4,11 +4,11 @@
    DYNAMIC COLLECTIONS: products + StoreName
    ======================================== */
 
-import { Product } from '/classes/productModel.js';
-import { ProductRepository } from '/repositories/productRepository.js';
-import { StoreRepository } from '/repositories/storeRepository.js';
-import { CacheService, STORES } from '/services/cacheService.js';
-import { AdminService } from '/services/adminService.js';
+import { Product } from '../classes/productModel.js';
+import { ProductRepository } from '../repositories/productRepository.js';
+import { StoreRepository } from '../repositories/storeRepository.js';
+import { CacheService, STORES } from './cacheService.js';
+import { AdminService } from './adminService.js';
 
 export const ProductService = {
     /**

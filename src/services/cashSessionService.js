@@ -2,9 +2,9 @@
    CASH SESSION SERVICE - Lógica de negocio para sesiones de caja
    ======================================== */
 
-import { CashSession } from '/classes/cashSessionModel.js';
-import { CashSessionRepository } from '/repositories/cashSessionRepository.js';
-import { CacheService, STORES } from '/services/cacheService.js';
+import { CashSession } from '../classes/cashSessionModel.js';
+import { CashSessionRepository } from '../repositories/cashSessionRepository.js';
+import { CacheService, STORES } from './cacheService.js';
 
 export const CashSessionService = {
     /**
@@ -21,13 +21,13 @@ export const CashSessionService = {
         if (!sessionData.openingCash || sessionData.openingCash <= 0) {
             throw new Error('El monto de apertura debe ser mayor a 0');
         }
-        
+
         // Verificar si ya hay una sesión abierta en esta sucursal
         const activeSession = await CashSessionRepository.getActiveSession(sessionData.branchId);
         if (activeSession) {
             throw new Error('Ya existe una sesión de caja abierta en esta sucursal');
         }
-        
+
         // ========== CREAR MODELO ==========
         const session = new CashSession({
             sessionId: this._generateSessionId(),
@@ -43,17 +43,17 @@ export const CashSessionService = {
             withdrawals: [],
             totalWithdrawn: 0
         });
-        
+
         session.id = `cash_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
-        
+
         // ========== GUARDAR EN FIRESTORE ==========
         const result = await CashSessionRepository.save(session);
-        
+
         await CacheService.clearCache(STORES.CASH_SESSIONS || 'cash_sessions');
-        
+
         return new CashSession(result);
     },
-    
+
     /**
      * ✅ NUEVO: Registrar un retiro parcial
      */
@@ -62,88 +62,88 @@ export const CashSessionService = {
         if (!sessionId) throw new Error('ID de sesión requerido');
         if (!amount || amount <= 0) throw new Error('El monto del retiro debe ser mayor a 0');
         if (!reason || reason.trim() === '') throw new Error('Debes especificar una razón para el retiro');
-        
+
         // Obtener sesión actual
         const currentSession = await CashSessionRepository.getById(sessionId);
         if (!currentSession) throw new Error('Sesión de caja no encontrada');
-        
+
         const session = new CashSession(currentSession);
-        
+
         if (session.status !== 'open') {
             throw new Error('No se puede retirar dinero de una sesión cerrada');
         }
-        
+
         // Validar que no se retire más de lo que hay en caja
         // Nota: Esto es una validación básica, ajusta según tu lógica
         if (amount > session.openingCash - session.totalWithdrawn) {
             throw new Error(`No hay suficiente efectivo en caja. Disponible: $${(session.openingCash - session.totalWithdrawn).toFixed(2)}`);
         }
-        
+
         // Registrar retiro
         const withdrawal = session.withdraw(amount, reason, userId, userName);
-        
+
         // Guardar en repositorio
         const result = await CashSessionRepository.addWithdrawal(sessionId, withdrawal);
-        
+
         // Limpiar caché
         await CacheService.clearCache(STORES.CASH_SESSIONS || 'cash_sessions');
-        
+
         return {
             session: new CashSession(await CashSessionRepository.getById(sessionId)),
             withdrawal
         };
     },
-    
+
     /**
      * ✅ NUEVO: Eliminar un retiro
      */
     async removeWithdrawal(sessionId, withdrawalId) {
         if (!sessionId) throw new Error('ID de sesión requerido');
         if (!withdrawalId) throw new Error('ID de retiro requerido');
-        
+
         const currentSession = await CashSessionRepository.getById(sessionId);
         if (!currentSession) throw new Error('Sesión de caja no encontrada');
-        
+
         const session = new CashSession(currentSession);
-        
+
         if (session.status !== 'open') {
             throw new Error('No se puede modificar una sesión cerrada');
         }
-        
+
         session.removeWithdrawal(withdrawalId);
-        
+
         const result = await CashSessionRepository.removeWithdrawal(sessionId, withdrawalId);
-        
+
         await CacheService.clearCache(STORES.CASH_SESSIONS || 'cash_sessions');
-        
+
         return new CashSession(await CashSessionRepository.getById(sessionId));
     },
-    
+
     /**
      * ✅ NUEVO: Obtener todos los retiros de una sesión
      */
     async getWithdrawals(sessionId) {
         const session = await CashSessionRepository.getById(sessionId);
         if (!session) throw new Error('Sesión no encontrada');
-        
+
         return {
             withdrawals: session.withdrawals || [],
             totalWithdrawn: session.totalWithdrawn || 0
         };
     },
-    
+
     /**
      * Obtener o crear sesión activa para una sucursal
      */
     async getOrCreateActiveSession(branchId, userData = null) {
         let activeSession = await CashSessionRepository.getActiveSession(branchId);
-        
+
         if (activeSession) {
             return new CashSession(activeSession);
         }
-        
+
         console.log('📝 No hay sesión activa, creando una nueva...');
-        
+
         const defaultSessionData = {
             storeSlug: 'tienda-default',
             branchId: branchId,
@@ -153,44 +153,44 @@ export const CashSessionService = {
             userName: userData?.nombreCompleto || 'Administrador',
             openingCash: 0
         };
-        
+
         const newSession = await this.openSession(defaultSessionData, userData?.id);
         return newSession;
     },
-    
+
     /**
      * Cerrar sesión de caja
      */
     async closeSession(sessionId, closingCash, notes = '', closedBy = null) {
         const currentSession = await CashSessionRepository.getById(sessionId);
-        
+
         if (!currentSession) {
             throw new Error('Sesión de caja no encontrada');
         }
-        
+
         if (currentSession.status !== 'open') {
             throw new Error(`La sesión ya está ${currentSession.status === 'closed' ? 'cerrada' : 'cancelada'}`);
         }
-        
+
         if (!closingCash || closingCash < 0) {
             throw new Error('El monto de cierre es requerido y debe ser mayor o igual a 0');
         }
-        
+
         const session = new CashSession(currentSession);
         session.close(closingCash, notes, closedBy);
-        
+
         const validation = session.validarParaCierre();
         if (!validation.valido) {
             throw new Error(validation.errores.join(', '));
         }
-        
+
         const updated = await CashSessionRepository.close(sessionId, closingCash, notes, closedBy);
-        
+
         await CacheService.clearCache(STORES.CASH_SESSIONS || 'cash_sessions');
-        
+
         return new CashSession(updated);
     },
-    
+
     /**
      * Obtener sesión activa de una sucursal
      */
@@ -198,7 +198,7 @@ export const CashSessionService = {
         const sessionData = await CashSessionRepository.getActiveSession(branchId);
         return sessionData ? new CashSession(sessionData) : null;
     },
-    
+
     /**
      * Obtener sesión por ID
      */
@@ -209,17 +209,17 @@ export const CashSessionService = {
                 return new CashSession(cached);
             }
         }
-        
+
         const sessionData = await CashSessionRepository.getById(sessionId);
-        
+
         if (sessionData) {
             await CacheService.setCache(STORES.CASH_SESSIONS || 'cash_sessions', sessionId, sessionData, 3600000);
             return new CashSession(sessionData);
         }
-        
+
         return null;
     },
-    
+
     /**
      * Obtener todas las sesiones
      */
@@ -231,34 +231,34 @@ export const CashSessionService = {
                 return cached.map(s => new CashSession(s));
             }
         }
-        
+
         const sessionsData = await CashSessionRepository.getAll(filters);
         const sessions = sessionsData.map(s => new CashSession(s));
-        
+
         const cacheKey = `cash_sessions_list_${JSON.stringify(filters)}`;
         await CacheService.setCache(STORES.CASH_SESSIONS || 'cash_sessions', cacheKey, sessionsData, 1800000);
-        
+
         return sessions;
     },
-    
+
     /**
      * Obtener resumen de ventas del día
      */
     async getTodaySummary(branchId) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
+
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
-        
+
         const sessions = await CashSessionRepository.getByDateRange(today, tomorrow, branchId);
-        
+
         const totalSessions = sessions.length;
         const totalOpeningCash = sessions.reduce((sum, s) => sum + (s.openingCash || 0), 0);
         const totalClosingCash = sessions.reduce((sum, s) => sum + (s.closingCash || 0), 0);
         const totalWithdrawals = sessions.reduce((sum, s) => sum + (s.totalWithdrawn || 0), 0);
         const totalDifference = totalClosingCash - totalOpeningCash;
-        
+
         return {
             date: today.toLocaleDateString('es-MX'),
             totalSessions,
@@ -269,7 +269,7 @@ export const CashSessionService = {
             sessions
         };
     },
-    
+
     /**
      * Generar ID de sesión único
      */

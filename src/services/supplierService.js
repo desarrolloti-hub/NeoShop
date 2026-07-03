@@ -3,10 +3,10 @@
    DYNAMIC COLLECTIONS: suppliers + StoreName
    ======================================== */
 
-import { Supplier } from '/classes/supplierModel.js';
-import { SupplierRepository } from '/repositories/supplierRepository.js';
-import { CacheService, STORES } from '/services/cacheService.js';
-import { AdminService } from '/services/adminService.js';
+import { Supplier } from '../classes/supplierModel.js';
+import { SupplierRepository } from '../repositories/supplierRepository.js';
+import { CacheService, STORES } from './cacheService.js';
+import { AdminService } from './adminService.js';
 
 export const SupplierService = {
     /**

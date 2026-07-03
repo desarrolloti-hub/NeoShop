@@ -3,10 +3,10 @@
    Dynamic collection: customers + StoreName
    ======================================== */
 
-import { Customer } from '/classes/customerModel.js';
-import { CustomerRepository } from '/repositories/customerRepository.js';
-import { CacheService } from '/services/cacheService.js';
-import { AdminService } from '/services/adminService.js';
+import { Customer } from '../classes/customerModel.js';
+import { CustomerRepository } from '../repositories/customerRepository.js';
+import { CacheService } from './cacheService.js';
+import { AdminService } from './adminService.js';
 
 // Cache store name
 const CACHE_STORE = 'customers';

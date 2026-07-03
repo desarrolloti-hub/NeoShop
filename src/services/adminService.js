@@ -2,9 +2,9 @@
    ADMIN SERVICE - Business logic
    ======================================== */
 
-import { Admin } from '/classes/adminModel.js';
-import { AdminRepository } from '/repositories/adminRepository.js';
-import { CacheService, STORES } from '/services/cacheService.js';
+import { Admin } from '../classes/adminModel.js';
+import { AdminRepository } from '../repositories/adminRepository.js';
+import { CacheService, STORES } from './cacheService.js';
 
 export const ROLES = {
     ADMIN: 'admin',

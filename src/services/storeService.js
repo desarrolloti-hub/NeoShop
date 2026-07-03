@@ -4,10 +4,10 @@
    NOW WITH DYNAMIC COLLECTIONS: stores + StoreName
    ======================================== */
 
-import { Store } from '/classes/storeModel.js';
-import { StoreRepository } from '/repositories/storeRepository.js';
-import { CacheService, STORES } from '/services/cacheService.js';
-import { AdminService } from '/services/adminService.js';
+import { Store } from '../classes/storeModel.js';
+import { StoreRepository } from '../repositories/storeRepository.js';
+import { CacheService, STORES } from './cacheService.js';
+import { AdminService } from './adminService.js';
 
 /**
  * Converts a string to camelCase with first letter capitalized

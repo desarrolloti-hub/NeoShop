@@ -5,10 +5,10 @@
    El ID del partner es el mismo que el UID de Firebase Auth
    ======================================== */
 
-import { Partner } from '/classes/partnerModel.js';
-import { PartnerRepository } from '/repositories/partnerRepository.js';
-import { StoreService } from '/services/storeService.js';
-import { CacheService } from '/services/cacheService.js';
+import { Partner } from '../classes/partnerModel.js';
+import { PartnerRepository } from '../repositories/partnerRepository.js';
+import { StoreService } from './storeService.js';
+import { CacheService } from './cacheService.js';
 
 /**
  * Convierte un string a camelCase con primera letra mayuscula

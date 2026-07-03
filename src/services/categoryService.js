@@ -4,10 +4,10 @@
    DYNAMIC COLLECTIONS: categories + StoreName
    ======================================== */
 
-import { Category } from '/classes/categoryModel.js';
-import { CategoryRepository } from '/repositories/categoryRepository.js';
-import { CacheService, STORES } from '/services/cacheService.js';
-import { AdminService } from '/services/adminService.js';
+import { Category } from '../classes/categoryModel.js';
+import { CategoryRepository } from '../repositories/categoryRepository.js';
+import { CacheService, STORES } from './cacheService.js';
+import { AdminService } from './adminService.js';
 
 export const CategoryService = {
     /**
