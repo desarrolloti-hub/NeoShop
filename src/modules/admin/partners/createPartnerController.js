@@ -2,10 +2,10 @@
    PARTNERS CREATE CONTROLLER
    ============================================ */
 
-import { createPartnerService } from '/src/services/partnerService.js';
-import { StoreService } from '/src/services/storeService.js';
-import { AuthService } from '/src/services/authService.js';
-import { Partner } from '/src/classes/partnerModel.js';
+import { createPartnerService } from '../../../services/partnerService.js';
+import { StoreService } from '../../../services/storeService.js';
+import { AuthService } from '../../../services/authService.js';
+import { Partner } from '../../../classes/partnerModel.js';
 
 
 let partnerService = null;

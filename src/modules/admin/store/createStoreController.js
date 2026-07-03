@@ -3,9 +3,9 @@
    CONTROLLER FOR STORE CONFIGURATION (CREATE/EDIT)
    ======================================================== */
 
-import { AdminService } from '/src/services/adminService.js';
-import { AdminRepository } from '/src/repositories/adminRepository.js';
-import { StoreService } from '/src/services/storeService.js';
+import { AdminService } from '../../../services/adminService.js';
+import { AdminRepository } from '../../../repositories/adminRepository.js';
+import { StoreService } from '../../../services/storeService.js';
 
 let currentStep = 1;
 let isTransitioning = false;

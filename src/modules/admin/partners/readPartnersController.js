@@ -2,9 +2,9 @@
    PARTNERS LIST CONTROLLER
    ============================================ */
 
-import { createPartnerService } from '/src/services/partnerService.js';
-import { StoreService } from '/src/services/storeService.js';
-import { AuthService } from '/src/services/authService.js';
+import { createPartnerService } from '../../../services/partnerService.js';
+import { StoreService } from '../../../services/storeService.js';
+import { AuthService } from '../../../services/authService.js';
 
 
 let partnerService = null;

@@ -3,8 +3,8 @@
    DYNAMIC COLLECTIONS: suppliers + StoreName
    ======================================== */
 
-import { SupplierService } from '/src/services/supplierService.js';
-import { AdminService } from '/src/services/adminService.js';
+import { SupplierService } from '../../../services/supplierService.js';
+import { AdminService } from '../../../services/adminService.js';
 
 let isLoading = false;
 let currentImageBase64 = '';

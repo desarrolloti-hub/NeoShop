@@ -10,7 +10,7 @@ import {
     query, where, orderBy, limit
 } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 
-import { Customer } from '/src/classes/customerModel.js';
+import { Customer } from '../classes/customerModel.js';
 
 /**
  * Gets the customers collection name for a store

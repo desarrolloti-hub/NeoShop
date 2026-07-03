@@ -4,11 +4,11 @@
    SIN MODIFICAR CACHE SERVICE
    ============================================ */
 
-import { AuthService } from '/src/services/authService.js';
-import { StoreService } from '/src/services/storeService.js';
-import { ProductService } from '/src/services/productService.js';
-import { SaleService } from '/src/services/saleService.js';
-import { createPartnerService } from '/src/services/partnerService.js';
+import { AuthService } from '../../../services/authService.js';
+import { StoreService } from '../../../services/storeService.js';
+import { ProductService } from '../../../services/productService.js';
+import { SaleService } from '../../../services/saleService.js';
+import { createPartnerService } from '../../../services/partnerService.js';
 
 let chart = null;
 let elements = {};

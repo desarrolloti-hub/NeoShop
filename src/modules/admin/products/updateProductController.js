@@ -4,9 +4,9 @@
    DYNAMIC COLLECTIONS: products + StoreName
    ======================================================== */
 
-import { ProductService } from '/src/services/productService.js';
-import { AdminService } from '/src/services/adminService.js';
-import { CategoryService } from '/src/services/categoryService.js';
+import { ProductService } from '../../../services/productService.js';
+import { AdminService } from '../../../services/adminService.js';
+import { CategoryService } from '../../../services/categoryService.js';
 
 let isLoading = false;
 let currentImageBase64 = '';

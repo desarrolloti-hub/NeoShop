@@ -4,7 +4,7 @@
    Dependencias: CashSessionService, SweetAlert2
    ======================================================== */
 
-import { CashSessionService } from '/src/services/cashSessionService.js';
+import { CashSessionService } from '../../../services/cashSessionService.js';
 
 let allSessions = [];
 let filteredSessions = [];

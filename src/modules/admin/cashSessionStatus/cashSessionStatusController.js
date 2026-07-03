@@ -1,7 +1,7 @@
 /* FILE: cashSessionStatusController.js */
 /* Controller for cash session - With SweetAlert notifications */
 
-import { CashSessionService } from '/src/services/cashSessionService.js';
+import { CashSessionService } from '../../../services/cashSessionService.js';
 
 let isLoading = false;
 let currentSession = null;

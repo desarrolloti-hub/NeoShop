@@ -3,10 +3,10 @@
    VERSIÓN SIMPLIFICADA Y ROBUSTA
    ===========================================../../../../= */
 
-import { SaleService } from '/src/services/saleService.js';
-import { AdminService } from '/src/services/adminService.js';
-import { ProductService } from '/src/services/productService.js';
-import { CustomerService } from '/src/services/customerService.js';
+import { SaleService } from '../../../services/saleService.js';
+import { AdminService } from '../../../services/adminService.js';
+import { ProductService } from '../../../services/productService.js';
+import { CustomerService } from '../../../services/customerService.js';
 import { showTicket } from '../../shared/ticketPrinter/ticketPrinter.js';
 
 // ========== ESTADO GLOBAL ==========

@@ -3,9 +3,9 @@
    Adaptado para SaleService y AdminService actualizados
    ============================================ */
 
-import { SaleService } from '/src/services/saleService.js';
-import { AdminService } from '/src/services/adminService.js';
-import { ProductService } from '/src/services/productService.js';
+import { SaleService } from '../../../services/saleService.js';
+import { AdminService } from '../../../services/adminService.js';
+import { ProductService } from '../../../services/productService.js';
 
 // ========== VARIABLES ==========
 let currentSale = null;
