@@ -22,6 +22,9 @@ export class Admin {
         // Trial
         this.trialEndDate = data.trialEndDate || null;
 
+        // Theme Preference
+        this.themeDark = data.themeDark !== undefined ? data.themeDark : false; // ✅ NUEVO
+
         // Status and Terms
         this.active = data.active !== undefined ? data.active : true;
         this.termsAccepted = data.termsAccepted || false;
@@ -95,6 +98,11 @@ export class Admin {
         return daysLeft >= 0 && daysLeft <= 3;
     }
 
+    // ✅ Obtener el tema actual
+    get theme() {
+        return this.themeDark ? 'dark' : 'light';
+    }
+
     get summary() {
         return {
             id: this.id,
@@ -112,7 +120,8 @@ export class Admin {
             trialEndDate: this.trialEndDate,
             isTrialExpired: this.isTrialExpired,
             daysLeftInTrial: this.daysLeftInTrial,
-            isFreePlan: this.isFreePlan
+            isFreePlan: this.isFreePlan,
+            themeDark: this.themeDark // ✅ NUEVO
         };
     }
 
@@ -159,6 +168,20 @@ export class Admin {
 
     updatePlan(newPlan) {
         this.plan = newPlan;
+        this.updatedAt = new Date().toISOString();
+        return this;
+    }
+
+    // ✅ NUEVO: Actualizar preferencia de tema
+    updateTheme(isDarkMode) {
+        this.themeDark = isDarkMode;
+        this.updatedAt = new Date().toISOString();
+        return this;
+    }
+
+    // ✅ NUEVO: Alternar tema
+    toggleTheme() {
+        this.themeDark = !this.themeDark;
         this.updatedAt = new Date().toISOString();
         return this;
     }

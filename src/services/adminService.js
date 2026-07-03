@@ -36,12 +36,13 @@ export const AdminService = {
             name: adminData.name.trim(),
             email: adminData.email.toLowerCase().trim(),
             phoneNumber: adminData.phoneNumber?.trim() || '',
-            plan: 'full-free', // ✅ Plan por defecto
+            plan: 'full-free',
             storesId: adminData.storesId || {},
             active: true,
             termsAccepted: adminData.termsAccepted || false,
             userPhoto: adminData.userPhoto || '',
-            provider: 'email'
+            provider: 'email',
+            themeDark: false // ✅ NUEVO: Por defecto modo claro
         });
 
         const result = await AdminRepository.registerWithEmail(admin.email, password, admin);
@@ -89,7 +90,8 @@ export const AdminService = {
             storeName: result.userData.storeName || null,
             trialEndDate: result.userData.trialEndDate || null,
             isTrialExpired: result.userData.isTrialExpired || false,
-            daysLeftInTrial: result.userData.daysLeftInTrial || 0
+            daysLeftInTrial: result.userData.daysLeftInTrial || 0,
+            themeDark: result.userData.themeDark || false // ✅ NUEVO: Incluir en sesión
         };
 
         this._saveSession(sessionData);
@@ -112,6 +114,21 @@ export const AdminService = {
 
     getSession() {
         return this._getSession();
+    },
+
+    // ✅ NUEVO: Actualizar preferencia de tema en base de datos
+    async updateTheme(adminId, isDarkMode) {
+        const result = await AdminRepository.update(adminId, { themeDark: isDarkMode });
+
+        // Actualizar sesión
+        const session = this._getSession();
+        if (session) {
+            session.themeDark = isDarkMode;
+            this._saveSession(session);
+            this._dispatchAuthChange(session);
+        }
+
+        return result;
     },
 
     // ========== PRIVATE METHODS ==========

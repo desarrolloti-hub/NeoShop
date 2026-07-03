@@ -51,17 +51,18 @@ export const AdminRepository = {
         const trialEndDate = new Date();
         trialEndDate.setDate(trialEndDate.getDate() + 15);
 
-        // ✅ Guardar admin con plan 'full-free' por defecto
+        // ✅ Guardar admin con plan 'full-free' por defecto y themeDark: false
         const adminToSave = {
             id: firebaseUser.uid,
             name: adminData.name || '',
             email: firebaseUser.email,
             phoneNumber: adminData.phoneNumber || '',
-            plan: 'full-free', // ✅ PLAN POR DEFECTO
+            plan: 'full-free',
             storesId: adminData.storesId || {},
             storeId: adminData.storeId || null,
             storeName: adminData.storeName || null,
             trialEndDate: trialEndDate.toISOString(),
+            themeDark: false, // ✅ NUEVO: Por defecto modo claro
             active: true,
             termsAccepted: adminData.termsAccepted || false,
             userPhoto: adminData.userPhoto || '',
@@ -95,17 +96,18 @@ export const AdminRepository = {
             const trialEndDate = new Date();
             trialEndDate.setDate(trialEndDate.getDate() + 15);
 
-            // ✅ Guardar admin con plan 'full-free' por defecto
+            // ✅ Guardar admin con plan 'full-free' por defecto y themeDark: false
             adminData = {
                 id: firebaseUser.uid,
                 name: firebaseUser.displayName || '',
                 email: firebaseUser.email,
                 phoneNumber: '',
-                plan: 'full-free', // ✅ PLAN POR DEFECTO
+                plan: 'full-free',
                 storesId: {},
                 storeId: null,
                 storeName: null,
                 trialEndDate: trialEndDate.toISOString(),
+                themeDark: false, // ✅ NUEVO: Por defecto modo claro
                 active: true,
                 termsAccepted: true,
                 userPhoto: firebaseUser.photoURL || '',
