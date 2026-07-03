@@ -1,8 +1,6 @@
-/* ========================================
-   ROUTES - Definición de rutas
-   ======================================== */
+//Definición de Rutas
 
-// Visitor
+/* ====== Visitor ====== */
 import { loginController } from '../modules/visitor/login/loginController.js';
 import { init404Controller } from '../modules/shared/errors/404Controller.js';
 import { plansController } from '../modules/visitor/plans/plansController.js';
@@ -11,102 +9,64 @@ import { aboutUsController } from '../modules/visitor/aboutUs/aboutUsController.
 import { createAccountController } from '../modules/visitor/createAccount/createAccounController.js';
 import { contactController } from '../modules/visitor/contact/contactController.js';
 import { termsAndConditionsController } from '../modules/visitor/termsAndConditions/termsAndConditionsController.js';
-/* ========================================
-      ----------- store -----------
-======================================== */
 
-import { createStoreController } from '../modules/admin/store/create/createStoreController.js';
+/* ====== Admin ====== */
+/*  Store  */
+import { createStoreController } from '../modules/admin/store/createStoreController.js';
 
-
-
-/* ========================================
-     ----------- settings -----------
-======================================== */
-
+/*  Settings  */
 import { settingsController } from '../modules/admin/settings/settingsController.js';
 
-
-
-
-/* ========================================
-     ----------- profile -----------
-======================================== */
+/*  perfil  */
 import { updateProfileController } from '../modules/admin/profile/updateProfileController.js';
 
-
-/* ========================================
-       ----------- home -----------
- ======================================== */
-
+/*  dashboard  */
 import { adminHomeController } from '../modules/admin/home/adminHomeController.js';
 
+/*  clientes  */
+import { readCustomersController } from '../modules/admin/customer/readCustomersController.js';
+import { createCustomerController } from '../modules/admin/customer/createCustomerController.js';
+import { updateCustomerController } from '../modules/admin/customer/updateCustomerController.js';
 
-/* ========================================
-       ----------- customer -----------
- ======================================== */
-import { readCustomersController } from '../modules/admin/customer/read/readCustomersController.js';
-import { createCustomerController } from '../modules/admin/customer/create/createCustomerController.js';
-import { updateCustomerController } from '../modules/admin/customer/update/updateCustomerController.js';
+/*  proveedores  */
+import { createSupplierController } from '../modules/admin/supplier/createSupplierController.js';
+import { readSupplierController } from '../modules/admin/supplier/readSupplierController.js';
+import { updateSupplierController } from '../modules/admin/supplier/updateSupplierController.js';
 
-
-
-/* ========================================
-     ----------- Supplier -----------
-======================================== */
-
-import { createSupplierController } from '../modules/admin/supplier/create/createSupplierController.js';
-import { readSupplierController } from '../modules/admin/supplier/read/readSupplierController.js';
-import { updateSupplierController } from '../modules/admin/supplier/update/updateSupplierController.js';
-
-
-/* ========================================
- ----------- cashSessionStatus -----------    
-======================================== */
-
+/*  caja  */
 import { cashSessionStatusController } from '../modules/admin/cashSessionStatus/cashSessionStatusController.js';
-import { readCashSessionsController } from '../modules/admin/cashSessionStatus/read/readCashSessionsController.js';
+import { readCashSessionsController } from '../modules/admin/cashSessionStatus/readCashSessionsController.js';
 
+/*  productoss */
+import { readProductsController } from '../modules/admin/products/readProductsController.js';
+import { createProductController } from '../modules/admin/products/createProductController.js';
+import { updateProductController } from '../modules/admin/products/updateProductController.js';
 
-/* ========================================
- ----------- productos -----------    
-======================================== */
-
-import { readProductsController } from '../modules/admin/products/read/readProductsController.js';
-import { createProductController } from '../modules/admin/products/create/createProductController.js';
-import { updateProductController } from '../modules/admin/products/update/updateProductController.js';
-
-/* == ventas == */
-import { saleDetailController } from '../modules/admin/sales/detail/detailSaleController.js';
-import { saleListController } from '../modules/admin/sales/read/readSaleController.js';
-import { saleCreateController } from '../modules/admin/sales/create/createSaleController.js';
+/*  ventas */
+import { saleDetailController } from '../modules/admin/sales/detailSaleController.js';
+import { saleListController } from '../modules/admin/sales/readSaleController.js';
+import { saleCreateController } from '../modules/admin/sales/createSaleController.js';
 
 /* colaboradores */
-import { createPartnerController } from '../modules/admin/partners/create/createPartnerController.js';
-import { updatePartnerController } from '../modules/admin/partners/update/updatePartnerController.js';
-import { readPartnersController } from '../modules/admin/partners/read/readPartnersController.js';
+import { createPartnerController } from '../modules/admin/partners/createPartnerController.js';
+import { updatePartnerController } from '../modules/admin/partners/updatePartnerController.js';
+import { readPartnersController } from '../modules/admin/partners/readPartnersController.js';
 
 /* categorias */
-import { updateCategoryController } from '../modules/admin/category/update/updateCategoryController.js';
-import { createCategoryController } from '../modules/admin/category/create/createCategoryController.js';
-import { readCategoriesController } from '../modules/admin/category/read/readCategoriesController.js';
-
-/* ========================================
-                Rutas HTML 
-   ======================================== */
+import { updateCategoryController } from '../modules/admin/category/updateCategoryController.js';
+import { createCategoryController } from '../modules/admin/category/createCategoryController.js';
+import { readCategoriesController } from '../modules/admin/category/readCategoriesController.js';
 
 
-
-
-
-/* ================================================================================
-       --------------------------------- Visitor ---------------------------------
-   ================================================================================ */
 
 export const routes = {
+    // Rutas HTML
     "/": {
         view: "/modules/visitor/home/home.html",
         controller: homeController
     },
+
+    /* ====== Visitor ====== */
     "/planes": {
         view: "/modules/visitor/plans/plans.html",
         controller: plansController
@@ -132,39 +92,32 @@ export const routes = {
         controller: termsAndConditionsController,
     },
 
-
-
-
-    /* ================================================================================
-           --------------------------------- Admin ---------------------------------
-       ================================================================================ */
-
-
+    /* ====== Admin ====== */
     /* customer */
     "/clientes": {
-        view: "/modules/admin/customer/read/readCustomers.html",
+        view: "/modules/admin/customer/readCustomers.html",
         controller: readCustomersController
     },
     "/nuevoCliente": {
-        view: "/modules/admin/customer/create/createCustomer.html",
+        view: "/modules/admin/customer/createCustomer.html",
         controller: createCustomerController
     },
     "/editarCliente": {
-        view: "/modules/admin/customer/update/updateCustomer.html",
+        view: "/modules/admin/customer/updateCustomer.html",
         controller: updateCustomerController
     },
 
     /* supplier */
     "/editarProveedor": {
-        view: "/modules/admin/supplier/update/updateSupplier.html",
+        view: "/modules/admin/supplier/updateSupplier.html",
         controller: updateSupplierController
     },
     "/crearProveedor": {
-        view: "/modules/admin/supplier/create/createSupplier.html",
+        view: "/modules/admin/supplier/createSupplier.html",
         controller: createSupplierController
     },
     "/proveedores": {
-        view: "/modules/admin/supplier/read/readSupplier.html",
+        view: "/modules/admin/supplier/readSupplier.html",
         controller: readSupplierController
     },
 
@@ -174,103 +127,91 @@ export const routes = {
         controller: updateProfileController
     },
 
-    /* ver producto */
+    /* productos */
     "/productos": {
-        view: "/modules/admin/products/read/readProducts.html",
+        view: "/modules/admin/products/readProducts.html",
         controller: readProductsController
     },
-
-    /* crear producto */
     "/crearProducto": {
-        view: "/modules/admin/products/create/createProduct.html",
+        view: "/modules/admin/products/createProduct.html",
         controller: createProductController
     },
-
-    /* editar producto */
     "/editarProducto": {
-        view: "/modules/admin/products/update/updateProduct.html",
+        view: "/modules/admin/products/updateProduct.html",
         controller: updateProductController
     },
 
-    /* ========================================
-     ----------- cashSessionStatus -----------    
-    ======================================== */
-
+    /* caja */
     "/caja": {
         view: "/modules/admin/cashSessionStatus/cashSessionStatus.html",
         controller: cashSessionStatusController
     },
-
-
     "/estadoCaja": {
-        view: "/modules/admin/cashSessionStatus/read/readCashSessions.html",
+        view: "/modules/admin/cashSessionStatus/readCashSessions.html",
         controller: readCashSessionsController
     },
 
-
-
-
+    /* Home */
     "/inicioAdmin": {
         view: "/modules/admin/home/adminHome.html",
         controller: adminHomeController
     },
-    "/tienda": {
-        view: "/modules/admin/store/create/createStore.html",
-        controller: createStoreController
-    },
+
     /* == ventas == */
     "/nuevaVenta": {
-        view: "/modules/admin/sale/create/createSale.html",
+        view: "/modules/admin/sale/createSale.html",
         controller: saleCreateController
     },
     "/ventas": {
-        view: "/modules/admin/sale/read/readSale.html",
+        view: "/modules/admin/sale/readSale.html",
         controller: saleListController
     },
     "/detallesVenta": {
-        view: "/modules/admin/sale/detail/detailSale.html",
+        view: "/modules/admin/sale/detailSale.html",
         controller: saleDetailController
     },
-    /*settings */
+
+    /*configuración */
     "/configuracion": {
         view: "/modules/admin/settings/settings.html",
         controller: settingsController
     },
 
-    /*store */
+    /* tienda */
     "/crearTienda": {
-        view: "/modules/admin/store/create/createStore.html",
+        view: "/modules/admin/store/createStore.html",
         controller: createStoreController
     },
+
     /* colaboradores */
     "/colaboradores": {
-        view: "/modules/admin/partners/read/readPartners.html",
+        view: "/modules/admin/partners/readPartners.html",
         controller: readPartnersController
     },
     "/crearColaborador": {
-        view: "/modules/admin/partners/create/createPartner.html",
+        view: "/modules/admin/partners/createPartner.html",
         controller: createPartnerController
     },
     "/editarColaborador": {
-        view: "/modules/admin/partners/update/updatePartner.html",
+        view: "/modules/admin/partners/updatePartner.html",
         controller: updatePartnerController
     },
+
     /* categorias */
     "/crearCategoria": {
-        view: "/modules/admin/category/create/createCategory.html",
+        view: "/modules/admin/category/createCategory.html",
         controller: createCategoryController
     },
     "/catalogoProductos": {
-        view: "/modules/admin/category/read/readCategories.html",
+        view: "/modules/admin/category/readCategories.html",
         controller: readCategoriesController
     },
     "/editarCategoria": {
-        view: "/modules/admin/category/update/updateCategory.html",
+        view: "/modules/admin/category/updateCategory.html",
         controller: updateCategoryController
     },
-    /* ========================================
-         ----------- Todos -----------
-   ======================================== */
+
+    /* ====== Shared ====== */
     '/404': {
         view: '/modules/shared/errors/404.html',
         controller: init404Controller

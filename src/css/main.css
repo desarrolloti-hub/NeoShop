@@ -59,7 +59,7 @@
    ======================================== */
 
 
-@import url('./pages/admin/store/create/createStore.css');
+@import url('./pages/admin/store/createStore.css');
 
 /* navbar */
 @import url('./components/admin/adminNavbar.css');
@@ -69,37 +69,37 @@
 @import url('./pages/admin/home/adminHome.css');
 
 /* customers */
-@import url(./pages/admin/customer/read/readCustomers.css);
+@import url(./pages/admin/customer/readCustomers.css);
 
 /* profile */
 @import url('./pages/admin/profile/updateProfile.css');
 
 /* suppliers */
-@import url('./pages/admin/supplier/update/updateSupplier.css');
-@import url('./pages/admin/supplier/create/createSupplier.css');
-@import url('./pages/admin/supplier/read/readSupplier.css');
+@import url('./pages/admin/supplier/updateSupplier.css');
+@import url('./pages/admin/supplier/createSupplier.css');
+@import url('./pages/admin/supplier/readSupplier.css');
 
 /* cash session status */
 @import url('./pages/admin/cashSessionStatus/cashSessionStatus.css');
-@import url('./pages/admin/cashSessionStatus/read/readCashSessions.css');
+@import url('./pages/admin/cashSessionStatus/readCashSessions.css');
 
 /* products */
-@import url('./pages/admin/products/read/readProducts.css');
-@import url('./pages/admin/products/create/createProduct.css');
-@import url('./pages/admin/products/update/updateProduct.css');
+@import url('./pages/admin/products/readProducts.css');
+@import url('./pages/admin/products/createProduct.css');
+@import url('./pages/admin/products/updateProduct.css');
 
 @import url(./pages/admin/settings/settings.css);
 /* ventas */
-@import url(./pages/admin/sales/read/readSale.css);
-@import url(./pages/admin/sales/create/createSale.css);
-@import url(./pages/admin/sales/detail/detailSale.css);
+@import url(./pages/admin/sales/readSale.css);
+@import url(./pages/admin/sales/createSale.css);
+@import url(./pages/admin/sales/detailSale.css);
 
 /* colaboradore */
-@import url(./pages/admin/partners/create/createPartner.css);
-@import url(./pages/admin/partners/read/readPartners.css);
-@import url(./pages/admin/partners/update/updatePartner.css);
+@import url(./pages/admin/partners/createPartner.css);
+@import url(./pages/admin/partners/readPartners.css);
+@import url(./pages/admin/partners/updatePartner.css);
 
 /* categorias */
-@import url(./pages/admin/category/create/createCategory.css);
-@import url(./pages/admin/category/read/readCategories.css);
-@import url(./pages/admin/category/update/updateCategory.css);
+@import url(./pages/admin/category/createCategory.css);
+@import url(./pages/admin/category/readCategories.css);
+@import url(./pages/admin/category/updateCategory.css);

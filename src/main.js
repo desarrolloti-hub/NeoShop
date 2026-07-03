@@ -5,7 +5,7 @@
 
 import { loadLayout, initLayoutWatcher } from './modules/shared/loadLayout/loadLayout.js';
 import { initRouter } from './router/router.js';
-import { AuthService, ROLES } from '../services/authService.js';
+import { AuthService, ROLES } from './services/authService.js';
 
 function loadExternalScripts() {
     return new Promise((resolve) => {
