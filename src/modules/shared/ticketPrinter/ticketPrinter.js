@@ -83,7 +83,7 @@ function renderTicket(saleData, storeData) {
 
     // 🔹 CORRECCIÓN: Convertir a string si son objetos
     const name = storeData?.name || 'Mi Tienda';
-    const logo = storeData?.logo || '';
+    const logo = storeData?.logo || ''; // Base64 o URL
     const address = typeof storeData?.address === 'string' ? storeData.address : '';
     const phone = typeof storeData?.phone === 'string' ? storeData.phone : '';
     const rfc = typeof storeData?.rfc === 'string' ? storeData.rfc : '';
@@ -221,6 +221,7 @@ function setupEvents(modal, saleData, storeData, onClose) {
             
             const ticketHTML = document.getElementById('ticketContainer').innerHTML;
             
+            // Cerrar el modal mientras se imprime (para que no se vea)
             closeModal(modal, null);
             
             const iframe = document.createElement('iframe');
@@ -443,28 +444,69 @@ function setupEvents(modal, saleData, storeData, onClose) {
                 <body>
                     ${ticketHTML}
                     <script>
-                        window.onload = function() {
-                            setTimeout(function() {
-                                window.print();
-                                setTimeout(function() {
-                                    if (window.parent && window.parent.closeTicketIframe) {
-                                        window.parent.closeTicketIframe();
+                        (function() {
+                            function waitForImagesAndPrint() {
+                                const images = document.querySelectorAll('img');
+                                if (images.length === 0) {
+                                    window.print();
+                                    // 🔥 Notificar al padre después de imprimir
+                                    window.parent.closeTicketIframe();
+                                    return;
+                                }
+                                let loaded = 0;
+                                const total = images.length;
+                                images.forEach(img => {
+                                    if (img.complete) {
+                                        loaded++;
+                                    } else {
+                                        img.onload = () => {
+                                            loaded++;
+                                            if (loaded === total) {
+                                                window.print();
+                                                window.parent.closeTicketIframe();
+                                            }
+                                        };
+                                        img.onerror = () => {
+                                            loaded++;
+                                            if (loaded === total) {
+                                                window.print();
+                                                window.parent.closeTicketIframe();
+                                            }
+                                        };
                                     }
-                                }, 500);
-                            }, 200);
-                        };
+                                });
+                                if (loaded === total) {
+                                    window.print();
+                                    window.parent.closeTicketIframe();
+                                } else {
+                                    // Timeout de seguridad por si alguna imagen nunca se carga
+                                    setTimeout(() => {
+                                        if (loaded < total) {
+                                            console.warn('⚠️ Timeout esperando imágenes, imprimiendo de todos modos.');
+                                            window.print();
+                                            window.parent.closeTicketIframe();
+                                        }
+                                    }, 5000);
+                                }
+                            }
+
+                            // Pequeño retraso para asegurar que el DOM esté listo
+                            setTimeout(waitForImagesAndPrint, 200);
+                        })();
                     <\/script>
                 </body>
                 </html>
             `);
             doc.close();
             
+            // 🔥 Función que se ejecutará desde el iframe después de imprimir
             window.closeTicketIframe = () => {
                 if (iframe && iframe.parentNode) {
                     iframe.parentNode.removeChild(iframe);
                 }
                 window.closeTicketIframe = null;
                 isPrinting = false;
+                // ✅ Ejecutar el callback de cierre (navegar a ventas y limpiar)
                 if (typeof onClose === 'function') {
                     onClose();
                 }
@@ -499,7 +541,6 @@ function setupEvents(modal, saleData, storeData, onClose) {
     if ('usb' in navigator) {
         checkUSBDevices().then(hasDevice => {
             if (usbBtn) {
-                // Si quieres mostrar el botón en el futuro, cambia display: 'inline-flex'
                 usbBtn.style.display = 'none';
             }
         });
