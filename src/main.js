@@ -6,6 +6,7 @@
 import { loadLayout, initLayoutWatcher } from './modules/shared/loadLayout/loadLayout.js';
 import { initRouter } from './router/router.js';
 import { AuthService, ROLES } from './services/authService.js';
+import { ThemeService } from './services/themeService.js';
 
 function loadExternalScripts() {
     return new Promise((resolve) => {
@@ -79,7 +80,26 @@ function setupLayoutReadyListener() {
     window.addEventListener('layout:loaded', async (event) => {
         const { role } = event.detail;
         console.log('📦 Layout HTML cargado, inicializando controladores...');
+
+        // ✅ Inicializar tema ANTES de los controladores
+        await ThemeService.init();
+        console.log('🎨 Theme initialized');
+
         await initLayoutControllers(role);
+    });
+}
+
+/**
+ * Escucha cambios de autenticación para sincronizar el tema
+ */
+function setupAuthListener() {
+    window.addEventListener('auth:stateChanged', async (event) => {
+        const userData = event.detail;
+        if (userData) {
+            // Usuario autenticado - sincronizar tema desde la base de datos
+            await ThemeService.syncFromDatabase();
+            console.log('🔄 Theme synced after auth change');
+        }
     });
 }
 
@@ -92,6 +112,9 @@ async function initApp() {
 
         // Configurar listener para cuando el HTML esté listo
         setupLayoutReadyListener();
+
+        // Configurar listener para cambios de autenticación
+        setupAuthListener();
 
         // Cargar layouts HTML (esto dispara el evento 'layout:loaded')
         await loadLayout();
