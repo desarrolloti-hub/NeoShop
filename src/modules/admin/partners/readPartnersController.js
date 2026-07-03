@@ -1,14 +1,16 @@
-/* ============================================
-   PARTNERS LIST CONTROLLER
-   ============================================ */
+/* FILE: readPartnersController.js
+   ========================================================
+   PARTNERS LIST CONTROLLER - Con toggle switch
+   ======================================================== */
 
 import { createPartnerService } from '../../../services/partnerService.js';
 import { StoreService } from '../../../services/storeService.js';
 import { AuthService } from '../../../services/authService.js';
 
-
 let partnerService = null;
 let currentStore = null;
+let allPartners = [];
+let currentFilter = 'all';
 
 /**
  * Inicializar vista de listado
@@ -42,11 +44,7 @@ export async function readPartnersController() {
             icon: 'error',
             title: 'Error',
             text: error.message || 'Error al cargar la lista de colaboradores',
-            confirmButtonText: 'Aceptar',
-            customClass: {
-                popup: 'swal2-popup',
-                confirmButton: 'swal2-confirm'
-            }
+            confirmButtonText: 'Aceptar'
         });
     }
 }
@@ -72,7 +70,10 @@ function setupListEvents() {
     }
 
     if (statusFilter) {
-        statusFilter.addEventListener('change', loadPartnersList);
+        statusFilter.addEventListener('change', () => {
+            currentFilter = statusFilter.value;
+            loadPartnersList();
+        });
     }
 
     if (verificationFilter) {
@@ -95,6 +96,7 @@ function clearFilters() {
     if (searchInput) searchInput.value = '';
     if (statusFilter) statusFilter.value = 'all';
     if (verificationFilter) verificationFilter.value = 'all';
+    currentFilter = 'all';
 
     loadPartnersList();
 }
@@ -134,6 +136,7 @@ async function loadPartnersList() {
             );
         }
 
+        allPartners = partners;
         renderPartnersTable(partners);
         renderPartnersCards(partners);
 
@@ -143,11 +146,7 @@ async function loadPartnersList() {
             icon: 'error',
             title: 'Error',
             text: 'No se pudieron cargar los colaboradores',
-            confirmButtonText: 'Aceptar',
-            customClass: {
-                popup: 'swal2-popup',
-                confirmButton: 'swal2-confirm'
-            }
+            confirmButtonText: 'Aceptar'
         });
     }
 }
@@ -165,7 +164,7 @@ function renderPartnersTable(partners) {
                 <td colspan="4" class="list-empty-state">
                     <i class="fas fa-users"></i>
                     <p>No hay colaboradores registrados</p>
-                    <button class="btn-primary" style="margin-top: 1rem;" id="emptyCreateBtn">
+                    <button class="btn btn-primary" style="margin-top: 1rem;" id="emptyCreateBtn">
                         <i class="fas fa-plus"></i> Crear primer colaborador
                     </button>
                 </td>
@@ -180,60 +179,63 @@ function renderPartnersTable(partners) {
         return;
     }
 
-    tbody.innerHTML = partners.map(partner => `
-        <tr>
-            <td>
-                <div class="partner-info">
-                    <div class="partner-avatar-list">
-                        ${partner.hasPhoto
-            ? `<img src="${partner.photoUrl}" alt="${partner.fullName}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user-circle\\'></i>'">`
-            : `<i class="fas fa-user-circle"></i>`
-        }
-                    </div>
-                    <div>
-                        <div class="partner-name">${escapeHtml(partner.fullName)}</div>
-                        <span class="partner-email">${escapeHtml(partner.email)}</span>
-                    </div>
-                </div>
-            </td>
-            <td>
-                <div class="partner-contact">
-                    ${partner.phone ? `<span class="phone"><i class="fas fa-phone"></i> ${escapeHtml(partner.formattedPhone)}</span>` : ''}
-                    ${partner.rfc ? `<span class="rfc"><i class="fas fa-id-card"></i> ${escapeHtml(partner.cleanRfc)}</span>` : ''}
-                    ${!partner.phone && !partner.rfc ? '<span style="color: var(--text-muted); font-size: var(--font-size-xs);">Sin contacto</span>' : ''}
-                </div>
-            </td>
-            <td>
-                <div class="partner-status">
-                    <span class="status-badge ${partner.isActive ? 'active' : 'inactive'}">
-                        ${partner.isActive ? 'Activo' : 'Inactivo'}
-                    </span>
-                    <span class="status-badge ${partner.isEmailVerified ? 'verified' : 'unverified'}">
-                        ${partner.isEmailVerified ? 'Verificado' : 'No verificado'}
-                    </span>
-                </div>
-            </td>
-            <td>
-                <div class="table-actions-list">
-                    <button class="btn-view-action" data-id="${partner.id}" data-action="view" title="Ver detalles">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn-edit-action" data-id="${partner.id}" data-action="edit" title="Editar">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    ${partner.isActive
-            ? `<button class="btn-disable-action" data-id="${partner.id}" data-action="disable" title="Inhabilitar">
-                            <i class="fas fa-ban"></i>
-                        </button>`
-            : `<button class="btn-enable-action" data-id="${partner.id}" data-action="enable" title="Habilitar">
-                            <i class="fas fa-check-circle"></i>
-                        </button>`
-        }
-                </div>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = partners.map(partner => {
+        const hasImage = partner.hasPhoto && partner.photoUrl;
+        const avatarHtml = hasImage
+            ? `<img src="${partner.photoUrl}" alt="${escapeHtml(partner.fullName)}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user-circle partner-avatar-icon\\'></i>'">`
+            : `<i class="fas fa-user-circle partner-avatar-icon"></i>`;
 
+        const statusClass = partner.isActive ? 'active' : 'inactive';
+        const statusText = partner.isActive ? 'Activo' : 'Inactivo';
+        const verifiedClass = partner.isEmailVerified ? 'verified' : 'unverified';
+        const verifiedText = partner.isEmailVerified ? 'Verificado' : 'No verificado';
+        const toggleActiveClass = partner.isActive ? 'active' : '';
+
+        return `
+            <tr data-id="${partner.id}">
+                <td>
+                    <div class="partner-info">
+                        <div class="partner-avatar-list">
+                            ${avatarHtml}
+                        </div>
+                        <div>
+                            <div class="partner-name">${escapeHtml(partner.fullName || 'N/A')}</div>
+                            <span class="partner-email">${escapeHtml(partner.email || 'N/A')}</span>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="partner-contact">
+                        <span class="phone"><i class="fas fa-phone"></i> ${escapeHtml(partner.phone || 'N/A')}</span>
+                        <span class="rfc"><i class="fas fa-id-card"></i> ${escapeHtml(partner.rfc || 'N/A')}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="partner-status">
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                        <span class="status-badge ${verifiedClass}">${verifiedText}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="action-badge">
+                        <button class="btn-view" data-id="${partner.id}" data-action="view" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn-edit" data-id="${partner.id}" data-action="edit" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <div class="status-switch-wrapper">
+                            <div class="status-row-switch ${toggleActiveClass}" data-partner-id="${partner.id}">
+                                <div class="status-row-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    // Adjuntar eventos
     attachTableEvents();
 }
 
@@ -249,7 +251,7 @@ function renderPartnersCards(partners) {
             <div class="list-empty-state">
                 <i class="fas fa-users"></i>
                 <p>No hay colaboradores registrados</p>
-                <button class="btn-primary" style="margin-top: 1rem;" id="emptyCardCreateBtn">
+                <button class="btn btn-primary" style="margin-top: 1rem;" id="emptyCardCreateBtn">
                     <i class="fas fa-plus"></i> Crear primer colaborador
                 </button>
             </div>
@@ -263,57 +265,60 @@ function renderPartnersCards(partners) {
         return;
     }
 
-    container.innerHTML = partners.map(partner => `
-        <div class="partner-card-item">
-            <div class="partner-card-header">
-                <div class="partner-card-avatar">
-                    ${partner.hasPhoto
+    container.innerHTML = partners.map(partner => {
+        const hasImage = partner.hasPhoto && partner.photoUrl;
+        const avatarHtml = hasImage
             ? `<img src="${partner.photoUrl}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user-circle\\'></i>'">`
-            : `<i class="fas fa-user-circle"></i>`
-        }
+            : `<i class="fas fa-user-circle"></i>`;
+
+        const statusClass = partner.isActive ? 'active' : 'inactive';
+        const statusText = partner.isActive ? 'Activo' : 'Inactivo';
+        const verifiedClass = partner.isEmailVerified ? 'verified' : 'unverified';
+        const verifiedText = partner.isEmailVerified ? 'Verificado' : 'No verificado';
+        const toggleActiveClass = partner.isActive ? 'active' : '';
+
+        return `
+            <div class="partner-card-item customer-card-item" data-id="${partner.id}">
+                <div class="partner-card-header customer-card-header">
+                    <div class="partner-card-avatar customer-card-avatar">
+                        ${avatarHtml}
+                    </div>
+                    <div class="partner-card-title customer-card-title">
+                        <h4 class="card-name">${escapeHtml(partner.fullName || 'N/A')}</h4>
+                        <small class="card-email">${escapeHtml(partner.email || 'N/A')}</small>
+                    </div>
                 </div>
-                <div class="partner-card-title">
-                    <h4>${escapeHtml(partner.fullName)}</h4>
-                    <small>${escapeHtml(partner.email)}</small>
+                <div class="partner-card-divider"></div>
+                <div class="partner-card-field customer-card-field">
+                    <strong>Teléfono:</strong>
+                    <span class="card-phone">${escapeHtml(partner.phone || 'N/A')}</span>
+                </div>
+                <div class="partner-card-field customer-card-field">
+                    <strong>RFC:</strong>
+                    <span class="card-rfc">${escapeHtml(partner.rfc || 'N/A')}</span>
+                </div>
+                <div class="partner-card-field customer-card-field">
+                    <strong>Estado:</strong>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                    <span class="status-badge ${verifiedClass}" style="margin-left: 4px;">${verifiedText}</span>
+                </div>
+                <div class="partner-card-divider"></div>
+                <div class="partner-card-actions customer-card-actions">
+                    <button class="card-action-icon btn-view" data-id="${partner.id}" data-action="view" title="Ver detalles">
+                        <i class="fas fa-eye"></i> Ver
+                    </button>
+                    <button class="card-action-icon btn-edit" data-id="${partner.id}" data-action="edit" title="Editar">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    <div class="status-switch-wrapper">
+                        <div class="status-row-switch ${toggleActiveClass}" data-partner-id="${partner.id}">
+                            <div class="status-row-slider"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="partner-card-divider"></div>
-            <div class="partner-card-field">
-                <strong>Teléfono:</strong>
-                <span>${partner.phone ? escapeHtml(partner.formattedPhone) : '-'}</span>
-            </div>
-            <div class="partner-card-field">
-                <strong>RFC:</strong>
-                <span>${partner.rfc ? escapeHtml(partner.cleanRfc) : '-'}</span>
-            </div>
-            <div class="partner-card-field">
-                <strong>Estado:</strong>
-                <span class="status-badge ${partner.isActive ? 'active' : 'inactive'}">
-                    ${partner.isActive ? 'Activo' : 'Inactivo'}
-                </span>
-                <span class="status-badge ${partner.isEmailVerified ? 'verified' : 'unverified'}" style="margin-left: 4px;">
-                    ${partner.isEmailVerified ? 'Verificado' : 'No verificado'}
-                </span>
-            </div>
-            <div class="partner-card-divider"></div>
-            <div class="partner-card-actions">
-                <button class="btn-view-action" data-id="${partner.id}" data-action="view" title="Ver detalles">
-                    <i class="fas fa-eye"></i> Ver
-                </button>
-                <button class="btn-edit-action" data-id="${partner.id}" data-action="edit" title="Editar">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-                ${partner.isActive
-            ? `<button class="btn-disable-action" data-id="${partner.id}" data-action="disable" title="Inhabilitar">
-                        <i class="fas fa-ban"></i> Inhab.
-                    </button>`
-            : `<button class="btn-enable-action" data-id="${partner.id}" data-action="enable" title="Habilitar">
-                        <i class="fas fa-check-circle"></i> Hab.
-                    </button>`
-        }
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 
     attachCardEvents();
 }
@@ -322,10 +327,16 @@ function renderPartnersCards(partners) {
  * Adjuntar eventos a los botones de la tabla
  */
 function attachTableEvents() {
-    const buttons = document.querySelectorAll('.table-actions-list button');
-    buttons.forEach(btn => {
-        btn.removeEventListener('click', handleTableAction);
-        btn.addEventListener('click', handleTableAction);
+    // Botones Ver y Editar
+    document.querySelectorAll('#partnersTableBody .btn-view, #partnersTableBody .btn-edit').forEach(btn => {
+        btn.removeEventListener('click', handleActionClick);
+        btn.addEventListener('click', handleActionClick);
+    });
+
+    // Toggle switches
+    document.querySelectorAll('#partnersTableBody .status-row-switch').forEach(toggle => {
+        toggle.removeEventListener('click', handleToggleClick);
+        toggle.addEventListener('click', handleToggleClick);
     });
 }
 
@@ -333,39 +344,124 @@ function attachTableEvents() {
  * Adjuntar eventos a los botones de las cards
  */
 function attachCardEvents() {
-    const buttons = document.querySelectorAll('.partner-card-actions button');
-    buttons.forEach(btn => {
-        btn.removeEventListener('click', handleTableAction);
-        btn.addEventListener('click', handleTableAction);
+    document.querySelectorAll('#partnersMobileCards .btn-view, #partnersMobileCards .btn-edit').forEach(btn => {
+        btn.removeEventListener('click', handleActionClick);
+        btn.addEventListener('click', handleActionClick);
+    });
+
+    document.querySelectorAll('#partnersMobileCards .status-row-switch').forEach(toggle => {
+        toggle.removeEventListener('click', handleToggleClick);
+        toggle.addEventListener('click', handleToggleClick);
     });
 }
 
 /**
- * Manejar acciones de tabla/cards
+ * Manejar clic en botones de acción
  */
-async function handleTableAction(e) {
+function handleActionClick(e) {
     const button = e.currentTarget;
     const action = button.dataset.action;
     const partnerId = button.dataset.id;
 
-    switch (action) {
-        case 'view':
-            await viewPartnerDetails(partnerId);
-            break;
-        case 'edit':
-            window.location.href = `/editarColaborador?id=${partnerId}`;
-            break;
-        case 'disable':
-            await togglePartnerStatus(partnerId, false);
-            break;
-        case 'enable':
-            await togglePartnerStatus(partnerId, true);
-            break;
+    if (action === 'view') {
+        viewPartnerDetails(partnerId);
+    } else if (action === 'edit') {
+        editPartner(partnerId);
     }
 }
 
 /**
- * Ver detalles del colaborador en SweetAlert
+ * Manejar clic en toggle switch
+ */
+function handleToggleClick(e) {
+    e.stopPropagation();
+    const toggle = e.currentTarget;
+    const partnerId = toggle.dataset.partnerId;
+    // Buscar el partner en la lista
+    const partner = allPartners.find(p => p.id === partnerId);
+    if (partner) {
+        handleToggleSwitch(partnerId, partner.fullName, partner.isActive, toggle);
+    }
+}
+
+/**
+ * Manejar toggle switch - Habilitar/Deshabilitar
+ */
+async function handleToggleSwitch(id, name, isCurrentlyActive, toggleElement) {
+    const action = isCurrentlyActive ? 'deshabilitar' : 'habilitar';
+    const actionText = isCurrentlyActive ? 'deshabilitado' : 'habilitado';
+    const confirmText = isCurrentlyActive ? 'Sí, deshabilitar' : 'Sí, habilitar';
+    const iconColor = isCurrentlyActive ? '#dc2626' : '#22c55e';
+
+    const result = await Swal.fire({
+        title: `${isCurrentlyActive ? 'Deshabilitar' : 'Habilitar'} colaborador`,
+        html: `Estás a punto de ${action} a <strong>${escapeHtml(name)}</strong>.<br>El colaborador quedará ${actionText} en el sistema.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: iconColor,
+        cancelButtonColor: '#64748b',
+        confirmButtonText: confirmText,
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+        // Cambiar visualmente el toggle
+        if (toggleElement) {
+            if (!isCurrentlyActive) toggleElement.classList.add('active');
+            else toggleElement.classList.remove('active');
+        }
+
+        Swal.fire({
+            title: `${isCurrentlyActive ? 'Deshabilitando' : 'Habilitando'}...`,
+            text: 'Por favor espera',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        // Llamar al servicio
+        if (isCurrentlyActive) {
+            await partnerService.deactivate(id);
+        } else {
+            await partnerService.activate(id);
+        }
+
+        Swal.close();
+
+        await Swal.fire({
+            title: `Colaborador ${actionText}`,
+            text: `${name} ha sido ${actionText} correctamente`,
+            icon: 'success',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#22c55e'
+        });
+
+        await loadPartnersList();
+
+    } catch (error) {
+        console.error(`Error al ${action} colaborador:`, error);
+        Swal.close();
+
+        // Revertir el toggle visualmente
+        if (toggleElement) {
+            if (isCurrentlyActive) toggleElement.classList.add('active');
+            else toggleElement.classList.remove('active');
+        }
+
+        await Swal.fire({
+            title: 'Error',
+            text: error.message || `No se pudo ${action} el colaborador`,
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#dc2626'
+        });
+    }
+}
+
+/**
+ * Ver detalles del colaborador
  */
 async function viewPartnerDetails(partnerId) {
     try {
@@ -376,19 +472,19 @@ async function viewPartnerDetails(partnerId) {
                 icon: 'error',
                 title: 'Error',
                 text: 'Colaborador no encontrado',
-                confirmButtonText: 'Aceptar',
-                customClass: {
-                    popup: 'swal2-popup',
-                    confirmButton: 'swal2-confirm'
-                }
+                confirmButtonText: 'Aceptar'
             });
             return;
         }
 
-        // Construir HTML para el detalle
-        const photoHtml = partner.hasPhoto
+        const photoHtml = partner.hasPhoto && partner.photoUrl
             ? `<img src="${partner.photoUrl}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 3px solid var(--color-primary);">`
             : `<i class="fas fa-user-circle" style="font-size: 4rem; color: var(--color-primary); margin-bottom: 10px;"></i>`;
+
+        const statusClass = partner.isActive ? 'active' : 'inactive';
+        const statusText = partner.isActive ? 'Activo' : 'Inactivo';
+        const verifiedClass = partner.isEmailVerified ? 'verified' : 'unverified';
+        const verifiedText = partner.isEmailVerified ? 'Verificado' : 'No verificado';
 
         const detailHtml = `
             <div style="text-align: left; max-width: 400px; margin: 0 auto;">
@@ -412,23 +508,10 @@ async function viewPartnerDetails(partnerId) {
                         <p style="margin: 2px 0 0; font-size: 0.9rem; color: var(--text-dark);">${escapeHtml(partner.role || 'partner')}</p>
                     </div>
                     <div>
-                        <p style="margin: 0; font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Permiso</p>
-                        <p style="margin: 2px 0 0; font-size: 0.9rem; color: var(--text-dark);">${partner.permissionId ? escapeHtml(partner.permissionId) : 'Sin permiso especial'}</p>
-                    </div>
-                    <div>
                         <p style="margin: 0; font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Estado</p>
                         <p style="margin: 2px 0 0; font-size: 0.9rem; color: var(--text-dark);">
-                            <span class="status-badge ${partner.isActive ? 'active' : 'inactive'}">
-                                ${partner.isActive ? 'Activo' : 'Inactivo'}
-                            </span>
-                        </p>
-                    </div>
-                    <div>
-                        <p style="margin: 0; font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Verificación</p>
-                        <p style="margin: 2px 0 0; font-size: 0.9rem; color: var(--text-dark);">
-                            <span class="status-badge ${partner.isEmailVerified ? 'verified' : 'unverified'}">
-                                ${partner.isEmailVerified ? 'Verificado' : 'No verificado'}
-                            </span>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                            <span class="status-badge ${verifiedClass}" style="margin-left: 4px;">${verifiedText}</span>
                         </p>
                     </div>
                 </div>
@@ -436,7 +519,7 @@ async function viewPartnerDetails(partnerId) {
                 <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-light); display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
                     <div>
                         <p style="margin: 0; font-size: 0.6rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Creado</p>
-                        <p style="margin: 2px 0 0; font-size: 0.75rem; color: var(--text-gray);">${partner.formattedCreatedAt}</p>
+                        <p style="margin: 2px 0 0; font-size: 0.75rem; color: var(--text-gray);">${partner.formattedCreatedAt || 'N/A'}</p>
                     </div>
                     <div>
                         <p style="margin: 0; font-size: 0.6rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Creado por</p>
@@ -446,22 +529,15 @@ async function viewPartnerDetails(partnerId) {
             </div>
         `;
 
-        // Mostrar SweetAlert con el detalle
         const result = await Swal.fire({
             title: 'Detalles del Colaborador',
             html: detailHtml,
             confirmButtonText: 'Cerrar',
             showCancelButton: true,
             cancelButtonText: 'Editar',
-            customClass: {
-                popup: 'swal2-popup',
-                confirmButton: 'swal2-confirm',
-                cancelButton: 'swal2-cancel'
-            },
             width: '600px'
         });
 
-        // Si el usuario hace clic en "Editar", redirigir
         if (result.dismiss === Swal.DismissReason.cancel) {
             window.location.href = `/editarColaborador?id=${partnerId}`;
         }
@@ -472,86 +548,16 @@ async function viewPartnerDetails(partnerId) {
             icon: 'error',
             title: 'Error',
             text: 'No se pudo cargar los detalles del colaborador',
-            confirmButtonText: 'Aceptar',
-            customClass: {
-                popup: 'swal2-popup',
-                confirmButton: 'swal2-confirm'
-            }
+            confirmButtonText: 'Aceptar'
         });
     }
 }
 
 /**
- * Cambiar estado del colaborador
+ * Redirigir a editar
  */
-async function togglePartnerStatus(partnerId, active) {
-    const action = active ? 'habilitar' : 'inhabilitar';
-
-    try {
-        const partner = await partnerService.getById(partnerId);
-
-        if (!partner) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Colaborador no encontrado',
-                confirmButtonText: 'Aceptar',
-                customClass: {
-                    popup: 'swal2-popup',
-                    confirmButton: 'swal2-confirm'
-                }
-            });
-            return;
-        }
-
-        const result = await Swal.fire({
-            icon: 'warning',
-            title: `${active ? 'Habilitar' : 'Inhabilitar'} colaborador`,
-            text: `¿Estás seguro de que deseas ${action} a ${partner.fullName}?`,
-            showCancelButton: true,
-            confirmButtonText: 'Sí, continuar',
-            cancelButtonText: 'Cancelar',
-            customClass: {
-                popup: 'swal2-popup',
-                confirmButton: 'swal2-confirm',
-                cancelButton: 'swal2-cancel'
-            }
-        });
-
-        if (!result.isConfirmed) return;
-
-        if (active) {
-            await partnerService.activate(partnerId);
-        } else {
-            await partnerService.deactivate(partnerId);
-        }
-
-        await Swal.fire({
-            icon: 'success',
-            title: '¡Completado!',
-            text: `El colaborador ha sido ${action}do correctamente`,
-            confirmButtonText: 'Aceptar',
-            customClass: {
-                popup: 'swal2-popup',
-                confirmButton: 'swal2-confirm'
-            }
-        });
-
-        await loadPartnersList();
-
-    } catch (error) {
-        console.error('Error toggling partner status:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message || 'Error al cambiar el estado del colaborador',
-            confirmButtonText: 'Aceptar',
-            customClass: {
-                popup: 'swal2-popup',
-                confirmButton: 'swal2-confirm'
-            }
-        });
-    }
+function editPartner(id) {
+    window.location.href = `/editarColaborador?id=${id}`;
 }
 
 /**
