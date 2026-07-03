@@ -1,6 +1,6 @@
 /* FILE: readProducts.css */
 /* Estilos específicos para el listado de productos */
-/* No sobreescribe componentes, solo los extiende */
+/* Ahora extiende correctamente los componentes universales */
 
 /* ========================================================
    FILTROS Y BÚSQUEDA
@@ -10,8 +10,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
+    gap: var(--spacing-md, 16px);
+    margin-bottom: var(--spacing-lg, 24px);
     flex-wrap: wrap;
 }
 
@@ -26,12 +26,12 @@
     width: 100%;
     padding: 10px 16px;
     padding-right: 40px;
-    border: 1px solid var(--border-light);
-    border-radius: var(--border-radius-md);
-    font-size: var(--font-size-sm);
-    font-family: var(--font-family);
-    transition: var(--transition-fast);
-    background: var(--bg-white);
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--border-radius-md, 8px);
+    font-size: var(--font-size-sm, 0.875rem);
+    font-family: var(--font-family, 'Inter', sans-serif);
+    transition: var(--transition-fast, 0.2s ease);
+    background: var(--bg-white, #ffffff);
 }
 
 .search-wrapper .search-input:focus {
@@ -41,7 +41,7 @@
 }
 
 .search-wrapper .search-input::placeholder {
-    color: var(--text-muted);
+    color: var(--text-muted, #94a3b8);
 }
 
 #clearSearchBtn {
@@ -51,7 +51,7 @@
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: var(--text-muted);
+    color: var(--text-muted, #94a3b8);
     cursor: pointer;
     font-size: 14px;
     display: none;
@@ -59,7 +59,7 @@
 }
 
 #clearSearchBtn:hover {
-    color: var(--text-dark);
+    color: var(--text-dark, #1e293b);
 }
 
 /* ========================================================
@@ -74,10 +74,10 @@
 }
 
 .status-toggle-wrapper .status-label {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-sm, 0.875rem);
     font-weight: 500;
-    color: var(--text-muted);
-    transition: var(--transition-fast);
+    color: var(--text-muted, #94a3b8);
+    transition: var(--transition-fast, 0.2s ease);
     cursor: default;
 }
 
@@ -86,21 +86,11 @@
     font-weight: 600;
 }
 
-/* ========================================================
-   TABLA DE PRODUCTOS - TAMAÑOS OPTIMIZADOS
-   ======================================================== */
 
-.product-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--font-size-sm);
-}
-
-/* Columnas con anchos fijos */
+/* Columnas con ancho fijo para mejor control */
 .product-table .product-col-img {
     width: 60px;
     text-align: center;
-    padding: 8px 4px;
 }
 
 .product-table .product-col-code {
@@ -108,8 +98,7 @@
 }
 
 .product-table .product-col-name {
-    width: 180px;
-    min-width: 120px;
+    min-width: 150px;
 }
 
 .product-table .product-col-brand {
@@ -121,8 +110,7 @@
 }
 
 .product-table .product-col-price {
-    width: 100px;
-    text-align: right;
+    width: 110px;
 }
 
 .product-table .product-col-stock {
@@ -131,12 +119,12 @@
 }
 
 .product-table .product-col-status {
-    width: 90px;
+    width: 100px;
     text-align: center;
 }
 
 .product-table .product-col-actions {
-    width: 140px;
+    width: 160px;
     text-align: center;
 }
 
@@ -144,12 +132,12 @@
 .product-img-container {
     width: 40px;
     height: 40px;
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius-sm, 6px);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background: var(--bg-gray);
+    background: var(--bg-gray, #f1f5f9);
     flex-shrink: 0;
     margin: 0 auto;
 }
@@ -158,34 +146,13 @@
     width: 40px;
     height: 40px;
     object-fit: cover;
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius-sm, 6px);
 }
 
+/* Icono de producto en tabla (cuando no hay imagen) */
 .product-table-icon {
-    font-size: 18px;
-    color: var(--color-primary-light);
-}
-
-/* Celdas con contenido */
-.product-table .middle-block {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    height: 100%;
-    min-height: 40px;
-}
-
-.product-table .product-col-name .middle-block {
-    font-weight: 500;
-}
-
-.product-table .product-col-price .middle-block {
-    font-weight: 600;
-    justify-content: flex-end;
-}
-
-.product-table .product-col-stock .middle-block {
-    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--color-primary);
 }
 
 /* Estados */
@@ -210,56 +177,27 @@
 }
 
 /* ========================================================
-   ACCIONES EN TABLA
+   PRODUCT CARDS - EXTENSION DE CARDS UNIVERSAL
    ======================================================== */
 
-
-/* ========================================================
-   STATUS SWITCH (Toggle individual)
-   ======================================================== */
-
-
-/* ========================================================
-   CARDS DE PRODUCTOS - VERSIÓN MÓVIL
-   ======================================================== */
-
-.mobile-view {
-    display: none;
-}
-
-.product-card-item {
-    background: #f9fbfd;
-    border-radius: var(--border-radius-md);
-    padding: 1rem;
-    margin-bottom: 0.75rem;
-    border-left: 4px solid var(--color-primary);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    transition: var(--transition-fast);
-}
-
-.product-card-item:hover {
-    background: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transform: translateX(4px);
-}
 
 .product-card-item.status-inactive-card {
-    border-left-color: #ef4444;
-    opacity: 0.8;
+    opacity: 0.6;
+    border-left-color: #dc2626;
 }
 
 .product-card-header {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .product-card-avatar {
     width: 45px;
     height: 45px;
     background: rgba(69, 109, 162, 0.1);
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius-sm, 6px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -276,7 +214,7 @@
     width: 45px;
     height: 45px;
     object-fit: cover;
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius-sm, 6px);
 }
 
 .product-card-title {
@@ -286,9 +224,9 @@
 
 .product-card-title h4 {
     margin: 0;
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-base, 1rem);
     font-weight: 600;
-    color: var(--text-dark);
+    color: var(--text-dark, #1e293b);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -296,10 +234,31 @@
 
 .product-card-title small {
     font-size: 0.7rem;
-    color: var(--text-muted);
+    color: var(--text-muted, #94a3b8);
     display: block;
 }
 
+/* Campos de card - usando estructura de customer-card-field */
+.product-card-field {
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+
+.product-card-field strong {
+    color: var(--color-primary);
+    font-weight: 600;
+    min-width: 70px;
+    font-size: 0.75rem;
+}
+
+.product-card-field span {
+    color: var(--text-light);
+    font-size: 0.8rem;
+}
+
+/* Grid de información del producto */
 .product-card-info {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -310,7 +269,7 @@
 .product-card-info p {
     margin: 0;
     font-size: 0.8rem;
-    color: var(--text-gray);
+    color: var(--text-light);
     display: flex;
     align-items: center;
     gap: 4px;
@@ -324,9 +283,10 @@
 
 .card-price {
     font-weight: 600;
-    color: var(--color-primary-dark);
+    color: var(--text-light);
 }
 
+/* Estado en card */
 .product-card-status {
     margin: 6px 0;
     text-align: right;
@@ -352,13 +312,14 @@
     color: #991b1b;
 }
 
+/* Acciones de card - usando .customer-card-actions / .supplier-card-actions */
 .product-card-actions {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-top: 8px;
     padding-top: 8px;
-    border-top: 1px solid var(--border-light);
+    border-top: 1px solid var(--border-light, #e2e8f0);
     justify-content: flex-end;
 }
 
@@ -371,13 +332,52 @@
     font-size: 0.7rem;
     font-weight: 500;
     padding: 4px 10px;
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition-fast);
-    font-family: var(--font-family);
+    border-radius: var(--border-radius-sm, 6px);
+    transition: var(--transition-fast, 0.2s ease);
+    font-family: var(--font-family, 'Inter', sans-serif);
     background: transparent;
-    color: var(--text-muted);
+    color: var(--text-muted, #94a3b8);
 }
 
+/* ========================================================
+   STATUS SWITCH (compartido entre tabla y cards)
+   ======================================================== */
+
+.status-switch-wrapper {
+    display: inline-flex;
+    align-items: center;
+}
+
+.status-row-switch {
+    width: 40px;
+    height: 22px;
+    background: #cbd5e1;
+    border-radius: 11px;
+    cursor: pointer;
+    position: relative;
+    transition: var(--transition-fast, 0.2s ease);
+    flex-shrink: 0;
+}
+
+.status-row-switch.active {
+    background: var(--color-primary);
+}
+
+.status-row-slider {
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: var(--transition-fast, 0.2s ease);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.status-row-switch.active .status-row-slider {
+    left: 20px;
+}
 
 /* ========================================================
    PAGINACIÓN
@@ -388,40 +388,40 @@
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: var(--spacing-md);
-    margin-top: var(--spacing-lg);
-    padding-top: var(--spacing-md);
-    border-top: 1px solid var(--border-light);
+    gap: var(--spacing-md, 16px);
+    margin-top: var(--spacing-lg, 24px);
+    padding-top: var(--spacing-md, 16px);
+    border-top: 1px solid var(--border-light, #e2e8f0);
 }
 
 .pagination-info {
-    font-size: var(--font-size-sm);
-    color: var(--text-muted);
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--text-muted, #94a3b8);
 }
 
 .pagination-controls {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-sm, 8px);
 }
 
 .btn-pagination {
     padding: 8px 16px;
-    border: 1px solid var(--border-light);
-    border-radius: var(--border-radius-sm);
-    background: var(--bg-white);
-    color: var(--text-dark);
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--border-radius-sm, 6px);
+    background: var(--bg-white, #ffffff);
+    color: var(--text-dark, #1e293b);
     cursor: pointer;
-    font-size: var(--font-size-sm);
-    font-family: var(--font-family);
-    transition: var(--transition-fast);
+    font-size: var(--font-size-sm, 0.875rem);
+    font-family: var(--font-family, 'Inter', sans-serif);
+    transition: var(--transition-fast, 0.2s ease);
     display: inline-flex;
     align-items: center;
     gap: 6px;
 }
 
 .btn-pagination:hover:not(:disabled) {
-    background: var(--bg-gray);
+    background: var(--bg-gray, #f1f5f9);
     border-color: var(--color-primary);
 }
 
@@ -431,9 +431,9 @@
 }
 
 .pagination-current {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-sm, 0.875rem);
     font-weight: 500;
-    color: var(--text-dark);
+    color: var(--text-dark, #1e293b);
     padding: 0 8px;
 }
 
@@ -450,30 +450,30 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-sm, 8px);
 }
 
 .empty-state-content i {
     font-size: 48px;
-    color: var(--border-light);
+    color: var(--border-light, #e2e8f0);
 }
 
 .empty-state-content p {
-    color: var(--text-muted);
-    font-size: var(--font-size-base);
+    color: var(--text-muted, #94a3b8);
+    font-size: var(--font-size-base, 1rem);
     margin: 0;
 }
 
 .cards-empty-state {
     text-align: center;
     padding: 3rem 1rem;
-    color: var(--text-muted);
+    color: var(--text-muted, #94a3b8);
 }
 
 .cards-empty-state i {
     font-size: 48px;
     margin-bottom: 1rem;
-    color: var(--border-light);
+    color: var(--border-light, #e2e8f0);
 }
 
 .cards-empty-state p {
@@ -516,7 +516,7 @@
 
     .mobile-view {
         display: block;
-        margin-bottom: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg, 24px);
     }
 
     .pagination-container {
@@ -542,6 +542,6 @@
 
     .btn-pagination {
         padding: 6px 12px;
-        font-size: var(--font-size-xs);
+        font-size: var(--font-size-xs, 0.75rem);
     }
 }

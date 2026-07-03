@@ -1,78 +1,33 @@
-/* ============================================
-   PARTNERS LIST CSS
-   ============================================ */
+/* FILE: readPartners.css */
+/* Partners list - SOLO estilos específicos */
+/* Los estilos de tabla y cards vienen de componentes universales */
+/* ======================================================== */
 
-/* Contenedor principal - Hereda de credContainer */
+/* ========================================================
+   CONTAINER
+   ======================================================== */
+
 .partners-list-container {
     width: 100%;
     max-width: 100%;
     padding: 0;
 }
 
-/* Header */
-.partners-list-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-xl);
-    flex-wrap: wrap;
-    gap: var(--spacing-md);
-    width: 100%;
-}
+/* ========================================================
+   FILTROS - Estilos específicos de partners
+   ======================================================== */
 
-.partners-list-header h1 {
-    font-size: var(--font-size-2xl);
-    color: var(--color-secondary);
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-}
-
-.partners-list-header h1 i {
-    color: var(--color-primary);
-}
-
-.btn-create {
-    background: var(--color-primary);
-    color: white;
-    padding: 12px 28px;
-    border-radius: var(--border-radius-md);
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all var(--transition-normal);
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    font-size: var(--font-size-base);
-    font-family: var(--font-family);
-    white-space: nowrap;
-    box-shadow: var(--shadow-primary);
-}
-
-.btn-create:hover {
-    background: var(--color-primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(69, 109, 162, 0.3);
-}
-
-.btn-create:active {
-    transform: translateY(0px);
-}
-
-/* Filtros */
 .partners-list-filters {
     display: flex;
-    gap: var(--spacing-md);
+    gap: var(--spacing-md, 16px);
     flex-wrap: wrap;
-    margin-bottom: var(--spacing-xl);
-    padding: var(--spacing-lg);
-    background: var(--bg-light);
-    border-radius: var(--border-radius-lg);
+    margin-bottom: var(--spacing-xl, 32px);
+    padding: var(--spacing-lg, 24px);
+    background: var(--bg-light, #f8fafc);
+    border-radius: var(--border-radius-lg, 12px);
     align-items: flex-end;
     width: 100%;
-    border: 1px solid var(--border-light);
+    border: 1px solid var(--border-light, #e2e8f0);
 }
 
 .partners-list-filters .filter-group {
@@ -82,10 +37,10 @@
 
 .partners-list-filters .filter-group label {
     display: block;
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-sm, 0.875rem);
     font-weight: 600;
-    color: var(--color-primary-dark);
-    margin-bottom: var(--spacing-xs);
+    color: var(--color-primary-dark, #1a365d);
+    margin-bottom: var(--spacing-xs, 4px);
 }
 
 .partners-list-filters .filter-group label i {
@@ -96,12 +51,13 @@
 .partners-list-filters .filter-group select {
     width: 100%;
     padding: 10px 12px;
-    font-size: var(--font-size-sm);
-    border: 1px solid var(--border-light);
-    border-radius: var(--border-radius-sm);
-    font-family: var(--font-family);
-    background: white;
-    transition: all var(--transition-fast);
+    font-size: var(--font-size-sm, 0.875rem);
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--border-radius-sm, 6px);
+    font-family: var(--font-family, 'Inter', sans-serif);
+    background: var(--bg-white, #ffffff);
+    transition: all var(--transition-fast, 0.2s ease);
+    min-height: 44px;
 }
 
 .partners-list-filters .filter-group input:focus,
@@ -113,57 +69,15 @@
 
 .filter-actions {
     display: flex;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-sm, 8px);
     align-items: center;
     flex-shrink: 0;
 }
 
-/* Tabla */
-.partners-list-table-wrapper {
-    overflow-x: auto;
-    width: 100%;
-    border-radius: var(--border-radius-lg);
-    border: 1px solid var(--border-light);
-    background: white;
-    box-shadow: var(--shadow-sm);
-}
+/* ========================================================
+   PARTNER INFO - Específico para la tabla
+   ======================================================== */
 
-.partners-list-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 600px;
-}
-
-.partners-list-table thead th {
-    background: var(--color-primary);
-    color: white;
-    padding: var(--spacing-md) var(--spacing-lg);
-    text-align: left;
-    font-weight: 600;
-    font-size: var(--font-size-sm);
-    white-space: nowrap;
-}
-
-.partners-list-table thead th:last-child {
-    text-align: center;
-}
-
-.partners-list-table tbody td {
-    padding: var(--spacing-md) var(--spacing-lg);
-    border-bottom: 1px solid var(--border-light);
-    vertical-align: middle;
-    font-size: var(--font-size-sm);
-}
-
-.partners-list-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.partners-list-table tbody tr:hover {
-    background: var(--bg-blue-light);
-}
-
-/* Columna Colaborador */
 .partner-info {
     display: flex;
     align-items: center;
@@ -173,7 +87,7 @@
 .partner-avatar-list {
     width: 40px;
     height: 40px;
-    border-radius: var(--border-radius-md);
+    border-radius: var(--border-radius-md, 8px);
     background: rgba(69, 109, 162, 0.1);
     display: flex;
     align-items: center;
@@ -199,12 +113,15 @@
 }
 
 .partner-email {
-    font-size: var(--font-size-xs);
-    color: var(--text-muted);
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--text-dark);
     display: block;
 }
 
-/* Columna Contacto */
+/* ========================================================
+   CONTACTO - Específico para la tabla
+   ======================================================== */
+
 .partner-contact {
     display: flex;
     flex-direction: column;
@@ -212,8 +129,8 @@
 }
 
 .partner-contact .phone {
-    font-size: var(--font-size-sm);
-    color: var(--text-gray);
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--text-gray, #475569);
 }
 
 .partner-contact .phone i {
@@ -221,20 +138,23 @@
 }
 
 .partner-contact .rfc {
-    font-size: var(--font-size-xs);
-    color: var(--text-muted);
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--text-muted, #94a3b8);
 }
 
 .partner-contact .rfc i {
     margin-right: 4px;
 }
 
-/* Badges */
+/* ========================================================
+   STATUS BADGES - Específicos para partners
+   ======================================================== */
+
 .status-badge {
     display: inline-block;
     padding: 4px 12px;
     border-radius: 20px;
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-xs, 0.75rem);
     font-weight: 600;
     white-space: nowrap;
 }
@@ -259,7 +179,10 @@
     color: #f59e0b;
 }
 
-/* Columna Estado */
+/* ========================================================
+   PARTNER STATUS - Columna de estado
+   ======================================================== */
+
 .partner-status {
     display: flex;
     flex-direction: column;
@@ -271,199 +194,19 @@
     width: fit-content;
 }
 
-/* Acciones */
-.table-actions-list {
-    display: flex;
-    gap: var(--spacing-sm);
-    justify-content: center;
-    flex-wrap: wrap;
-}
+/* ========================================================
+   ACCIONES DE TABLA - Usa .action-badge de tables.css
+   ======================================================== */
 
-.table-actions-list button {
-    padding: 6px 12px;
-    font-size: var(--font-size-xs);
-    border-radius: var(--border-radius-sm);
-    border: none;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-family: var(--font-family);
-    font-weight: 500;
-    white-space: nowrap;
-}
+/* Usamos .action-badge de tables.css */
+/* Solo agregamos estilos para los botones específicos */
 
-.btn-view-action {
-    background: var(--color-primary);
-    color: white;
-}
+/* ========================================================
+   ACCIONES DE CARDS - Usa .customer-card-actions
+   ======================================================== */
 
-.btn-view-action:hover {
-    background: var(--color-primary-dark);
-    transform: translateY(-1px);
-}
-
-.btn-edit-action {
-    background: transparent;
-    color: var(--color-primary);
-    border: 1px solid var(--color-primary);
-}
-
-.btn-edit-action:hover {
-    background: var(--color-primary);
-    color: white;
-    transform: translateY(-1px);
-}
-
-.btn-disable-action {
-    background: #ef4444;
-    color: white;
-}
-
-.btn-disable-action:hover {
-    background: #dc2626;
-    transform: translateY(-1px);
-}
-
-.btn-enable-action {
-    background: #10b981;
-    color: white;
-}
-
-.btn-enable-action:hover {
-    background: #059669;
-    transform: translateY(-1px);
-}
-
-/* Estado vacío */
-.list-empty-state {
-    text-align: center;
-    padding: var(--spacing-3xl) var(--spacing-lg);
-    color: var(--text-muted);
-}
-
-.list-empty-state i {
-    font-size: 48px;
-    margin-bottom: var(--spacing-md);
-    color: var(--border-light);
-}
-
-.list-empty-state p {
-    margin-bottom: var(--spacing-md);
-}
-
-/* ============================================
-   VISTA MOBILE - CARDS
-   ============================================ */
-
-.mobile-view {
-    display: none;
-}
-
-.partner-card-item {
-    background: #f9fbfd;
-    border-radius: var(--border-radius-lg);
-    padding: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
-    border-left: 4px solid var(--color-primary);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    transition: all 0.2s ease;
-}
-
-.partner-card-item:hover {
-    background: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transform: translateX(4px);
-}
-
-.partner-card-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: var(--spacing-sm);
-}
-
-.partner-card-avatar {
-    width: 48px;
-    height: 48px;
-    background: rgba(69, 109, 162, 0.1);
-    border-radius: var(--border-radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-
-.partner-card-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.partner-card-avatar i {
-    font-size: 1.5rem;
-    color: var(--color-primary);
-}
-
-.partner-card-title {
-    flex: 1;
-    min-width: 0;
-}
-
-.partner-card-title h4 {
-    margin: 0;
-    font-size: var(--font-size-base);
-    font-weight: 600;
-    color: var(--text-dark);
-    word-break: break-word;
-}
-
-.partner-card-title small {
-    font-size: var(--font-size-xs);
-    color: var(--text-muted);
-    display: block;
-    word-break: break-all;
-}
-
-.partner-card-divider {
-    height: 1px;
-    background: var(--border-light);
-    margin: var(--spacing-sm) 0;
-}
-
-.partner-card-field {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    padding: 4px 0;
-    flex-wrap: wrap;
-}
-
-.partner-card-field strong {
-    color: var(--color-primary);
-    font-weight: 600;
-    font-size: var(--font-size-xs);
-    min-width: 70px;
-}
-
-.partner-card-field span {
-    color: var(--text-gray);
-    font-size: var(--font-size-sm);
-    word-break: break-word;
-}
-
-.partner-card-field .status-badge {
-    font-size: var(--font-size-xs);
-}
-
-.partner-card-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: var(--spacing-sm);
-}
+/* Usamos .customer-card-actions de cards.css */
+/* Los botones específicos de partners */
 
 .partner-card-actions button {
     display: inline-flex;
@@ -471,12 +214,12 @@
     gap: 4px;
     border: none;
     cursor: pointer;
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-xs, 0.75rem);
     font-weight: 500;
     padding: 6px 14px;
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius-sm, 6px);
     transition: all 0.2s ease;
-    font-family: var(--font-family);
+    font-family: var(--font-family, 'Inter', sans-serif);
     flex: 1;
     justify-content: center;
     min-width: 70px;
@@ -488,7 +231,7 @@
 }
 
 .partner-card-actions .btn-view-action:hover {
-    background: var(--color-primary-dark);
+    background: var(--color-primary-dark, #1a365d);
 }
 
 .partner-card-actions .btn-edit-action {
@@ -520,14 +263,130 @@
     background: #059669;
 }
 
-/* ============================================
-   RESPONSIVE - Adaptado a tu estructura
-   ============================================ */
+/* ========================================================
+   PARTNER CARD ITEM - Extiende .customer-card-item
+   ======================================================== */
 
-/* Tablets y pantallas medianas */
+.partner-card-item {
+    /* Hereda todo de .customer-card-item */
+    /* Solo agregamos específicos */
+}
+
+.partner-card-item .partner-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: var(--spacing-sm, 8px);
+}
+
+.partner-card-item .partner-card-avatar {
+    width: 45px;
+    height: 45px;
+    background: rgba(69, 109, 162, 0.1);
+    border-radius: var(--border-radius-md, 8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.partner-card-item .partner-card-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.partner-card-item .partner-card-avatar i {
+    font-size: 1.2rem;
+    color: var(--color-primary);
+}
+
+.partner-card-item .partner-card-title {
+    flex: 1;
+    min-width: 0;
+}
+
+.partner-card-item .partner-card-title h4 {
+    margin: 0;
+    font-size: var(--font-size-base, 1rem);
+    font-weight: 600;
+    color: var(--text-dark, #1e293b);
+    word-break: break-word;
+}
+
+.partner-card-item .partner-card-title small {
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--text-muted, #94a3b8);
+    display: block;
+    word-break: break-all;
+}
+
+.partner-card-item .partner-card-divider {
+    height: 1px;
+    background: var(--border-light, #e2e8f0);
+    margin: var(--spacing-sm, 8px) 0;
+}
+
+.partner-card-item .partner-card-field {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm, 8px);
+    padding: 4px 0;
+    flex-wrap: wrap;
+}
+
+.partner-card-item .partner-card-field strong {
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: var(--font-size-xs, 0.75rem);
+    min-width: 70px;
+}
+
+.partner-card-item .partner-card-field span {
+    color: var(--text-gray, #475569);
+    font-size: var(--font-size-sm, 0.875rem);
+    word-break: break-word;
+}
+
+.partner-card-item .partner-card-field .status-badge {
+    font-size: var(--font-size-xs, 0.75rem);
+}
+
+.partner-card-item .partner-card-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: var(--spacing-sm, 8px);
+}
+
+/* ========================================================
+   ESTADOS VACÍOS
+   ======================================================== */
+
+.list-empty-state {
+    text-align: center;
+    padding: var(--spacing-3xl, 60px) var(--spacing-lg, 24px);
+    color: var(--text-muted, #94a3b8);
+}
+
+.list-empty-state i {
+    font-size: 48px;
+    margin-bottom: var(--spacing-md, 16px);
+    color: var(--border-light, #e2e8f0);
+}
+
+.list-empty-state p {
+    margin-bottom: var(--spacing-md, 16px);
+}
+
+/* ========================================================
+   RESPONSIVE
+   ======================================================== */
+
 @media (max-width: 1024px) {
     .credContainer {
-        padding: var(--spacing-lg);
+        padding: var(--spacing-lg, 24px);
         padding-bottom: 60px;
     }
 
@@ -536,38 +395,19 @@
     }
 }
 
-/* Móviles y tablets pequeñas */
 @media (max-width: 850px) {
     .credContainer {
         width: 100%;
-        padding: var(--spacing-md);
+        padding: var(--spacing-md, 16px);
         padding-bottom: 80px;
         left: 0;
         position: relative;
     }
 
-    .partners-list-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: var(--spacing-md);
-    }
-
-    .partners-list-header h1 {
-        font-size: var(--font-size-xl);
-        justify-content: center;
-        text-align: center;
-    }
-
-    .btn-create {
-        justify-content: center;
-        width: 100%;
-        padding: 12px 20px;
-    }
-
     .partners-list-filters {
         flex-direction: column;
-        gap: var(--spacing-sm);
-        padding: var(--spacing-md);
+        gap: var(--spacing-sm, 8px);
+        padding: var(--spacing-md, 16px);
     }
 
     .partners-list-filters .filter-group {
@@ -583,48 +423,34 @@
         width: 100%;
         justify-content: center;
     }
-
-    /* Ocultar tabla en móvil */
-    .desktop-view {
-        display: none !important;
-    }
-
-    /* Mostrar cards en móvil */
-    .mobile-view {
-        display: block !important;
-    }
 }
 
-/* Móviles pequeños */
 @media (max-width: 550px) {
     .credContainer {
-        padding: var(--spacing-sm);
+        padding: var(--spacing-sm, 8px);
         padding-bottom: 80px;
     }
 
-    .partners-list-header h1 {
-        font-size: var(--font-size-lg);
-    }
-
-    .btn-create {
-        padding: 10px 16px;
-        font-size: var(--font-size-sm);
-    }
-
     .partners-list-filters {
-        padding: var(--spacing-sm);
-        border-radius: var(--border-radius-md);
+        padding: var(--spacing-sm, 8px);
+        border-radius: var(--border-radius-md, 8px);
     }
 
     .partners-list-filters .filter-group input,
     .partners-list-filters .filter-group select {
         padding: 8px 10px;
-        font-size: var(--font-size-xs);
+        font-size: var(--font-size-xs, 0.75rem);
+        min-height: 36px;
+    }
+
+    .btn-secondary {
+        padding: 8px 16px;
+        font-size: var(--font-size-xs, 0.75rem);
+        min-height: 36px;
     }
 
     .partner-card-item {
-        padding: var(--spacing-sm);
-        border-left-width: 3px;
+        padding: var(--spacing-sm, 8px);
     }
 
     .partner-card-avatar {
@@ -637,20 +463,20 @@
     }
 
     .partner-card-title h4 {
-        font-size: var(--font-size-sm);
+        font-size: var(--font-size-sm, 0.875rem);
     }
 
     .partner-card-title small {
-        font-size: var(--font-size-xs);
+        font-size: var(--font-size-xs, 0.75rem);
     }
 
     .partner-card-field strong {
         min-width: 60px;
-        font-size: var(--font-size-xs);
+        font-size: var(--font-size-xs, 0.75rem);
     }
 
     .partner-card-field span {
-        font-size: var(--font-size-xs);
+        font-size: var(--font-size-xs, 0.75rem);
     }
 
     .partner-card-actions {
@@ -659,13 +485,12 @@
 
     .partner-card-actions button {
         padding: 5px 10px;
-        font-size: var(--font-size-xs);
+        font-size: var(--font-size-xs, 0.75rem);
         min-width: 60px;
         flex: 1;
     }
 }
 
-/* Móviles muy pequeños */
 @media (max-width: 400px) {
     .partner-card-actions {
         flex-direction: column;
@@ -674,21 +499,5 @@
     .partner-card-actions button {
         width: 100%;
         flex: none;
-    }
-}
-
-/* Ajuste para cuando el sidebar está colapsado */
-@media (min-width: 851px) and (max-width: 1024px) {
-    .credContainer {
-        width: calc(100% - 240px);
-        left: 240px;
-        position: absolute;
-    }
-}
-
-/* Ajuste para pantallas muy grandes */
-@media (min-width: 1920px) {
-    .credContainer {
-        max-width: 1900px;
     }
 }
