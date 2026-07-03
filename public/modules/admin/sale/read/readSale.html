@@ -1,9 +1,15 @@
 <div class="credContainer">
 
-    <!-- Encabezado -->
+    <!-- HEADER -->
     <div class="page-header">
-        <h2><i class="fas fa-chart-line"></i> Gestión de Ventas</h2>
-        <p>Visualiza y administra todas las transacciones de tu tienda.</p>
+        <h2 class="header-title">
+            <i class="fas fa-shopping-cart"></i> Mis Ventas
+        </h2>
+        <div class="header-actions">
+            <a href="/nuevaVenta" class="btn btn-primary" data-link>
+                <i class="fas fa-plus"></i> Nueva Venta
+            </a>
+        </div>
     </div>
 
     <!-- KPIs -->
@@ -77,14 +83,6 @@
         </div>
     </div>
 
-    <!-- Toolbar -->
-    <div class="sales-toolbar">
-
-        <a href="/nuevaVenta"><button class="btn-primary" id="newSaleBtn">
-                <i class="fas fa-plus"></i> Nueva Venta
-            </button>
-        </a>
-    </div>
 
     <!-- Tabla de ventas - Desktop -->
     <div class="component-table-wrapper desktop-view">
