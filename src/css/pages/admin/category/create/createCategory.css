@@ -5,48 +5,11 @@
 .category-list-card {
     background: var(--bg-white);
     border-radius: var(--border-radius-xl);
-
-    padding: var(--spacing-xl);
+    padding: 0;
     animation: fadeIn 0.4s ease-out;
     overflow: hidden;
 }
 
-/* ======================================================== */
-/* HEADER - Mismo estilo que otros módulos */
-/* ======================================================== */
-
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-xl);
-    padding-bottom: var(--spacing-md);
-    border-bottom: 2px solid var(--border-light);
-}
-
-.header-title {
-    color: var(--color-primary-dark);
-    font-size: var(--font-size-2xl);
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-}
-
-.header-title i {
-    color: var(--color-primary);
-}
-
-.header-actions {
-    display: flex;
-    gap: var(--spacing-sm);
-}
-
-/* ======================================================== */
-/* FORM - Mismo estilo que createProduct */
-/* ======================================================== */
 
 .category-form-wrapper {
     padding: var(--spacing-md) 0;
@@ -55,6 +18,8 @@
 .category-card {
     max-width: 700px;
     margin: 0 auto;
+    padding: var(--spacing-xs);
+    box-shadow: var(--shadow-sm);
 }
 
 .form-group {

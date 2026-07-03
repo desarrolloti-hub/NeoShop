@@ -21,50 +21,6 @@
 }
 
 /* ========================================================
-   PAGE HEADER
-   ======================================================== */
-
-.product-list-card .page-header {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    flex-direction: row !important;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
-    padding-bottom: var(--spacing-sm);
-    border-bottom: 2px solid var(--border-light);
-}
-
-.product-list-card .page-header .header-title {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    color: var(--color-primary-dark);
-    font-size: var(--font-size-xl);
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.product-list-card .page-header .header-title i {
-    color: var(--color-primary);
-}
-
-.product-list-card .page-header .header-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-@media (max-width: 768px) {
-    .product-list-card .page-header {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-    }
-}
-
-/* ========================================================
    FORMULARIO
    ======================================================== */
 
@@ -350,7 +306,6 @@
 
 @media (max-width: 650px) {
 
-
     .product-form-wrapper {
         width: 95%;
     }
@@ -382,10 +337,6 @@
 
     .section-divider {
         margin: 12px 0 10px;
-    }
-
-    .product-list-card .page-header .header-title {
-        font-size: var(--font-size-lg);
     }
 }
 

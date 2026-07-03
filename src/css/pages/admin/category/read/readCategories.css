@@ -6,35 +6,6 @@
 /* HEADER */
 /* ======================================================== */
 
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-xl);
-    padding-bottom: var(--spacing-md);
-    border-bottom: 2px solid var(--border-light);
-}
-
-.header-title {
-    color: var(--color-primary-dark);
-    font-size: var(--font-size-2xl);
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-}
-
-.header-title i {
-    color: var(--color-primary);
-}
-
-.header-actions {
-    display: flex;
-    gap: var(--spacing-sm);
-}
-
 /* ======================================================== */
 /* FILTROS */
 /* ======================================================== */
