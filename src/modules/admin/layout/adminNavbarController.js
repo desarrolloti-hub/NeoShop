@@ -5,7 +5,13 @@
 
 import { AuthService } from '../../../services/authService.js';
 import { AdminService } from '../../../services/adminService.js';
-import { checkTrialStatus, resetTrialAlerts, getTrialDaysLeft } from '../../../services/trialCheckService.js';
+import {
+    checkTrialStatus,
+    resetTrialAlerts,
+    getTrialDaysLeft,
+    isTrialExpired,
+    getTrialEndDateFormatted
+} from '../../../services/trialCheckService.js';
 
 // ==================== CONFIGURATION ====================
 
@@ -47,7 +53,7 @@ export function initAdminNavbarController() {
         setActiveLink();
         loadUserInfo();
         applyModulePermissions();
-        updateTrialBadge(); // ✅ Actualizar badge de prueba
+        updateTrialBadge(); // ✅ Actualizar badge con días restantes reales
 
         // ✅ Verificar estado de prueba gratuita al cargar
         checkTrialStatus();
@@ -94,7 +100,8 @@ function cacheElements() {
         userInfo: document.getElementById('adminUserInfo'),
         menuItems: document.querySelectorAll('[data-module]'),
         trialBadgeContainer: document.getElementById('trialBadgeContainer'),
-        trialDaysText: document.getElementById('trialDaysText')
+        trialDaysText: document.getElementById('trialDaysText'),
+        trialBadge: document.querySelector('.trial-badge')
     };
 }
 
@@ -150,11 +157,13 @@ function bindEvents() {
 
 /**
  * ✅ Actualiza el badge de prueba gratuita
- * Solo se muestra para usuarios con plan 'full-free'
+ * ✅ El cálculo se basa ÚNICAMENTE en la fecha límite (trialEndDate)
+ * ✅ No depende de cuándo inicia sesión el usuario
  */
 function updateTrialBadge() {
     const container = elements.trialBadgeContainer;
     const daysText = elements.trialDaysText;
+    const badge = elements.trialBadge;
 
     if (!container || !daysText) return;
 
@@ -167,10 +176,10 @@ function updateTrialBadge() {
             return;
         }
 
-        // ✅ Obtener días restantes
+        // ✅ Obtener días restantes basado en fecha límite (NO en inicio de sesión)
         const daysLeft = getTrialDaysLeft();
 
-        // ✅ Si no hay fecha de prueba, ocultar
+        // ✅ Si no hay fecha de prueba o es inválida, ocultar
         if (daysLeft === null || daysLeft === undefined) {
             container.style.display = 'none';
             return;
@@ -178,28 +187,44 @@ function updateTrialBadge() {
 
         // ✅ Mostrar badge
         container.style.display = 'block';
-        const badge = container.querySelector('.trial-badge');
 
         // ✅ Remover clases de estado previas
-        badge.classList.remove('critical', 'expired');
+        if (badge) {
+            badge.classList.remove('critical', 'expired');
+        }
 
         if (daysLeft < 0) {
             // ❌ Prueba expirada
+            const formattedDate = getTrialEndDateFormatted();
             daysText.textContent = '¡Expirado!';
-            badge.classList.add('expired');
-            badge.querySelector('i').className = 'fas fa-exclamation-triangle';
+            if (badge) {
+                badge.classList.add('expired');
+                const icon = badge.querySelector('i');
+                if (icon) icon.className = 'fas fa-exclamation-triangle';
+            }
+            // Añadir tooltip con la fecha de expiración
+            container.title = `Prueba expirada el ${formattedDate || 'fecha desconocida'}`;
         } else if (daysLeft <= 3) {
             // ⚠️ Últimos 3 días
-            daysText.textContent = `${daysLeft} días`;
-            badge.classList.add('critical');
-            badge.querySelector('i').className = 'fas fa-clock';
+            const dayText = daysLeft === 1 ? '1 día' : `${daysLeft} días`;
+            daysText.textContent = dayText;
+            if (badge) {
+                badge.classList.add('critical');
+                const icon = badge.querySelector('i');
+                if (icon) icon.className = 'fas fa-clock';
+            }
+            container.title = `Quedan ${dayText} de prueba gratuita`;
         } else {
             // ✅ Prueba activa
             daysText.textContent = `${daysLeft} días`;
-            badge.querySelector('i').className = 'fas fa-clock';
+            if (badge) {
+                const icon = badge.querySelector('i');
+                if (icon) icon.className = 'fas fa-clock';
+            }
+            container.title = `${daysLeft} días restantes de prueba gratuita`;
         }
 
-        console.log(`✅ Trial badge updated: ${daysLeft} days left`);
+        console.log(`✅ Trial badge updated: ${daysLeft} days left (basado en fecha límite)`);
 
     } catch (error) {
         console.error('Error updating trial badge:', error);
@@ -359,7 +384,6 @@ function loadUserProfilePhoto(userData) {
             };
 
             avatarImg.onerror = () => {
-
                 avatarImg.style.display = 'none';
                 avatarIcon.style.display = 'flex';
                 avatarImg.src = '';

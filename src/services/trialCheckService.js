@@ -1,5 +1,6 @@
 /* ========================================
    TRIAL CHECK SERVICE - Verifica estado de prueba gratuita
+   Basado únicamente en la fecha límite (trialEndDate)
    ======================================== */
 
 import { AdminService } from './adminService.js';
@@ -9,6 +10,7 @@ let hasShownGraceAlert = false;
 
 /**
  * Verifica el estado de la prueba gratuita y muestra alertas
+ * El cálculo es basado en la fecha límite, NO en cuándo inicia sesión
  */
 export function checkTrialStatus() {
     const session = AdminService.getSession();
@@ -21,12 +23,12 @@ export function checkTrialStatus() {
     const trialEndDate = session.trialEndDate;
     if (!trialEndDate) return;
 
-    const now = new Date();
-    const trialEnd = new Date(trialEndDate);
-    const diffTime = trialEnd.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const daysLeft = getTrialDaysLeft();
 
-    if (diffDays < 0) {
+    // ✅ Si no hay días restantes o es null, no hacer nada
+    if (daysLeft === null || daysLeft === undefined) return;
+
+    if (daysLeft < 0) {
         if (!hasShownExpiredAlert) {
             hasShownExpiredAlert = true;
             showTrialExpiredAlert();
@@ -34,12 +36,12 @@ export function checkTrialStatus() {
         return;
     }
 
-    if (diffDays <= 3 && !hasShownGraceAlert) {
+    if (daysLeft <= 3 && !hasShownGraceAlert) {
         hasShownGraceAlert = true;
-        showGracePeriodAlert(diffDays);
+        showGracePeriodAlert(daysLeft);
     }
 
-    if (diffDays > 3) {
+    if (daysLeft > 3) {
         hasShownGraceAlert = false;
         hasShownExpiredAlert = false;
     }
@@ -47,18 +49,96 @@ export function checkTrialStatus() {
 
 /**
  * Obtiene los días restantes de prueba
+ * ✅ Cálculo basado ÚNICAMENTE en la fecha límite (trialEndDate)
+ * ✅ Independiente de cuándo inicia sesión el usuario
+ * ✅ NO cuenta el día actual (días completos restantes)
  */
 export function getTrialDaysLeft() {
     const session = AdminService.getSession();
-    if (!session || !session.trialEndDate) return null;
+
+    if (!session) return null;
 
     // ✅ Si no es plan gratuito, no mostrar
     if (session.plan !== 'full-free') return null;
 
-    const now = new Date();
-    const trialEnd = new Date(session.trialEndDate);
-    const diffTime = trialEnd.getTime() - now.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const trialEndDate = session.trialEndDate;
+    if (!trialEndDate) return null;
+
+    try {
+        const now = new Date();
+        const trialEnd = new Date(trialEndDate);
+
+        // ✅ Verificar que la fecha sea válida
+        if (isNaN(trialEnd.getTime())) {
+            console.warn('⚠️ trialEndDate inválida:', trialEndDate);
+            return null;
+        }
+
+        // ✅ Limpiar horas para comparar solo fechas
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const endDate = new Date(trialEnd.getFullYear(), trialEnd.getMonth(), trialEnd.getDate());
+
+        // ✅ Calcular diferencia en días completos
+        const diffTime = endDate.getTime() - today.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        return diffDays;
+    } catch (error) {
+        console.error('Error calculando días restantes:', error);
+        return null;
+    }
+}
+
+/**
+ * Verifica si la prueba ha expirado
+ */
+export function isTrialExpired() {
+    const daysLeft = getTrialDaysLeft();
+    if (daysLeft === null || daysLeft === undefined) return false;
+    return daysLeft < 0;
+}
+
+/**
+ * Obtiene la fecha de expiración formateada
+ */
+export function getTrialEndDateFormatted() {
+    const session = AdminService.getSession();
+    if (!session || !session.trialEndDate) return null;
+
+    try {
+        const date = new Date(session.trialEndDate);
+        if (isNaN(date.getTime())) return null;
+
+        return date.toLocaleDateString('es-MX', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    } catch (error) {
+        return null;
+    }
+}
+
+/**
+ * Obtiene la fecha de inicio de la prueba
+ * (Si está disponible en la sesión)
+ */
+export function getTrialStartDateFormatted() {
+    const session = AdminService.getSession();
+    if (!session || !session.trialStartDate) return null;
+
+    try {
+        const date = new Date(session.trialStartDate);
+        if (isNaN(date.getTime())) return null;
+
+        return date.toLocaleDateString('es-MX', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    } catch (error) {
+        return null;
+    }
 }
 
 /**
