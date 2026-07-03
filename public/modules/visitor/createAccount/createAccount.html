@@ -1,69 +1,71 @@
-<div class="auth-container">
-    <div class="register-card">
-        <!-- Foto de perfil -->
-        <div class="avatar-wrapper">
-            <div class="avatar-circle" id="avatarCircle">
-                <i class="fas fa-user" id="avatarIcon"></i>
-                <img id="avatarPreview" alt="Foto de perfil">
-            </div>
-            <div class="avatar-overlay">
-                <i class="fas fa-camera"></i>
-            </div>
-        </div>
-
-        <input type="file" id="profileImage" accept="image/*" style="display: none;">
-        <button type="button" id="removeImageBtn" style="display: none;">
-            <i class="fas fa-trash"></i> Eliminar foto
-        </button>
-
-        <h2>Crear cuenta</h2>
-
-        <form id="registerForm">
-            <div class="form-group">
-                <input type="text" placeholder="Nombre completo" id="fullName" required>
-            </div>
-            <div class="form-group">
-                <input type="email" placeholder="Correo electrónico" id="email" required>
+<div class="woCredContainer">
+    <div class="auth-container">
+        <div class="register-card">
+            <!-- Foto de perfil -->
+            <div class="avatar-wrapper">
+                <div class="avatar-circle" id="avatarCircle">
+                    <i class="fas fa-user" id="avatarIcon"></i>
+                    <img id="avatarPreview" alt="Foto de perfil">
+                </div>
+                <div class="avatar-overlay">
+                    <i class="fas fa-camera"></i>
+                </div>
             </div>
 
-            <!-- Password con ojito -->
-            <div class="password-wrapper">
-                <input type="password" placeholder="Contraseña (mín. 6 caracteres)" id="password" required>
-                <button type="button" class="password-toggle" id="togglePassword" tabindex="0"
-                    aria-label="Mostrar contraseña">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>
-
-            <!-- Términos y condiciones -->
-            <div class="terms-checkbox-wrapper">
-                <label class="terms-label">
-                    <input type="checkbox" id="termsCheckbox" required>
-                    <span class="checkmark"></span>
-                    <span class="terms-text">
-                        Acepto los <a href="/terminosYCondiciones" id="termsLink">términos y
-                            condiciones</a>
-                    </span>
-                </label>
-            </div>
-
-            <button type="submit" class="btn btn-primary" id="submitBtn">
-                Crear cuenta <i class="fas fa-arrow-right"></i>
+            <input type="file" id="profileImage" accept="image/*" style="display: none;">
+            <button type="button" id="removeImageBtn" style="display: none;">
+                <i class="fas fa-trash"></i> Eliminar foto
             </button>
-        </form>
 
-        <!-- DIVISOR Y BOTÓN DE GOOGLE -->
-        <div class="auth-divider">
-            <span>O</span>
-        </div>
+            <h2>Crear cuenta</h2>
 
-        <button type="button" class="btn-google" id="googleRegisterBtn">
-            <i class="fab fa-google"></i>
-            Crear cuenta con Google
-        </button>
+            <form id="registerForm">
+                <div class="form-group">
+                    <input type="text" placeholder="Nombre completo" id="fullName" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" placeholder="Correo electrónico" id="email" required>
+                </div>
 
-        <div class="register-links">
-            <p>¿Ya tienes cuenta? <a href="iniciarSesion">Inicia sesión</a></p>
+                <!-- Password con ojito -->
+                <div class="password-wrapper">
+                    <input type="password" placeholder="Contraseña (mín. 6 caracteres)" id="password" required>
+                    <button type="button" class="password-toggle" id="togglePassword" tabindex="0"
+                        aria-label="Mostrar contraseña">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+
+                <!-- Términos y condiciones -->
+                <div class="terms-checkbox-wrapper">
+                    <label class="terms-label">
+                        <input type="checkbox" id="termsCheckbox" required>
+                        <span class="checkmark"></span>
+                        <span class="terms-text">
+                            Acepto los <a href="/terminosYCondiciones" id="termsLink">términos y
+                                condiciones</a>
+                        </span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    Crear cuenta <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <!-- DIVISOR Y BOTÓN DE GOOGLE -->
+            <div class="auth-divider">
+                <span>O</span>
+            </div>
+
+            <button type="button" class="btn-google" id="googleRegisterBtn">
+                <i class="fab fa-google"></i>
+                Crear cuenta con Google
+            </button>
+
+            <div class="register-links">
+                <p>¿Ya tienes cuenta? <a href="iniciarSesion">Inicia sesión</a></p>
+            </div>
         </div>
     </div>
 </div>
