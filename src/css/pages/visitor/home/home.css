@@ -138,7 +138,7 @@
 
 .stat-trend {
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--bg-gray);
 }
 
 .stat-trend.up {
@@ -154,7 +154,7 @@
     justify-content: space-between;
     margin-bottom: 15px;
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--color-primary-light);
 }
 
 .chart-legend {
@@ -245,7 +245,7 @@
 /* ============================================ */
 
 .accessibility-banner {
-    background: #f8fafc;
+    background: var(--bg-white);
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
@@ -412,7 +412,7 @@
 }
 
 .video-placeholder p {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--bg-white);
     font-size: 1.1rem;
 }
 

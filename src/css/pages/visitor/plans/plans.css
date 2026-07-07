@@ -94,8 +94,10 @@
     box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
-    height: 100%; /* Asegura que todas las tarjetas tengan la misma altura */
-    min-height: 500px; /* Ajusta según necesidad */
+    height: 100%;
+    /* Asegura que todas las tarjetas tengan la misma altura */
+    min-height: 500px;
+    /* Ajusta según necesidad */
 }
 
 .pricing-card:hover {
@@ -167,7 +169,8 @@
 .features-list {
     list-style: none;
     margin: var(--spacing-lg) 0;
-    flex: 1; /* Hace que la lista ocupe el espacio restante, empujando el botón hacia abajo */
+    flex: 1;
+    /* Hace que la lista ocupe el espacio restante, empujando el botón hacia abajo */
 }
 
 .features-list li {
@@ -200,7 +203,8 @@
     transition: background 0.2s, transform 0.1s;
     text-decoration: none;
     width: 100%;
-    min-height: 50px; /* Misma altura para todos */
+    min-height: 50px;
+    /* Misma altura para todos */
     background: var(--color-primary);
     color: white;
 }
@@ -296,7 +300,7 @@
 
 /* CTA PLANS */
 .cta-plans {
-    background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
+    background: var(--color-primary-light);
     margin: var(--spacing-2xl) var(--spacing-xl);
     border-radius: var(--border-radius-md);
     padding: var(--spacing-2xl) var(--spacing-xl);
@@ -319,6 +323,7 @@
         grid-template-columns: 1fr;
         padding: 0 var(--spacing-md);
     }
+
     .pricing-card {
         min-height: auto;
     }
