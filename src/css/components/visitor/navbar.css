@@ -73,8 +73,8 @@
 }
 
 .navbar:not(.scrolled) .nav-menu li a {
-    color: #111827;
-    text-shadow: 0 0 2px rgba(255, 255, 240, 0.5);
+    color: var(--text-dark);
+    text-shadow: 0 0 2px var(--bg-white);
 }
 
 .navbar.scrolled .nav-menu li a {
@@ -83,11 +83,14 @@
 
 .nav-menu li a:hover,
 .nav-menu li a.active {
-    color: var(--color-primary);
+    color: var(--text-dark);
     border-bottom: 2px solid var(--color-primary);
 }
 
-
+.admin-logout-btn span,
+.admin-logout-btn i {
+    color: white;
+}
 
 
 
