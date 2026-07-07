@@ -17,10 +17,8 @@ let elements = {};
 
 /**
  * Inicializa el controlador del navbar
- * Espera a que los elementos existan en el DOM (compatible con loadLayout)
  */
 export function initNavbarController() {
-    // Esperar a que el navbar esté en el DOM
     waitForNavbar().then(() => {
         cacheElements();
 
@@ -29,18 +27,19 @@ export function initNavbarController() {
             return null;
         }
 
-        // Evitar doble inicialización
         if (state.isInitialized) {
             console.log('ℹ️ Navbar Controller ya estaba inicializado');
             return;
         }
 
         bindEvents();
-        setActiveLink();
 
-        // IMPORTANTE: Llamar a handleScroll inmediatamente para verificar estado inicial
+        // ✅ IMPORTANTE: Ejecutar setActiveLink después de que los enlaces estén en el DOM
+        setTimeout(() => {
+            setActiveLink();
+        }, 50);
+
         handleScroll();
-
         loadUserSession();
 
         state.isInitialized = true;
@@ -60,7 +59,6 @@ export function initNavbarController() {
 
 /**
  * Espera a que el navbar exista en el DOM
- * Útil cuando se carga con loadLayout
  */
 function waitForNavbar(maxAttempts = 30, interval = 100) {
     return new Promise((resolve, reject) => {
@@ -98,16 +96,19 @@ function cacheElements() {
         navLinks: document.querySelectorAll('.nav-menu a'),
         body: document.body
     };
+
+    // ✅ Forzar actualización de navLinks cada vez que se cachea
+    if (elements.navMenu) {
+        elements.navLinks = elements.navMenu.querySelectorAll('a');
+    }
 }
 
 /**
  * Vincula eventos del DOM
- * Con protección contra duplicados
  */
 function bindEvents() {
     // Eventos menú móvil
     if (elements.menuToggle && elements.navMenu) {
-        // Remover event listeners previos para evitar duplicados
         const newToggle = elements.menuToggle.cloneNode(true);
         if (elements.menuToggle.parentNode) {
             elements.menuToggle.parentNode.replaceChild(newToggle, elements.menuToggle);
@@ -117,33 +118,44 @@ function bindEvents() {
         elements.menuToggle.addEventListener('click', toggleMenu);
     }
 
-    // Evento scroll - ANIMACIÓN DE CAMBIO DE COLOR
-    // Usar passive: true para mejor performance
+    // Evento scroll
     window.addEventListener('scroll', handleScroll, { passive: true });
 
-    // Cerrar menú al hacer clic en enlace
-    if (elements.navLinks) {
-        elements.navLinks.forEach(link => {
-            link.removeEventListener('click', handleLinkClick);
-            link.addEventListener('click', handleLinkClick);
+    // ✅ Eventos de enlaces - usar delegación de eventos para mejor rendimiento
+    if (elements.navMenu) {
+        elements.navMenu.addEventListener('click', (e) => {
+            const link = e.target.closest('a');
+            if (link && link.getAttribute('href') && !link.getAttribute('href').startsWith('http') && link.getAttribute('href') !== '#') {
+                // No prevenir default aquí, dejar que el router maneje
+                closeMenu();
+            }
         });
     }
 
-    // Escuchar cambios de ruta (disparado por router)
+    // Escuchar cambios de ruta
     document.addEventListener('route:changed', () => {
-        setActiveLink();
+        console.log('🔄 Ruta cambiada, actualizando active link');
+        setTimeout(() => {
+            setActiveLink();
+        }, 50);
         closeMenu();
-        // Re-evaluar scroll al cambiar de ruta
         handleScroll();
     });
 
-    // Click fuera del menú (solo en móvil)
+    // ✅ Escuchar también popstate (navegación del navegador)
+    window.addEventListener('popstate', () => {
+        setTimeout(() => {
+            setActiveLink();
+        }, 50);
+    });
+
+    // Click fuera del menú
     document.addEventListener('click', handleClickOutside);
 
     // Evento resize
     window.addEventListener('resize', handleResize);
 
-    // Escuchar cuando loadLayout termine de cargar (evento personalizado)
+    // Escuchar cuando loadLayout termine de cargar
     document.addEventListener('layout:loaded', () => {
         console.log('🔄 Layout recargado, actualizando referencias');
         reinitialize();
@@ -151,7 +163,7 @@ function bindEvents() {
 }
 
 /**
- * Re-inicializa el controller (útil después de recargar layout)
+ * Re-inicializa el controller
  */
 export function reinitialize() {
     cacheElements();
@@ -162,15 +174,82 @@ export function reinitialize() {
     }
 
     bindEvents();
-    setActiveLink();
-    // Forzar actualización del estado scroll
+
+    setTimeout(() => {
+        setActiveLink();
+    }, 50);
+
     handleScroll();
 
     console.log('✅ Navbar Controller re-inicializado');
 }
 
 /**
- * Alterna menú móvil (abrir/cerrar)
+ * Marca enlace activo según ruta actual - VERSIÓN CORREGIDA
+ */
+export function setActiveLink() {
+    // ✅ Forzar actualización de navLinks
+    if (elements.navMenu) {
+        elements.navLinks = elements.navMenu.querySelectorAll('a');
+    }
+
+    if (!elements.navLinks || elements.navLinks.length === 0) {
+        console.warn('⚠️ No se encontraron enlaces para marcar active');
+        return;
+    }
+
+    const currentPath = window.location.pathname;
+    console.log('📍 Ruta actual para active:', currentPath);
+
+    let activeFound = false;
+
+    elements.navLinks.forEach(link => {
+        let linkPath = link.getAttribute('href');
+
+        if (!linkPath || linkPath === '#') return;
+
+        // Limpiar clase active de todos
+        link.classList.remove('active');
+
+        // ✅ Caso 1: Ruta raíz exacta
+        if (currentPath === '/' && (linkPath === '/' || linkPath === '/index.html')) {
+            link.classList.add('active');
+            activeFound = true;
+            console.log('✅ Active: Home');
+        }
+        // ✅ Caso 2: Coincidencia exacta
+        else if (linkPath === currentPath) {
+            link.classList.add('active');
+            activeFound = true;
+            console.log('✅ Active exacto:', linkPath);
+        }
+        // ✅ Caso 3: Coincidencia parcial (para rutas anidadas como /planes/pro)
+        else if (linkPath !== '/' && currentPath.startsWith(linkPath) && linkPath.length > 1) {
+            link.classList.add('active');
+            activeFound = true;
+            console.log('✅ Active parcial:', linkPath, 'para', currentPath);
+        }
+        // ✅ Caso 4: Para enlaces con .html
+        else if (linkPath.includes('.html') && currentPath.includes(linkPath.replace('.html', ''))) {
+            link.classList.add('active');
+            activeFound = true;
+            console.log('✅ Active .html:', linkPath);
+        }
+        // ✅ Caso 5: Para enlaces del dashboard (ruta completa)
+        else if (currentPath.startsWith('/admin') && linkPath === '/dashboard') {
+            link.classList.add('active');
+            activeFound = true;
+            console.log('✅ Active dashboard');
+        }
+    });
+
+    if (!activeFound) {
+        console.log('ℹ️ No se encontró coincidencia exacta para:', currentPath);
+    }
+}
+
+/**
+ * Alterna menú móvil
  */
 function toggleMenu() {
     if (!elements.navMenu || !elements.menuToggle) return;
@@ -196,7 +275,7 @@ function toggleMenu() {
 }
 
 /**
- * Cierra menú móvil programáticamente
+ * Cierra menú móvil
  */
 export function closeMenu() {
     if (!elements.navMenu || !elements.menuToggle) return;
@@ -213,14 +292,10 @@ export function closeMenu() {
 }
 
 /**
- * Maneja evento scroll - ANIMACIÓN DE CAMBIO DE COLOR
- * Misma lógica que en neoShop (1).html
- * Agrega/remueve la clase 'scrolled' basado en scrollY > 30
+ * Maneja evento scroll
  */
 function handleScroll() {
-    // Verificar que el navbar existe antes de modificar su clase
     if (!elements.navbar) {
-        // Intentar recachear si no existe
         const navbar = document.getElementById('navbar');
         if (navbar) {
             elements.navbar = navbar;
@@ -229,7 +304,6 @@ function handleScroll() {
         }
     }
 
-    // Misma condición que en neoShop (1).html: scrollY > 30
     const isNowScrolled = window.scrollY > 30;
 
     if (isNowScrolled && !state.isScrolled) {
@@ -257,7 +331,6 @@ function handleClickOutside(event) {
 
 /**
  * Maneja resize de ventana
- * Cierra menú si la pantalla se agranda
  */
 function handleResize() {
     if (window.innerWidth > 850 && state.isMenuOpen) {
@@ -266,72 +339,7 @@ function handleResize() {
 }
 
 /**
- * Maneja click en enlaces del navbar
- * Cierra menú al hacer clic en enlace
- */
-function handleLinkClick(e) {
-    // Cerrar menú
-    closeMenu();
-
-    const link = e.currentTarget;
-    const href = link.getAttribute('href');
-
-    // Si el router está disponible, usarlo para navegación SPA
-    if (typeof window.navigateTo === 'function' && href && !href.startsWith('http') && href !== '#') {
-        e.preventDefault();
-        addLoadingEffect(link);
-        window.navigateTo(href);
-    }
-    // Si no, dejar que el navegador maneje la navegación normalmente
-}
-
-/**
- * Marca enlace activo según ruta actual
- */
-export function setActiveLink() {
-    if (!elements.navLinks || elements.navLinks.length === 0) return;
-
-    const currentPath = window.location.pathname;
-
-    elements.navLinks.forEach(link => {
-        let linkPath = link.getAttribute('href');
-
-        if (!linkPath || linkPath === '#') return;
-
-        // Limpiar clase active de todos
-        link.classList.remove('active');
-
-        // Caso especial: home (ruta raíz)
-        if (currentPath === '/' && (linkPath === '/' || linkPath === '/index.html')) {
-            link.classList.add('active');
-        }
-        // Si el link es exactamente la ruta actual
-        else if (linkPath === currentPath) {
-            link.classList.add('active');
-        }
-        // Si el link es parte de la ruta actual (ej: /planes para /planes/pro)
-        else if (linkPath !== '/' && currentPath.startsWith(linkPath)) {
-            link.classList.add('active');
-        }
-        // Para páginas con extensión .html
-        else if (linkPath.includes('.html') && currentPath.includes(linkPath)) {
-            link.classList.add('active');
-        }
-    });
-}
-
-/**
- * Agrega efecto de carga a enlace clickeado
- */
-function addLoadingEffect(link) {
-    link.classList.add('loading');
-    setTimeout(() => {
-        link.classList.remove('loading');
-    }, 500);
-}
-
-/**
- * Carga sesión de usuario desde service (si existe)
+ * Carga sesión de usuario
  */
 async function loadUserSession() {
     try {
@@ -356,9 +364,6 @@ function updateNavbarForLoggedUser(user) {
 
     const loginItem = navMenu.querySelector('li:last-child');
     if (!loginItem) return;
-
-    const loginLink = loginItem.querySelector('a');
-    if (!loginLink) return;
 
     const avatarUrl = user.avatar ||
         `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=456da2&color=fff`;
@@ -391,16 +396,13 @@ function updateNavbarForLoggedUser(user) {
         logoutBtn.addEventListener('click', handleLogout);
     }
 
-    elements.navLinks = document.querySelectorAll('.nav-menu a');
+    // ✅ Actualizar navLinks después de modificar el DOM
+    elements.navLinks = navMenu.querySelectorAll('a');
 
-    elements.navLinks.forEach(link => {
-        link.removeEventListener('click', handleLinkClick);
-        link.addEventListener('click', handleLinkClick);
-    });
-
-    document.addEventListener('click', () => {
-        loginItem.classList.remove('dropdown-open');
-    });
+    // ✅ Re-ejecutar setActiveLink después de actualizar
+    setTimeout(() => {
+        setActiveLink();
+    }, 50);
 }
 
 /**
@@ -436,7 +438,7 @@ export function getState() {
 }
 
 /**
- * Forzar actualización del estado scroll (útil después de navegaciones)
+ * Forzar actualización del estado scroll
  */
 export function refreshScrollState() {
     handleScroll();
