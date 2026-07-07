@@ -88,8 +88,8 @@ body.dark-mode {
     --color-primary-darker: #b8c8df;
     --color-primary-dark: #a0b5d4;
     --color-primary: #456da2;
-    --color-primary-light: #456da2;
-    --color-primary-extraligth: #294b77;
+    --color-primary-light: #152e50;
+    --color-primary-extraligth: #152e50;
 
     /* Colores secundarios */
     --color-secondary: #7d98bb;
@@ -108,12 +108,12 @@ body.dark-mode {
     /* Colores de texto - Modo Oscuro */
     --text-dark: #e8edf5;
     --text-gray: #c8d0dc;
-    --text-light: #1a2332;
+    --text-light: #ccdfff;
     --text-muted: #d3e1f4;
     --text-primary: #e8edf5;
 
     /* Colores de borde - Modo Oscuro */
-    --border-light: #2a3a55;
+    --border-light: #05080c;
     --border-card: #2a3a55;
 
     /* Sombras - Modo Oscuro */
