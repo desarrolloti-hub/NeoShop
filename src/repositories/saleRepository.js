@@ -9,7 +9,7 @@ import {
     query, where, orderBy, limit
 } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 
-// ========== GENERAR NOMBRE DE COLECCIÓN (camelCase) ==========
+// ========== GENERAR NOMBRE DE COLECCIÓN ==========
 const getSaleCollectionName = (storeName) => {
     if (!storeName) {
         throw new Error('El nombre de la tienda es requerido');
@@ -25,12 +25,12 @@ const getSaleCollectionName = (storeName) => {
     return `sales${camelCaseName.charAt(0).toUpperCase() + camelCaseName.slice(1)}`;
 };
 
-// ========== MAPEO AVANZADO DE CAMPOS ==========
+// ========== MAPEO DE CAMPOS (CON PRODUCTOS) ==========
 function mapSaleDocument(doc) {
     const data = doc.data();
     const id = doc.id;
 
-    // 🔥 Folio: si contiene "undefined", lo reemplazamos con branchId
+    // --- Folio ---
     let folio = data.folio || data.folioVenta || data.numero || id.slice(0, 8) || 'N/A';
     if (folio.includes('undefined')) {
         const branch = data.branchId || data.sucursalId || 'tienda';
@@ -38,20 +38,20 @@ function mapSaleDocument(doc) {
         folio = `${branch}-${num}`;
     }
 
-    // 🔥 Fecha
+    // --- Fecha ---
     const date = data.date || data.fecha || data.fechaVenta || data.createdAt || new Date().toISOString();
 
-    // 🔥 Valores numéricos (con y sin guion bajo)
+    // --- Valores numéricos ---
     const subtotal = parseFloat(data.subtotal ?? data._subtotal ?? data.subTotal ?? 0);
     const discount = parseFloat(data.discount ?? data._discount ?? data.descuento ?? 0);
     const tax = parseFloat(data.tax ?? data._tax ?? data.impuesto ?? 0);
     const total = parseFloat(data.total ?? data._total ?? data.monto ?? 0);
     const change = parseFloat(data.change ?? data._change ?? data.cambio ?? 0);
 
-    // 🔥 Método de pago
+    // --- Método de pago ---
     const paymentMethod = data.paymentMethod || data.metodoPago || data.payment || 'cash';
 
-    // 🔥 Estado: si no existe o es 'pending' pero total > 0, lo marcamos como 'completed'
+    // --- Estado ---
     let status = data.status || data.estado || data.estatus || 'pending';
     const statusMap = {
         'completado': 'completed',
@@ -64,22 +64,58 @@ function mapSaleDocument(doc) {
         'reembolsada': 'refunded'
     };
     status = statusMap[status.toLowerCase()] || status;
-
-    // Si la venta tiene total > 0 y el estado es 'pending', lo cambiamos a 'completed'
     if (total > 0 && status === 'pending') {
         status = 'completed';
     }
 
-    // 🔥 Cliente
+    // --- Cliente ---
     const customerName = data.customerName || data.cliente || data.nombreCliente || data.clientName || 'Cliente general';
-
-    // 🔥 IDs
     const userId = data.userId || data.usuarioId || data.createdBy || data.vendedorId || '';
     const branchId = data.branchId || data.sucursalId || data.branch || 'default';
     const storeSlug = data.storeSlug || data.slug || branchId || 'tienda';
 
-    // Objeto final
-    const mapped = {
+    // === 🔥 PRODUCTOS: Buscar en varios campos posibles ===
+    let productos = [];
+    const posiblesCamposProductos = ['productos', 'items', 'products', 'detalles', 'lineItems', 'articulos'];
+    for (const campo of posiblesCamposProductos) {
+        if (data[campo] && Array.isArray(data[campo]) && data[campo].length > 0) {
+            productos = data[campo];
+            break;
+        }
+    }
+
+    // Si no se encontró, intentamos buscar un solo objeto de producto (venta de un solo producto)
+    if (productos.length === 0 && data.productName) {
+        productos = [{
+            productId: data.productId || '',
+            productName: data.productName || '',
+            quantity: data.quantity || 1,
+            price: data.price || data.precio || 0,
+            subtotal: data.subtotalItem || data.subtotalProducto || 0
+        }];
+    }
+
+    // Asegurar que cada producto tenga los campos mínimos
+    productos = productos.map(p => ({
+        productId: p.productId || p.id || '',
+        productName: p.productName || p.name || p.nombre || p.descripcion || 'Producto sin nombre',
+        quantity: parseFloat(p.quantity || p.cantidad || 1),
+        price: parseFloat(p.price || p.precio || p.precioUnitario || 0),
+        subtotal: parseFloat(p.subtotal || p.subTotal || p.subtotalItem || (p.price * p.quantity) || 0)
+    }));
+
+    // Si no hay productos pero hay total, creamos un producto genérico
+    if (productos.length === 0 && total > 0) {
+        productos = [{
+            productId: 'prod_generico',
+            productName: 'Producto(s)',
+            quantity: 1,
+            price: total,
+            subtotal: total
+        }];
+    }
+
+    return {
         id,
         folio,
         date,
@@ -94,11 +130,9 @@ function mapSaleDocument(doc) {
         userId,
         branchId,
         storeSlug,
-        _original: data // para depuración
+        productos, // ¡Ahora sí!
+        _original: data
     };
-
-    console.log('📄 Mapeado:', mapped);
-    return mapped;
 }
 
 // ========== REPOSITORIO ==========
@@ -114,14 +148,25 @@ export const SaleRepository = {
     },
 
     async getById(saleId, storeName) {
+        if (!saleId) throw new Error('ID de venta no proporcionado');
+        if (!storeName) throw new Error('Nombre de tienda no proporcionado');
+
         const collectionName = getSaleCollectionName(storeName);
+        console.log(`🔍 [REPO] Buscando venta ${saleId} en ${collectionName}`);
+
         const saleRef = doc(db, collectionName, saleId);
         const docSnap = await getDoc(saleRef);
-        if (!docSnap.exists()) return null;
+
+        if (!docSnap.exists()) {
+            console.warn(`⚠️ [REPO] Venta ${saleId} no encontrada`);
+            return null;
+        }
+
         return mapSaleDocument(docSnap);
     },
 
     async getAllSales(storeName, options = { orderBy: 'date', orderDirection: 'desc' }) {
+        if (!storeName) throw new Error('Nombre de tienda requerido');
         const collectionName = getSaleCollectionName(storeName);
         console.log('🔍 [REPO] Consultando colección:', collectionName);
 
@@ -140,27 +185,19 @@ export const SaleRepository = {
             const querySnapshot = await getDocs(q);
             console.log(`📦 [REPO] Documentos encontrados: ${querySnapshot.size}`);
 
-            if (querySnapshot.empty) {
-                return [];
-            }
+            if (querySnapshot.empty) return [];
 
             const sales = querySnapshot.docs.map(doc => mapSaleDocument(doc));
             console.log(`✅ [REPO] Ventas mapeadas: ${sales.length}`);
-            if (sales.length > 0) {
-                console.log('📋 [REPO] Ejemplo:', sales[0]);
-                console.log('   - total:', sales[0].total);
-                console.log('   - subtotal:', sales[0].subtotal);
-                console.log('   - status:', sales[0].status);
-                console.log('   - folio:', sales[0].folio);
-            }
             return sales;
         } catch (error) {
-            console.error('❌ [REPO] Error:', error);
+            console.error('❌ [REPO] Error en getAllSales:', error);
             throw error;
         }
     },
 
     async getNextFolio(storeName, storeSlug) {
+        if (!storeName) throw new Error('Nombre de tienda requerido');
         const collectionName = getSaleCollectionName(storeName);
         try {
             const q = query(collection(db, collectionName), orderBy('folio', 'desc'), limit(1));
@@ -177,8 +214,8 @@ export const SaleRepository = {
         }
     },
 
-    // Métodos adicionales (paginación, etc.) - los dejamos igual
     async getByStore(storeName, options = { limit: 50, orderBy: 'date', orderDirection: 'desc' }) {
+        if (!storeName) throw new Error('Nombre de tienda requerido');
         const collectionName = getSaleCollectionName(storeName);
         let q = query(
             collection(db, collectionName),
@@ -190,6 +227,7 @@ export const SaleRepository = {
     },
 
     async getByDateRange(storeName, startDate, endDate) {
+        if (!storeName) throw new Error('Nombre de tienda requerido');
         const collectionName = getSaleCollectionName(storeName);
         const q = query(
             collection(db, collectionName),
@@ -202,6 +240,8 @@ export const SaleRepository = {
     },
 
     async update(saleId, storeName, updateData) {
+        if (!saleId) throw new Error('ID de venta requerido');
+        if (!storeName) throw new Error('Nombre de tienda requerido');
         const collectionName = getSaleCollectionName(storeName);
         const saleRef = doc(db, collectionName, saleId);
         await updateDoc(saleRef, { ...updateData, updatedAt: new Date().toISOString() });
@@ -209,17 +249,21 @@ export const SaleRepository = {
     },
 
     async delete(saleId, storeName) {
+        if (!saleId) throw new Error('ID de venta requerido');
+        if (!storeName) throw new Error('Nombre de tienda requerido');
         const collectionName = getSaleCollectionName(storeName);
         await deleteDoc(doc(db, collectionName, saleId));
         return true;
     },
 
     async getTodaySales(storeName) {
+        if (!storeName) throw new Error('Nombre de tienda requerido');
         const today = new Date().toISOString().split('T')[0];
         return await this.getByDateRange(storeName, `${today}T00:00:00.000Z`, `${today}T23:59:59.999Z`);
     },
 
     async getThisWeekSales(storeName) {
+        if (!storeName) throw new Error('Nombre de tienda requerido');
         const today = new Date();
         const diff = (today.getDay() === 0 ? 6 : today.getDay() - 1);
         const start = new Date(today);
@@ -232,6 +276,7 @@ export const SaleRepository = {
     },
 
     async getThisMonthSales(storeName) {
+        if (!storeName) throw new Error('Nombre de tienda requerido');
         const now = new Date();
         const start = new Date(now.getFullYear(), now.getMonth(), 1);
         const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);

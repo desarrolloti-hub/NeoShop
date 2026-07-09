@@ -1,5 +1,5 @@
 /* ========================================
-   SALE SERVICE - Logica de negocio
+   SALE SERVICE - Lógica de negocio
    ======================================== */
 
 import { Sale } from '../classes/saleModel.js';
@@ -62,31 +62,42 @@ export const SaleService = {
         return await SaleRepository.getAllSales(storeSlug, options);
     },
 
-    async getTodaySales(storeSlug) {
-        return await SaleRepository.getTodaySales(storeSlug);
-    },
-
-    async getThisWeekSales(storeSlug) {
-        return await SaleRepository.getThisWeekSales(storeSlug);
-    },
-
-    async getThisMonthSales(storeSlug) {
-        return await SaleRepository.getThisMonthSales(storeSlug);
-    },
-
     async getSaleById(saleId, storeSlug) {
+        if (!saleId) throw new Error('ID de venta no proporcionado');
+        if (!storeSlug) throw new Error('Nombre de tienda no proporcionado');
+        console.log(`🔍 [SERVICE] Buscando venta ${saleId} en tienda ${storeSlug}`);
         return await SaleRepository.getById(saleId, storeSlug);
     },
 
     async updateSale(saleId, storeSlug, updateData) {
+        if (!saleId) throw new Error('ID de venta requerido');
+        if (!storeSlug) throw new Error('Nombre de tienda requerido');
         return await SaleRepository.update(saleId, storeSlug, updateData);
     },
 
     async deleteSale(saleId, storeSlug) {
+        if (!saleId) throw new Error('ID de venta requerido');
+        if (!storeSlug) throw new Error('Nombre de tienda requerido');
         return await SaleRepository.delete(saleId, storeSlug);
     },
 
+    async getTodaySales(storeSlug) {
+        if (!storeSlug) throw new Error('storeSlug requerido');
+        return await SaleRepository.getTodaySales(storeSlug);
+    },
+
+    async getThisWeekSales(storeSlug) {
+        if (!storeSlug) throw new Error('storeSlug requerido');
+        return await SaleRepository.getThisWeekSales(storeSlug);
+    },
+
+    async getThisMonthSales(storeSlug) {
+        if (!storeSlug) throw new Error('storeSlug requerido');
+        return await SaleRepository.getThisMonthSales(storeSlug);
+    },
+
     async getDashboardSummary(storeSlug) {
+        if (!storeSlug) throw new Error('storeSlug requerido');
         const today = await SaleRepository.getTodaySales(storeSlug);
         const week = await SaleRepository.getThisWeekSales(storeSlug);
         const month = await SaleRepository.getThisMonthSales(storeSlug);

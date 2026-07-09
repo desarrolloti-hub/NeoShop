@@ -1,16 +1,14 @@
 /* ============================================
    SALE DETAIL CONTROLLER - Detalle de Venta
-   Adaptado para SaleService y AdminService actualizados
    ============================================ */
 
 import { SaleService } from '../../../services/saleService.js';
 import { AdminService } from '../../../services/adminService.js';
-import { ProductService } from '../../../services/productService.js';
 
 // ========== VARIABLES ==========
 let currentSale = null;
 let currentAdmin = null;
-let currentStore = null;
+let currentStoreName = null;
 
 // ========== ELEMENTOS DOM ==========
 let elements = {};
@@ -75,30 +73,21 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// ========== CARGAR SESIÓN DEL ADMIN ==========
+// ========== CARGAR SESIÓN ==========
 function loadAdminSession() {
     currentAdmin = AdminService.getSession();
-
     if (!currentAdmin) {
         console.warn('⚠️ No hay administrador autenticado');
         return false;
     }
-
-    console.log('✅ Administrador autenticado:', currentAdmin.nombreCompleto);
-    return true;
-}
-
-async function loadCurrentStore() {
-    if (!currentAdmin || !currentAdmin.id) return false;
-
-    try {
-        currentStore = await ProductService.getCurrentStore(currentAdmin.id);
-        console.log('✅ Tienda actual:', currentStore.name);
-        return true;
-    } catch (error) {
-        console.error('❌ Error obteniendo tienda:', error.message);
+    currentStoreName = currentAdmin.storeName;
+    if (!currentStoreName) {
+        console.warn('⚠️ No hay storeName en la sesión');
         return false;
     }
+    console.log('✅ Admin:', currentAdmin.nombreCompleto);
+    console.log('✅ Tienda:', currentStoreName);
+    return true;
 }
 
 // ========== CACHE DE ELEMENTOS ==========
@@ -123,9 +112,13 @@ function cacheElements() {
     };
 }
 
-// ========== RENDERIZAR DETALLE ==========
+// ========== RENDERIZAR DETALLE (con productos mejorado) ==========
 function renderSaleDetail(sale) {
-    // Información general
+    if (!sale) return;
+
+    console.log('📊 Renderizando detalle de venta:', sale);
+
+    // Info general
     if (elements.saleFolio) elements.saleFolio.textContent = `Folio: ${sale.folio || '---'}`;
     if (elements.detailFolio) elements.detailFolio.textContent = sale.folio || '---';
     if (elements.detailDate) elements.detailDate.textContent = formatDateTime(sale.date);
@@ -139,7 +132,6 @@ function renderSaleDetail(sale) {
         elements.detailPaymentMethod.textContent = getPaymentMethodText(sale.paymentMethod);
     }
 
-    // Cliente
     if (elements.detailCustomerId) {
         elements.detailCustomerId.textContent = sale.customerId || 'Cliente general';
     }
@@ -147,29 +139,40 @@ function renderSaleDetail(sale) {
         elements.detailCustomerName.textContent = sale.customerName || 'Cliente general';
     }
 
-    // Resumen
+    // Totales
     if (elements.detailSubtotal) elements.detailSubtotal.textContent = formatCurrency(sale.subtotal || 0);
     if (elements.detailDiscount) elements.detailDiscount.textContent = formatCurrency(sale.discount || 0);
     if (elements.detailTax) elements.detailTax.textContent = formatCurrency(sale.tax || 0);
     if (elements.detailTotal) elements.detailTotal.textContent = formatCurrency(sale.total || 0);
 
-    // Productos
+    // === 🔥 PRODUCTOS: Mejorado ===
     if (elements.detailProductsBody) {
-        if (sale.productos && sale.productos.length > 0) {
-            elements.detailProductsBody.innerHTML = sale.productos.map(product => `
+        const productos = sale.productos || [];
+        console.log(`📦 Productos encontrados: ${productos.length}`, productos);
+
+        if (productos.length > 0) {
+            elements.detailProductsBody.innerHTML = productos.map(product => `
                 <tr>
-                    <td>${escapeHtml(product.productName || product.productId)}</td>
-                    <td>${product.quantity}</td>
-                    <td>${formatCurrency(product.price)}</td>
-                    <td>${formatCurrency(product.subtotal || product.quantity * product.price)}</td>
+                    <td>${escapeHtml(product.productName || 'Producto sin nombre')}</td>
+                    <td class="text-center">${product.quantity || 1}</td>
+                    <td class="text-right">${formatCurrency(product.price || 0)}</td>
+                    <td class="text-right">${formatCurrency(product.subtotal || (product.price * product.quantity) || 0)}</td>
                 </tr>
             `).join('');
         } else {
-            elements.detailProductsBody.innerHTML = '<tr><td colspan="4" class="empty-state">No hay productos registrados</td></tr>';
+            // Si no hay productos, mostramos un mensaje bonito
+            elements.detailProductsBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="empty-state text-center py-4">
+                        <i class="fas fa-box-open fa-2x d-block mb-2" style="color: #9ca3af;"></i>
+                        <span style="color: #6b7280;">No hay productos registrados para esta venta</span>
+                    </td>
+                </tr>
+            `;
         }
     }
 
-    // Mostrar/ocultar botón de cancelar según estado
+    // Botón cancelar
     if (elements.cancelSaleFromDetailBtn) {
         if (sale.status === 'pending') {
             elements.cancelSaleFromDetailBtn.style.display = 'inline-flex';
@@ -202,8 +205,9 @@ async function cancelSale() {
                 didOpen: () => Swal.showLoading()
             });
 
-            // Cancelar la venta usando SaleService
-            await SaleService.cancelSale(currentSale.id, currentAdmin?.id);
+            await SaleService.updateSale(currentSale.id, currentStoreName, {
+                status: 'cancelled'
+            });
 
             Swal.fire({
                 title: 'Venta cancelada',
@@ -224,6 +228,7 @@ async function cancelSale() {
 function printTicket() {
     if (!currentSale) return;
 
+    const productos = currentSale.productos || [];
     const printContent = `
         <!DOCTYPE html>
         <html>
@@ -262,18 +267,19 @@ function printTicket() {
             </div>
             <div class="divider"></div>
             <div>
-                ${(currentSale.productos || []).map(p => `
+                ${productos.map(p => `
                     <div class="product-row">
-                        <span>${escapeHtml(p.productName || p.productId)} x${p.quantity}</span>
-                        <span>${formatCurrency(p.price * p.quantity)}</span>
+                        <span>${escapeHtml(p.productName || 'Producto')} x${p.quantity || 1}</span>
+                        <span>${formatCurrency((p.price || 0) * (p.quantity || 1))}</span>
                     </div>
                 `).join('')}
+                ${productos.length === 0 ? '<div class="product-row"><span>Producto(s)</span><span>' + formatCurrency(currentSale.total) + '</span></div>' : ''}
             </div>
             <div class="divider"></div>
             <div>
                 <div class="product-row"><span>Subtotal:</span><span>${formatCurrency(currentSale.subtotal)}</span></div>
                 <div class="product-row"><span>Descuento:</span><span>${formatCurrency(currentSale.discount)}</span></div>
-                <div class="product-row"><span>IVA (16%):</span><span>${formatCurrency(currentSale.tax)}</span></div>
+                <div class="product-row"><span>IVA:</span><span>${formatCurrency(currentSale.tax)}</span></div>
                 <div class="product-row total-row"><span>TOTAL:</span><span>${formatCurrency(currentSale.total)}</span></div>
             </div>
             <div class="divider"></div>
@@ -289,36 +295,6 @@ function printTicket() {
     printWindow.document.write(printContent);
     printWindow.document.close();
     printWindow.print();
-}
-
-// ========== ACTUALIZAR ESTADO DE VENTA ==========
-async function updateSaleStatus(newStatus) {
-    if (!currentSale) return;
-
-    try {
-        Swal.fire({
-            title: 'Actualizando...',
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading()
-        });
-
-        const updated = await SaleService.updateSaleStatus(currentSale.id, newStatus, currentAdmin?.id);
-
-        currentSale = updated;
-        renderSaleDetail(currentSale);
-
-        Swal.fire({
-            title: 'Estado actualizado',
-            text: `La venta ahora está en estado "${getStatusText(newStatus)}"`,
-            icon: 'success',
-            timer: 2000,
-            showConfirmButton: false
-        });
-
-    } catch (error) {
-        console.error('Error actualizando estado:', error);
-        Swal.fire('Error', error.message, 'error');
-    }
 }
 
 // ========== EVENTOS ==========
@@ -341,14 +317,16 @@ function bindEvents() {
 // ========== CARGAR DATOS ==========
 async function loadSaleData(saleId) {
     try {
-        if (!currentStore) {
-            await loadCurrentStore();
+        if (!currentStoreName) {
+            throw new Error('No se encontró la tienda asociada');
+        }
+        if (!saleId) {
+            throw new Error('ID de venta no proporcionado');
         }
 
-        const storeSlug = currentStore?.name || 'default-store';
+        console.log(`🔍 [DETAIL] Cargando venta ${saleId} en tienda ${currentStoreName}`);
 
-        // Obtener la venta por ID
-        currentSale = await SaleService.getSaleById(saleId, storeSlug);
+        currentSale = await SaleService.getSaleById(saleId, currentStoreName);
 
         if (!currentSale) {
             throw new Error('Venta no encontrada');
@@ -357,7 +335,7 @@ async function loadSaleData(saleId) {
         renderSaleDetail(currentSale);
 
     } catch (error) {
-        console.error('Error cargando detalle:', error);
+        console.error('❌ Error cargando detalle:', error);
         Swal.fire({
             title: 'Error',
             text: error.message || 'No se pudo cargar el detalle de la venta',
@@ -373,6 +351,36 @@ async function loadSaleData(saleId) {
 export async function saleDetailController(saleId) {
     console.log('🔍 Sale Detail Controller - Venta:', saleId);
 
+    // Obtener ID desde la URL si no se pasó
+    if (!saleId) {
+        console.warn('⚠️ No se recibió saleId como argumento, intentando obtener de la URL...');
+        const pathSegments = window.location.pathname.split('/');
+        const detalleIndex = pathSegments.indexOf('detalle');
+        if (detalleIndex !== -1 && pathSegments.length > detalleIndex + 1) {
+            saleId = pathSegments[detalleIndex + 1];
+            console.log('🔍 Obtenido saleId de path:', saleId);
+        } else {
+            const params = new URLSearchParams(window.location.search);
+            saleId = params.get('id') || params.get('ID') || params.get('saleId');
+            if (saleId) console.log('🔍 Obtenido saleId de query string:', saleId);
+        }
+    }
+
+    console.log('📌 saleId final:', saleId);
+
+    if (!saleId) {
+        console.error('❌ No se pudo obtener el ID de la venta');
+        Swal.fire({
+            title: 'Error',
+            text: 'No se encontró el ID de la venta en la URL',
+            icon: 'error',
+            confirmButtonText: 'Volver'
+        }).then(() => {
+            if (window.router) window.router.navigate('/admin/ventas');
+        });
+        return;
+    }
+
     const sessionLoaded = loadAdminSession();
 
     if (!sessionLoaded) {
@@ -382,7 +390,6 @@ export async function saleDetailController(saleId) {
         return;
     }
 
-    await loadCurrentStore();
     cacheElements();
     bindEvents();
     await loadSaleData(saleId);
