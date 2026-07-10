@@ -130,7 +130,7 @@
 
 .settings-btn.light-active i:first-child {
     background: rgba(69, 109, 162, 0.15);
-    color: var(--color-primary);
+    color: var(--text-dark);
 }
 
 /* Modo oscuro activo */
@@ -141,11 +141,11 @@
 
 .settings-btn.dark-active i:first-child {
     background: rgba(69, 109, 162, 0.25);
-    color: #fbbf24;
+    color: var(--text-light);
 }
 
 .settings-btn.dark-active .btn-title {
-    color: var(--color-primary-light);
+    color: var(--text-dark);
 }
 
 .settings-btn.dark-active .btn-desc {
@@ -157,7 +157,7 @@
 }
 
 .settings-btn.dark-active:hover {
-    border-color: #fbbf24;
+    border-color: var(--color-primary-dark);
     box-shadow: 0 0 20px rgba(251, 191, 36, 0.1);
 }
 

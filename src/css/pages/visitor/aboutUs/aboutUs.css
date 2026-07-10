@@ -177,7 +177,7 @@
 
 /* CTA about */
 .about-cta {
-    background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
+    background: var(--color-primary-light);
     margin: var(--spacing-2xl) var(--spacing-xl);
     border-radius: var(--border-radius-md);
     padding: var(--spacing-2xl) var(--spacing-xl);
@@ -185,7 +185,7 @@
 }
 
 .about-cta-content h2 {
-    color: var(--bg-white);
+    color: var(--text-light);
     margin-bottom: var(--spacing-xs);
 }
 
