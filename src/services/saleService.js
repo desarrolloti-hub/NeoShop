@@ -45,13 +45,27 @@ export const SaleService = {
             status: SALE_STATUS.PENDING,
             createdBy: userId,
             customerName: saleData.customerName || 'Cliente general',
-            productos: saleData.productos || [],
+            customerEmail: saleData.customerEmail || '',
+            customerPhone: saleData.customerPhone || '',
+            customerRfc: saleData.customerRfc || '',
+            fiscalAddress: saleData.fiscalAddress || {
+                street: '',
+                neighborhood: '',
+                postalCode: '',
+                city: '',
+                state: '',
+                references: ''
+            },
+            // 🔥 CLAVE: El controlador envía 'productos', y el modelo espera 'products'
+            products: saleData.productos || [],
             userName: saleData.userName || '',
             userEmail: saleData.userEmail || ''
         });
 
         const validation = sale.validarParaRegistro ? sale.validarParaRegistro() : { valido: true, errores: [] };
-        if (!validation.valido) throw new Error(validation.errores.join(', '));
+        if (!validation.valido) {
+            throw new Error(validation.errores.join(', '));
+        }
 
         return await SaleRepository.save(sale, saleData.storeSlug);
     },

@@ -1,0 +1,166 @@
+<mxfile host="65bd71144e">
+    <diagram id="oxRs3L1L-LHU24oek8vH" name="Page-1">
+        <mxGraphModel dx="2536" dy="728" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="Product" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="40" width="360" height="530" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="  ATRIBUTOS&#xa;- id: String (prod_timestamp_random)&#xa;- barcode: String&#xa;- name: String&#xa;- description: String&#xa;- brand: String&#xa;- unitOfMeasure: String&#xa;- categoryId: String &#xa;- price: number&#xa;- cost: number&#xa;- stock: number&#xa;- minStock: number&#xa;- maxStock: number&#xa;- imageUrl: String (base64)&#xa;- active: boolean&#xa;- createdAt: String (ISO)&#xa;- updatedAt: String | null&#xa;- storeId: String | null&#xa;- createdBy: String | null (Admin ID)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="2">
+                    <mxGeometry y="30" width="360" height="290" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="  GETTERS&#xa;+ displayName: String&#xa;+ hasImage: boolean&#xa;+ isLowStock: boolean&#xa;+ isOutOfStock: boolean&#xa;+ isOverStock: boolean&#xa;+ margin: number (porcentaje)&#xa;+ hasCategory: boolean&#xa;+ summary: Object" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="2">
+                    <mxGeometry y="320" width="360" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="  MÉTODOS PÚBLICOS&#xa;+ reduceStock(quantity): boolean&#xa;+ increaseStock(quantity): number" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="2">
+                    <mxGeometry y="470" width="360" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="ProductRepository" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="480" y="40" width="400" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="  FUNCIONES PRIVADAS&#xa;- getProductsCollectionName(storeName): String" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fillColor=none;strokeColor=#cccccc;" vertex="1" parent="6">
+                    <mxGeometry y="30" width="400" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="  MÉTODOS ESTÁTICOS&#xa;+ save(productData, storeName): Promise&lt;Object&gt;&#xa;+ getById(productId, storeName): Promise&lt;Object|null&gt;&#xa;+ getByBarcode(barcode, storeName): Promise&lt;Object|null&gt;&#xa;+ getByCategory(categoryId, storeName, limitCount): Promise&lt;Array&gt; &#xa;+ getAll(storeName, filters, limitCount): Promise&lt;Array&gt;&#xa;+ update(productId, updateData, storeName): Promise&lt;Object&gt;&#xa;+ updateStock(productId, quantity, storeName): Promise&lt;Object&gt;&#xa;+ delete(productId, storeName, hardDelete): Promise&lt;boolean|Object&gt;&#xa;+ search(term, storeName, limitCount): Promise&lt;Array&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="6">
+                    <mxGeometry y="70" width="400" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="StoreRepository" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="980" y="40" width="340" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="  MÉTODOS ESTÁTICOS (usados por ProductService)&#xa;+ getByAdminId(adminId, storeName): Promise&lt;Object|null&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="9">
+                    <mxGeometry y="30" width="340" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="CacheService" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="1000" y="360" width="340" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="  CONSTANTES&#xa;+ STORES: { ADMINS, SUPPLIERS, CASH_SESSIONS, STORES, TIENDAS, PRODUCTOS, SALES, PRODUCTS, CATEGORIES, CUSTOMERS }" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="11">
+                    <mxGeometry y="30" width="340" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="  MÉTODOS ESTÁTICOS&#xa;+ setCache(storeName, id, data, ttl): Promise&lt;boolean&gt;&#xa;+ getCache(storeName, id): Promise&lt;Object|null&gt;&#xa;+ clearCache(storeName): Promise&lt;boolean&gt;&#xa;+ clearAllCache(): Promise&lt;boolean&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="11">
+                    <mxGeometry y="100" width="340" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="AdminService" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#e1d5e7;strokeColor=#9673a6;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="1000" y="610" width="340" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="  MÉTODOS ESTÁTICOS (usados por ProductService)&#xa;+ getSession(): Object | null" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="14">
+                    <mxGeometry y="30" width="340" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="ProductService" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#e1d5e7;strokeColor=#9673a6;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="-10" y="700" width="460" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="  MÉTODOS ESTÁTICOS&#xa;+ getCurrentStore(adminId, storeName): Promise&lt;Object&gt;&#xa;+ create(productData, adminId, storeName): Promise&lt;Product&gt;&#xa;+ getById(productId, adminId, storeName): Promise&lt;Product|null&gt;&#xa;+ getByBarcode(barcode, adminId, storeName): Promise&lt;Product|null&gt;&#xa;+ getByCategory(categoryId, adminId, storeName): Promise&lt;Array&lt;Product&gt;&gt;&#xa;+ getAll(adminId, filters, forceRefresh, storeName): Promise&lt;Array&lt;Product&gt;&gt;&#xa;+ update(productId, updateData, adminId, storeName): Promise&lt;Product&gt;&#xa;+ updateStock(productId, quantity, adminId, storeName): Promise&lt;Product&gt;&#xa;+ toggleStatus(productId, active, adminId, storeName): Promise&lt;Product&gt;&#xa;+ delete(productId, adminId, hardDelete, storeName): Promise&lt;boolean|Object&gt;&#xa;+ search(term, adminId, limit, storeName): Promise&lt;Array&lt;Product&gt;&gt;&#xa;+ getLowStockProducts(adminId, storeName): Promise&lt;Array&lt;Product&gt;&gt;&#xa;+ getOutOfStockProducts(adminId, storeName): Promise&lt;Array&lt;Product&gt;&gt;&#xa;+ getUncategorizedProducts(adminId, storeName): Promise&lt;Array&lt;Product&gt;&gt;&#xa;+ countByCategory(categoryId, adminId, storeName): Promise&lt;number&gt; " style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="16">
+                    <mxGeometry y="30" width="460" height="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="«collection» products{storeName}" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#ffe6cc;strokeColor=#d79b00;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="560" y="780" width="380" height="380" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="  ATRIBUTOS (ejemplo)&#xa;• id: String (prod_timestamp_random)&#xa;• barcode: String&#xa;• name: String&#xa;• description: String&#xa;• brand: String&#xa;• unitOfMeasure: String&#xa;• categoryId: String | null &#xa;• price: number&#xa;• cost: number&#xa;• stock: number&#xa;• minStock: number&#xa;• maxStock: number&#xa;• imageUrl: String (base64)&#xa;• active: boolean&#xa;• createdAt: Timestamp&#xa;• updatedAt: Timestamp&#xa;• storeId: String&#xa;• createdBy: String (Admin ID)&#xa;&#xa;  COLECCIÓN DINÁMICA:&#xa;  &#39;Mi Tienda&#39; → &#39;productsMiTienda&#39;&#xa;  &#39;Bimbo&#39; → &#39;productsBimbo&#39;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="18">
+                    <mxGeometry y="30" width="380" height="350" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="«collection» tiendas" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#ffe6cc;strokeColor=#d79b00;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="960" y="910" width="380" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="  StoreRepository.getByAdminId(adminId)&#xa;  Obtiene tienda del administrador" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="20">
+                    <mxGeometry y="30" width="380" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="" style="endArrow=open;dashed=1;endFill=0;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="16" target="6">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="420" y="290"/>
+                            <mxPoint x="680" y="290"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="23" value="usa" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#9673a6;fontStyle=1;" vertex="1" connectable="0" parent="22">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-0.5" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="24" value="" style="endArrow=open;dashed=1;endFill=0;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="16" target="2">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="220" y="690"/>
+                            <mxPoint x="220" y="580"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="25" value="usa/crea" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#9673a6;fontStyle=1;" vertex="1" connectable="0" parent="24">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="0.5" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="26" value="" style="endArrow=open;dashed=1;endFill=0;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="16" target="9">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="500" y="320"/>
+                            <mxPoint x="1010" y="320"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="27" value="usa (getByAdminId)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#9673a6;fontStyle=1;" vertex="1" connectable="0" parent="26">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="0.5" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="28" value="" style="endArrow=open;dashed=1;endFill=0;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="16" target="11">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="440" y="455"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="29" value="usa" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#9673a6;fontStyle=1;" vertex="1" connectable="0" parent="28">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="0.5" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="30" value="" style="endArrow=open;dashed=1;endFill=0;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="16" target="14">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1170" y="740"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="31" value="usa (getSession)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#9673a6;fontStyle=1;" vertex="1" connectable="0" parent="30">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="0.5" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="32" value="" style="endArrow=open;dashed=1;endFill=0;strokeWidth=2;strokeColor=#d6b656;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="6" target="18">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="660" y="330"/>
+                            <mxPoint x="660" y="330"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="33" value="lee/escribe" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#d6b656;fontStyle=1;" vertex="1" connectable="0" parent="32">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="0.5" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="34" value="" style="endArrow=open;dashed=1;endFill=0;strokeWidth=2;strokeColor=#6c8ebf;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="9" target="20">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1150" y="340"/>
+                            <mxPoint x="960" y="340"/>
+                            <mxPoint x="960" y="850"/>
+                            <mxPoint x="1150" y="850"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="35" value="lee" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#6c8ebf;fontStyle=1;" vertex="1" connectable="0" parent="34">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="0.5" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="36" value="Text" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="34">
+                    <mxGeometry x="-0.7363" y="-1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

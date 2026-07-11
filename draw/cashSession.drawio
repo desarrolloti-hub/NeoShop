@@ -1,0 +1,105 @@
+<mxfile host="65bd71144e">
+    <diagram id="CBLDPCs8VIKiGSITCAYE" name="Page-1">
+        <mxGraphModel dx="1096" dy="719" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="59" value="CashSession" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="40" width="360" height="650" as="geometry"/>
+                </mxCell>
+                <mxCell id="60" value="  ATRIBUTOS&#xa;- id: String&#xa;- sessionId: String (ej. CSH_001)&#xa;- storeSlug: String&#xa;- branchId: String&#xa;- storeName: String&#xa;- branchName: String&#xa;- userId: String&#xa;- userName: String&#xa;- openingTime: String (ISO)&#xa;- openingCash: number&#xa;- closingTime: String | null&#xa;- closingCash: number | null&#xa;- withdrawals: Array&lt;Object&gt;&#xa;- totalWithdrawn: number&#xa;- status: String (open/closed/cancelled)&#xa;- notes: String&#xa;- createdAt: String&#xa;- updatedAt: String | null&#xa;- closedBy: String | null" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="59">
+                    <mxGeometry y="30" width="360" height="300" as="geometry"/>
+                </mxCell>
+                <mxCell id="61" value="  GETTERS&#xa;+ difference: number&#xa;+ expectedCash: number&#xa;+ differenceWithWithdrawals: number&#xa;+ differenceFormatted: String&#xa;+ totalWithdrawnFormatted: String&#xa;+ isPositive: boolean&#xa;+ isNegative: boolean&#xa;+ statusLabel: String&#xa;+ openingTimeFormatted: String&#xa;+ closingTimeFormatted: String&#xa;+ recentWithdrawals: Array&#xa;+ datosResumidos: Object" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="59">
+                    <mxGeometry y="330" width="360" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="62" value="  MÉTODOS PÚBLICOS&#xa;+ withdraw(amount, reason, userId, userName): Object&#xa;+ removeWithdrawal(withdrawalId): boolean&#xa;+ close(closingCash, notes, closedBy): CashSession&#xa;+ cancel(notes, cancelledBy): CashSession&#xa;+ validarParaCierre(): {valido, errores}&#xa;+ validarParaApertura(): {valido, errores}" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="59">
+                    <mxGeometry y="530" width="360" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="63" value="CashSessionRepository" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="480" y="40" width="380" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="64" value="  MÉTODOS ESTÁTICOS&#xa;+ save(sessionData): Promise&lt;Object&gt;&#xa;+ getById(sessionId): Promise&lt;Object|null&gt;&#xa;+ getBySessionCode(sessionCode): Promise&lt;Object|null&gt;&#xa;+ getActiveSession(branchId): Promise&lt;Object|null&gt;&#xa;+ addWithdrawal(sessionId, withdrawal): Promise&lt;Object&gt;&#xa;+ removeWithdrawal(sessionId, withdrawalId): Promise&lt;Object&gt;&#xa;+ getAll(filters, limitCount): Promise&lt;Array&gt;&#xa;+ update(sessionId, updateData): Promise&lt;Object&gt;&#xa;+ close(sessionId, closingCash, notes, closedBy): Promise&lt;Object&gt;&#xa;+ delete(sessionId, hardDelete): Promise&lt;boolean&gt;&#xa;+ getByDateRange(startDate, endDate, branchId): Promise&lt;Array&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="63">
+                    <mxGeometry y="30" width="380" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="65" value="CacheService" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="510" y="800" width="340" height="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="66" value="  CONSTANTES&#xa;+ STORES: { ADMINS, SUPPLIERS, CASH_SESSIONS, STORES, TIENDAS, PRODUCTOS, SALES, PRODUCTS }" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="65">
+                    <mxGeometry y="30" width="340" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="67" value="  MÉTODOS ESTÁTICOS&#xa;+ setCache(storeName, id, data, ttl): Promise&lt;boolean&gt;&#xa;+ getCache(storeName, id): Promise&lt;Object|null&gt;&#xa;+ clearCache(storeName): Promise&lt;boolean&gt;&#xa;+ clearAllCache(): Promise&lt;boolean&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="65">
+                    <mxGeometry y="110" width="340" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="68" value="CashSessionService" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#e1d5e7;strokeColor=#9673a6;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="800" width="420" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="69" value="  MÉTODOS ESTÁTICOS&#xa;+ openSession(sessionData, userId): Promise&lt;CashSession&gt;&#xa;+ addWithdrawal(sessionId, amount, reason, userId, userName): Promise&lt;Object&gt;&#xa;+ removeWithdrawal(sessionId, withdrawalId): Promise&lt;CashSession&gt;&#xa;+ getWithdrawals(sessionId): Promise&lt;Object&gt;&#xa;+ getOrCreateActiveSession(branchId, userData): Promise&lt;CashSession&gt;&#xa;+ closeSession(sessionId, closingCash, notes, closedBy): Promise&lt;CashSession&gt;&#xa;+ getActiveSession(branchId): Promise&lt;CashSession|null&gt;&#xa;+ getById(sessionId, forceRefresh): Promise&lt;CashSession|null&gt;&#xa;+ getAll(filters, forceRefresh): Promise&lt;Array&lt;CashSession&gt;&gt;&#xa;+ getTodaySummary(branchId): Promise&lt;Object&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="68">
+                    <mxGeometry y="30" width="420" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="70" value="  MÉTODOS PRIVADOS&#xa;- _generateSessionId(): String" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fillColor=none;strokeColor=#cccccc;" vertex="1" parent="68">
+                    <mxGeometry y="230" width="420" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="71" value="«collection» caja_sesiones" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#ffe6cc;strokeColor=#d79b00;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="490" y="340" width="360" height="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="72" value="  ATRIBUTOS (ejemplo)&#xa;• id: String&#xa;• sessionId: String&#xa;• storeSlug: String&#xa;• branchId: String&#xa;• userId: String&#xa;• userName: String&#xa;• openingCash: number&#xa;• closingCash: number | null&#xa;• withdrawals: Array&lt;Object&gt;&#xa;• totalWithdrawn: number&#xa;• status: String (open/closed/cancelled)&#xa;• createdAt: Timestamp&#xa;• updatedAt: Timestamp" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="71">
+                    <mxGeometry y="30" width="360" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="73" value="" style="endArrow=open;dashed=1;endFill=0;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="68" target="63">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="440" y="500"/>
+                            <mxPoint x="460" y="500"/>
+                            <mxPoint x="460" y="150"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="74" value="usa" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#9673a6;fontStyle=1;" vertex="1" connectable="0" parent="73">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-0.5" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="75" value="" style="endArrow=open;dashed=1;endFill=0;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="68" target="65">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="250" y="720"/>
+                            <mxPoint x="680" y="720"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="76" value="usa" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#9673a6;fontStyle=1;" vertex="1" connectable="0" parent="75">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="0.5" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="77" value="" style="endArrow=open;dashed=1;endFill=0;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="68" target="59">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="220" y="790"/>
+                            <mxPoint x="220" y="720"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="78" value="usa/crea" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#9673a6;fontStyle=1;" vertex="1" connectable="0" parent="77">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="0.5" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="79" value="" style="endArrow=open;dashed=1;endFill=0;strokeWidth=2;strokeColor=#d6b656;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="63" target="71">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="700" y="480"/>
+                            <mxPoint x="700" y="790"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="80" value="lee/escribe" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#d6b656;fontStyle=1;" vertex="1" connectable="0" parent="79">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="0.5" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

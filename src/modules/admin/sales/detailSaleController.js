@@ -4,6 +4,7 @@
 
 import { SaleService } from '../../../services/saleService.js';
 import { AdminService } from '../../../services/adminService.js';
+import { showTicket } from '../../shared/ticketPrinter/ticketPrinter.js'; // 👈 Importamos el componente de ticket
 
 // ========== VARIABLES ==========
 let currentSale = null;
@@ -101,6 +102,11 @@ function cacheElements() {
         detailPaymentMethod: document.getElementById('detailPaymentMethod'),
         detailCustomerId: document.getElementById('detailCustomerId'),
         detailCustomerName: document.getElementById('detailCustomerName'),
+        detailCustomerEmail: document.getElementById('detailCustomerEmail'),
+        detailCustomerPhone: document.getElementById('detailCustomerPhone'),
+        detailCustomerRfc: document.getElementById('detailCustomerRfc'),
+        detailFiscalAddress: document.getElementById('detailFiscalAddress'),
+        detailChange: document.getElementById('detailChange'),
         detailSubtotal: document.getElementById('detailSubtotal'),
         detailDiscount: document.getElementById('detailDiscount'),
         detailTax: document.getElementById('detailTax'),
@@ -112,7 +118,7 @@ function cacheElements() {
     };
 }
 
-// ========== RENDERIZAR DETALLE (con productos mejorado) ==========
+// ========== RENDERIZAR DETALLE ==========
 function renderSaleDetail(sale) {
     if (!sale) return;
 
@@ -129,14 +135,38 @@ function renderSaleDetail(sale) {
     }
 
     if (elements.detailPaymentMethod) {
-        elements.detailPaymentMethod.textContent = getPaymentMethodText(sale.paymentMethod);
+        let paymentText = getPaymentMethodText(sale.paymentMethod);
+        if (sale.change && sale.change > 0) {
+            paymentText += ` (Cambio: ${formatCurrency(sale.change)})`;
+        }
+        elements.detailPaymentMethod.textContent = paymentText;
     }
 
+    // Cliente
     if (elements.detailCustomerId) {
         elements.detailCustomerId.textContent = sale.customerId || 'Cliente general';
     }
     if (elements.detailCustomerName) {
         elements.detailCustomerName.textContent = sale.customerName || 'Cliente general';
+    }
+    if (elements.detailCustomerEmail) {
+        elements.detailCustomerEmail.textContent = sale.customerEmail || 'No registrado';
+    }
+    if (elements.detailCustomerPhone) {
+        elements.detailCustomerPhone.textContent = sale.customerPhone || 'No registrado';
+    }
+    if (elements.detailCustomerRfc) {
+        elements.detailCustomerRfc.textContent = sale.customerRfc || 'No registrado';
+    }
+    if (elements.detailFiscalAddress) {
+        const addr = sale.fiscalAddress || {};
+        const addressStr = [addr.street, addr.neighborhood, addr.postalCode, addr.city, addr.state]
+            .filter(Boolean).join(', ');
+        elements.detailFiscalAddress.textContent = addressStr || 'No registrada';
+    }
+
+    if (elements.detailChange) {
+        elements.detailChange.textContent = sale.change ? formatCurrency(sale.change) : '$0.00';
     }
 
     // Totales
@@ -145,7 +175,7 @@ function renderSaleDetail(sale) {
     if (elements.detailTax) elements.detailTax.textContent = formatCurrency(sale.tax || 0);
     if (elements.detailTotal) elements.detailTotal.textContent = formatCurrency(sale.total || 0);
 
-    // === 🔥 PRODUCTOS: Mejorado ===
+    // Productos
     if (elements.detailProductsBody) {
         const productos = sale.productos || [];
         console.log(`📦 Productos encontrados: ${productos.length}`, productos);
@@ -160,7 +190,6 @@ function renderSaleDetail(sale) {
                 </tr>
             `).join('');
         } else {
-            // Si no hay productos, mostramos un mensaje bonito
             elements.detailProductsBody.innerHTML = `
                 <tr>
                     <td colspan="4" class="empty-state text-center py-4">
@@ -224,77 +253,44 @@ async function cancelSale() {
     }
 }
 
-// ========== IMPRIMIR TICKET ==========
-function printTicket() {
+// ========== IMPRIMIR TICKET CON COMPONENTE ==========
+function printTicketWithComponent() {
     if (!currentSale) return;
 
-    const productos = currentSale.productos || [];
-    const printContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Ticket ${currentSale.folio}</title>
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body {
-                    font-family: 'Courier New', monospace;
-                    padding: 20px;
-                    max-width: 300px;
-                    margin: 0 auto;
-                    font-size: 12px;
-                }
-                .header { text-align: center; margin-bottom: 20px; }
-                .header h2 { margin: 0; font-size: 18px; }
-                .header p { margin: 5px 0; }
-                .divider { border-top: 1px dashed #000; margin: 10px 0; }
-                .product-row { display: flex; justify-content: space-between; margin: 5px 0; }
-                .total-row { font-weight: bold; margin-top: 10px; font-size: 14px; }
-                .footer { text-align: center; margin-top: 20px; font-size: 10px; }
-                .text-center { text-align: center; }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h2>Tienda</h2>
-                <p>Ticket de Venta</p>
-                <p><strong>Folio:</strong> ${currentSale.folio}</p>
-                <p><strong>Fecha:</strong> ${formatDateTime(currentSale.date)}</p>
-            </div>
-            <div class="divider"></div>
-            <div>
-                <p><strong>Cliente:</strong> ${escapeHtml(currentSale.customerName || 'Cliente general')}</p>
-            </div>
-            <div class="divider"></div>
-            <div>
-                ${productos.map(p => `
-                    <div class="product-row">
-                        <span>${escapeHtml(p.productName || 'Producto')} x${p.quantity || 1}</span>
-                        <span>${formatCurrency((p.price || 0) * (p.quantity || 1))}</span>
-                    </div>
-                `).join('')}
-                ${productos.length === 0 ? '<div class="product-row"><span>Producto(s)</span><span>' + formatCurrency(currentSale.total) + '</span></div>' : ''}
-            </div>
-            <div class="divider"></div>
-            <div>
-                <div class="product-row"><span>Subtotal:</span><span>${formatCurrency(currentSale.subtotal)}</span></div>
-                <div class="product-row"><span>Descuento:</span><span>${formatCurrency(currentSale.discount)}</span></div>
-                <div class="product-row"><span>IVA:</span><span>${formatCurrency(currentSale.tax)}</span></div>
-                <div class="product-row total-row"><span>TOTAL:</span><span>${formatCurrency(currentSale.total)}</span></div>
-            </div>
-            <div class="divider"></div>
-            <div class="footer">
-                <p>Método de pago: ${getPaymentMethodText(currentSale.paymentMethod)}</p>
-                <p>¡Gracias por tu compra!</p>
-            </div>
-        </body>
-        </html>
-    `;
+    // Preparar datos del ticket igual que en createSaleController
+    const ticketData = {
+        id: currentSale.id,
+        folio: currentSale.folio,
+        date: currentSale.date,
+        userName: currentAdmin?.nombreCompleto || currentAdmin?.name || 'Sistema',
+        customerName: currentSale.customerName || 'Cliente general',
+        productos: currentSale.productos || [],
+        subtotal: currentSale.subtotal || 0,
+        discount: currentSale.discount || 0,
+        tax: currentSale.tax || 0,
+        total: currentSale.total || 0,
+        change: currentSale.change || 0,
+        paymentMethod: currentSale.paymentMethod || 'cash'
+    };
 
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    printWindow.print();
+    // Datos de la tienda desde la sesión del admin
+    const storeData = {
+        name: currentAdmin?.storeName || currentStoreName || 'Mi Tienda',
+        logo: currentAdmin?.storeLogo || '',
+        address: currentAdmin?.storeAddress || '',
+        phone: currentAdmin?.storePhone || '',
+        rfc: currentAdmin?.storeRfc || ''
+    };
+
+    // Mostrar el ticket con el componente reutilizable
+    showTicket(ticketData, storeData, () => {
+        console.log('🔄 Ticket cerrado');
+        // No redirigimos, solo cerramos el modal si existe
+        const ticketModal = document.getElementById('ticketModal');
+        if (ticketModal) {
+            ticketModal.remove();
+        }
+    });
 }
 
 // ========== EVENTOS ==========
@@ -305,8 +301,10 @@ function bindEvents() {
         });
     }
 
+    // Asignar la nueva función de impresión al botón
     if (elements.printSaleBtn) {
-        elements.printSaleBtn.addEventListener('click', printTicket);
+        elements.printSaleBtn.removeEventListener('click', printTicketWithComponent); // Evita duplicados
+        elements.printSaleBtn.addEventListener('click', printTicketWithComponent);
     }
 
     if (elements.cancelSaleFromDetailBtn) {
@@ -351,7 +349,6 @@ async function loadSaleData(saleId) {
 export async function saleDetailController(saleId) {
     console.log('🔍 Sale Detail Controller - Venta:', saleId);
 
-    // Obtener ID desde la URL si no se pasó
     if (!saleId) {
         console.warn('⚠️ No se recibió saleId como argumento, intentando obtener de la URL...');
         const pathSegments = window.location.pathname.split('/');
