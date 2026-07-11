@@ -25,7 +25,7 @@ const getSaleCollectionName = (storeName) => {
     return `sales${camelCaseName.charAt(0).toUpperCase() + camelCaseName.slice(1)}`;
 };
 
-// ========== MAPEO DE CAMPOS (CON PRODUCTOS) ==========
+// ========== MAPEO DE CAMPOS (CON PRODUCTOS Y CLIENTE) ==========
 function mapSaleDocument(doc) {
     const data = doc.data();
     const id = doc.id;
@@ -68,15 +68,29 @@ function mapSaleDocument(doc) {
         status = 'completed';
     }
 
-    // --- Cliente ---
+    // --- Cliente (ahora leemos los campos embebidos) ---
+    const customerId = data.customerId || null;
     const customerName = data.customerName || data.cliente || data.nombreCliente || data.clientName || 'Cliente general';
+    const customerEmail = data.customerEmail || '';
+    const customerPhone = data.customerPhone || '';
+    const customerRfc = data.customerRfc || '';
+    const fiscalAddress = data.fiscalAddress || {
+        street: '',
+        neighborhood: '',
+        postalCode: '',
+        city: '',
+        state: '',
+        references: ''
+    };
+
+    // --- Usuario ---
     const userId = data.userId || data.usuarioId || data.createdBy || data.vendedorId || '';
     const branchId = data.branchId || data.sucursalId || data.branch || 'default';
     const storeSlug = data.storeSlug || data.slug || branchId || 'tienda';
 
     // === 🔥 PRODUCTOS: Buscar en varios campos posibles ===
     let productos = [];
-    const posiblesCamposProductos = ['productos', 'items', 'products', 'detalles', 'lineItems', 'articulos'];
+    const posiblesCamposProductos = ['productos', 'items', 'products', 'detalles', 'lineItems', 'articulos', 'productosVenta'];
     for (const campo of posiblesCamposProductos) {
         if (data[campo] && Array.isArray(data[campo]) && data[campo].length > 0) {
             productos = data[campo];
@@ -126,11 +140,16 @@ function mapSaleDocument(doc) {
         change,
         paymentMethod,
         status,
+        customerId,
         customerName,
+        customerEmail,
+        customerPhone,
+        customerRfc,
+        fiscalAddress,
         userId,
         branchId,
         storeSlug,
-        productos, // ¡Ahora sí!
+        productos, // ¡Ahora siempre tendrá al menos un producto!
         _original: data
     };
 }
