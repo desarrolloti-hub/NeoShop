@@ -105,12 +105,17 @@ export class PartnerService {
             throw new Error('El RFC debe tener al menos 12 caracteres');
         }
 
+        // Validar contraseña (opcional pero con formato minimo)
+        if (partnerData.password && partnerData.password.trim().length < 6) {
+            throw new Error('La contraseña debe tener al menos 6 caracteres');
+        }
+
         // Validar foto si se proporciona
         if (partnerData.photo && partnerData.photo.trim() !== '') {
-            const isValidBase64 = Partner.isValidBase64(partnerData.photo);
-            const isValidUrl = Partner.isValidUrl(partnerData.photo);
-
-            if (!isValidBase64 && !isValidUrl) {
+            // Validar si es Base64 o URL
+            if (!partnerData.photo.startsWith('data:image/') && 
+                !partnerData.photo.startsWith('http://') && 
+                !partnerData.photo.startsWith('https://')) {
                 throw new Error('La foto debe ser una URL válida o una imagen en formato Base64');
             }
         }
@@ -133,6 +138,7 @@ export class PartnerService {
             fullName: partnerData.fullName.trim(),
             phone: partnerData.phone?.trim() || '',
             rfc: partnerData.rfc?.trim().toUpperCase() || '',
+            password: partnerData.password?.trim() || '',  // Agregar contraseña
             photo: partnerData.photo?.trim() || '',
             storeId: this.storeId,
             role: partnerData.role || 'partner',
@@ -154,6 +160,7 @@ export class PartnerService {
             fullName: partner.fullName,
             phone: partner.phone,
             rfc: partner.rfc,
+            password: partner.password,  // Enviar contraseña al repository
             photo: partner.photo,
             storeId: partner.storeId,
             role: partner.role,
@@ -168,7 +175,7 @@ export class PartnerService {
         await this.clearPartnerCache();
 
         const newPartner = new Partner(result);
-        newPartner.temporaryPassword = result.temporaryPassword;
+        newPartner.temporaryPassword = result.password;  // Guardar la contraseña usada
 
         return newPartner;
     }
@@ -300,10 +307,9 @@ export class PartnerService {
 
         // Validar foto si se proporciona
         if (updateData.photo && updateData.photo.trim() !== '') {
-            const isValidBase64 = Partner.isValidBase64(updateData.photo);
-            const isValidUrl = Partner.isValidUrl(updateData.photo);
-
-            if (!isValidBase64 && !isValidUrl) {
+            if (!updateData.photo.startsWith('data:image/') && 
+                !updateData.photo.startsWith('http://') && 
+                !updateData.photo.startsWith('https://')) {
                 throw new Error('La foto debe ser una URL válida o una imagen en formato Base64');
             }
         }
@@ -336,10 +342,9 @@ export class PartnerService {
      */
     async updatePhoto(partnerId, photo) {
         if (photo && photo.trim() !== '') {
-            const isValidBase64 = Partner.isValidBase64(photo);
-            const isValidUrl = Partner.isValidUrl(photo);
-
-            if (!isValidBase64 && !isValidUrl) {
+            if (!photo.startsWith('data:image/') && 
+                !photo.startsWith('http://') && 
+                !photo.startsWith('https://')) {
                 throw new Error('La foto debe ser una URL válida o una imagen en formato Base64');
             }
         }

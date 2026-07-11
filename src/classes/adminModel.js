@@ -13,6 +13,8 @@ export class Admin {
         this.phoneNumber = data.phoneNumber || '';
         this.userPhoto = data.userPhoto || '';
 
+        this.role = data.role || 'admin'; 
+
         // Store and Plan
         this.plan = data.plan || 'full-free'; // ✅ Por defecto 'full-free'
         this.storesId = data.storesId || {};
@@ -110,6 +112,7 @@ export class Admin {
             email: this.email,
             fullName: this.fullName,
             initials: this.initials,
+            role: this.role,
             plan: this.plan,
             totalStores: this.totalStores,
             active: this.active,

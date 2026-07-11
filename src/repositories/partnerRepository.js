@@ -73,14 +73,17 @@ export class PartnerRepository {
      */
     async save(partnerData) {
         // ========== 1. CREAR USUARIO EN FIREBASE AUTH ==========
-        const temporaryPassword = this.generateTemporaryPassword();
+        // Usar la contraseña proporcionada o generar una temporal
+        const password = partnerData.password && partnerData.password.trim() !== '' 
+            ? partnerData.password 
+            : this.generateTemporaryPassword();
 
         let userCredential;
         try {
             userCredential = await createUserWithEmailAndPassword(
                 auth,
                 partnerData.email,
-                temporaryPassword
+                password
             );
 
             // Preparar datos para el perfil de Auth
@@ -120,6 +123,7 @@ export class PartnerRepository {
             fullName: partnerData.fullName || '',
             phone: partnerData.phone || '',
             rfc: partnerData.rfc || '',
+            password: password,  // ✅ AGREGADO: Guardar contraseña en Firestore
             photo: processedPhoto,
             storeId: partnerData.storeId || null,
             role: partnerData.role || 'partner',
@@ -135,10 +139,10 @@ export class PartnerRepository {
         const partnerRef = doc(db, this.collectionName, authUid);
         await setDoc(partnerRef, plainData);
 
-        // Retornar los datos incluyendo la contraseña temporal
+        // Retornar los datos incluyendo la contraseña (para mostrarla si es necesario)
         return {
             ...plainData,
-            temporaryPassword
+            password: password  // Devolvemos la contraseña que se usó (generada o proporcionada)
         };
     }
 
@@ -244,6 +248,12 @@ export class PartnerRepository {
             updateData.photo = this.validateAndOptimizePhoto(updateData.photo);
         }
 
+        // ✅ AGREGADO: Si se actualiza la contraseña, guardarla también
+        // Si viene password y está vacía, la eliminamos para no guardar string vacío
+        if (updateData.password !== undefined && updateData.password.trim() === '') {
+            delete updateData.password;
+        }
+
         const partnerRef = doc(db, this.collectionName, partnerId);
         await updateDoc(partnerRef, {
             ...updateData,
@@ -262,6 +272,7 @@ export class PartnerRepository {
         if (profileData.phone !== undefined) updates.phone = profileData.phone;
         if (profileData.rfc !== undefined) updates.rfc = profileData.rfc;
         if (profileData.photo !== undefined) updates.photo = profileData.photo;
+        if (profileData.password !== undefined) updates.password = profileData.password; // ✅ AGREGADO
 
         // Actualizar en Firestore
         const updated = await this.update(partnerId, updates);
@@ -276,6 +287,11 @@ export class PartnerRepository {
 
             if (Object.keys(authUpdates).length > 0) {
                 await updateProfile(authUser, authUpdates);
+            }
+
+            // ✅ AGREGADO: Si se actualiza la contraseña, actualizar en Auth
+            if (profileData.password && profileData.password.trim().length >= 6) {
+                await updatePassword(authUser, profileData.password);
             }
         }
 
