@@ -14,7 +14,7 @@ export class Partner {
         this.fullName = data.fullName || '';              // Nombre completo
         this.phone = data.phone || '';                    // Teléfono
         this.rfc = data.rfc || '';                        // RFC
-        this.password = data.password || '';              // Contraseña del colaborador
+        // ⚠️ ELIMINAR: this.password = data.password || '';
         this.storeId = data.storeId || null;              // ID de la tienda a la que pertenece
         this.role = data.role || 'partner';               // Rol: partner (default)
         this.permissionId = data.permissionId || '';      // ID del permiso (string)
@@ -86,7 +86,7 @@ export class Partner {
             fullName: this.fullName,
             phone: this.phone,
             rfc: this.rfc,
-            password: this.password,  // ✅ AGREGADO: para poder acceder a la contraseña
+            // ⚠️ ELIMINAR: password: this.password,
             storeId: this.storeId,
             role: this.role,
             permissionId: this.permissionId,
@@ -141,7 +141,7 @@ export class Partner {
         if (data.fullName) this.fullName = data.fullName;
         if (data.phone) this.phone = data.phone;
         if (data.rfc) this.rfc = data.rfc;
-        if (data.password) this.password = data.password;
+        // ⚠️ ELIMINAR: if (data.password) this.password = data.password;
         this.updatedAt = new Date().toISOString();
         return this;
     }
@@ -172,10 +172,10 @@ export class Partner {
             errors.push('El ID de la tienda es requerido');
         }
 
-        // Validar contraseña si se proporciona
-        if (this.password && this.password.trim().length < 6) {
-            errors.push('La contraseña debe tener al menos 6 caracteres');
-        }
+        // ⚠️ ELIMINAR VALIDACIÓN DE CONTRASEÑA (se valida en el service)
+        // if (this.password && this.password.trim().length < 6) {
+        //     errors.push('La contraseña debe tener al menos 6 caracteres');
+        // }
 
         return {
             valid: errors.length === 0,

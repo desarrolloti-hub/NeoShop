@@ -16,12 +16,16 @@ import {
     deleteUser,
     updateEmail,
     sendPasswordResetEmail,
-    updatePassword
+    updatePassword,
+    signInWithEmailAndPassword,
+    signOut,
+    signInWithPopup,
+    GoogleAuthProvider
 } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
 
 export class PartnerRepository {
     constructor(collectionName) {
-        this.collectionName = collectionName; // Ej: "partnersBimbo"
+        this.collectionName = collectionName;
         this.collectionRef = () => collection(db, this.collectionName);
     }
 
@@ -33,34 +37,16 @@ export class PartnerRepository {
     }
 
     /**
-     * Generar una contraseña temporal aleatoria
-     */
-    generateTemporaryPassword() {
-        const length = 12;
-        const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%';
-        let password = '';
-        for (let i = 0; i < length; i++) {
-            const randomIndex = Math.floor(Math.random() * charset.length);
-            password += charset[randomIndex];
-        }
-        return password;
-    }
-
-    /**
      * Validar si la foto es Base64 y optimizarla si es necesario
      */
     validateAndOptimizePhoto(photo) {
         if (!photo || photo.trim() === '') return '';
 
-        // Si es URL, retornar como está
         if (photo.startsWith('http://') || photo.startsWith('https://')) {
             return photo;
         }
 
-        // Si es Base64, asegurar formato correcto
         if (photo.startsWith('data:image/')) {
-            // Aquí se podría optimizar el tamaño de la imagen si es necesario
-            // Por ahora retornamos como está
             return photo;
         }
 
@@ -70,14 +56,19 @@ export class PartnerRepository {
     /**
      * Guardar un nuevo partner (crea usuario en Auth y guarda en Firestore)
      * El ID del documento será el UID de Firebase Auth
+     * ⚠️ LA CONTRASEÑA ES OBLIGATORIA Y DEBE SER PROPORCIONADA POR EL ADMIN
      */
     async save(partnerData) {
-        // ========== 1. CREAR USUARIO EN FIREBASE AUTH ==========
-        // Usar la contraseña proporcionada o generar una temporal
-        const password = partnerData.password && partnerData.password.trim() !== '' 
-            ? partnerData.password 
-            : this.generateTemporaryPassword();
+        // ========== 1. VALIDAR QUE LA CONTRASEÑA SEA PROPORCIONADA ==========
+        if (!partnerData.password || partnerData.password.trim().length < 6) {
+            throw new Error('La contraseña es obligatoria y debe tener al menos 6 caracteres.');
+        }
 
+        const password = partnerData.password.trim();
+
+        console.log(`🔐 Creando usuario en Auth con email: ${partnerData.email}`);
+
+        // ========== 2. CREAR USUARIO EN FIREBASE AUTH ==========
         let userCredential;
         try {
             userCredential = await createUserWithEmailAndPassword(
@@ -91,39 +82,34 @@ export class PartnerRepository {
                 displayName: partnerData.fullName
             };
 
-            // Si hay foto, agregarla al perfil de Auth (solo si es URL, Auth no acepta Base64)
             if (partnerData.photo && (partnerData.photo.startsWith('http://') || partnerData.photo.startsWith('https://'))) {
                 profileData.photoURL = partnerData.photo;
             }
 
-            // Actualizar perfil
             await updateProfile(userCredential.user, profileData);
-
-            // Enviar email de verificacion
             await sendEmailVerification(userCredential.user);
 
+            console.log(`✅ Usuario creado en Auth con UID: ${userCredential.user.uid}`);
+
         } catch (authError) {
-            console.error('Error creating auth user:', authError);
+            console.error('❌ Error creating auth user:', authError);
             if (authError.code === 'auth/email-already-in-use') {
-                throw new Error('El email ya está registrado en el sistema');
+                throw new Error(`El email "${partnerData.email}" ya está registrado en el sistema.`);
             }
-            throw new Error(`Error al crear usuario en autenticación: ${authError.message}`);
+            throw new Error(`Error al crear usuario: ${authError.message}`);
         }
 
         // El UID de Firebase Auth se convierte en el ID del documento
         const authUid = userCredential.user.uid;
-
-        // Validar y procesar la foto
         const processedPhoto = this.validateAndOptimizePhoto(partnerData.photo);
 
-        // ========== 2. GUARDAR EN FIRESTORE ==========
+        // ========== 3. GUARDAR EN FIRESTORE (SIN CONTRASEÑA) ==========
         const plainData = {
-            id: authUid,  // El ID es el mismo que el UID de Auth
+            id: authUid,
             email: partnerData.email || '',
             fullName: partnerData.fullName || '',
             phone: partnerData.phone || '',
             rfc: partnerData.rfc || '',
-            password: password,  // ✅ AGREGADO: Guardar contraseña en Firestore
             photo: processedPhoto,
             storeId: partnerData.storeId || null,
             role: partnerData.role || 'partner',
@@ -139,10 +125,10 @@ export class PartnerRepository {
         const partnerRef = doc(db, this.collectionName, authUid);
         await setDoc(partnerRef, plainData);
 
-        // Retornar los datos incluyendo la contraseña (para mostrarla si es necesario)
+        console.log(`✅ Partner guardado en Firestore: ${this.collectionName}`);
+
         return {
-            ...plainData,
-            password: password  // Devolvemos la contraseña que se usó (generada o proporcionada)
+            ...plainData
         };
     }
 
@@ -241,16 +227,14 @@ export class PartnerRepository {
 
     /**
      * Actualizar partner en Firestore (no afecta Auth)
+     * ⚠️ NO PERMITIR ACTUALIZAR CONTRASEÑA DESDE FIRESTORE
      */
     async update(partnerId, updateData) {
-        // Procesar foto si viene en la actualización
         if (updateData.photo !== undefined) {
             updateData.photo = this.validateAndOptimizePhoto(updateData.photo);
         }
 
-        // ✅ AGREGADO: Si se actualiza la contraseña, guardarla también
-        // Si viene password y está vacía, la eliminamos para no guardar string vacío
-        if (updateData.password !== undefined && updateData.password.trim() === '') {
+        if (updateData.password !== undefined) {
             delete updateData.password;
         }
 
@@ -272,12 +256,9 @@ export class PartnerRepository {
         if (profileData.phone !== undefined) updates.phone = profileData.phone;
         if (profileData.rfc !== undefined) updates.rfc = profileData.rfc;
         if (profileData.photo !== undefined) updates.photo = profileData.photo;
-        if (profileData.password !== undefined) updates.password = profileData.password; // ✅ AGREGADO
 
-        // Actualizar en Firestore
         const updated = await this.update(partnerId, updates);
 
-        // Actualizar en Firebase Auth si tenemos el usuario y hay datos compatibles
         if (authUser) {
             const authUpdates = {};
             if (profileData.fullName !== undefined) authUpdates.displayName = profileData.fullName;
@@ -288,11 +269,6 @@ export class PartnerRepository {
             if (Object.keys(authUpdates).length > 0) {
                 await updateProfile(authUser, authUpdates);
             }
-
-            // ✅ AGREGADO: Si se actualiza la contraseña, actualizar en Auth
-            if (profileData.password && profileData.password.trim().length >= 6) {
-                await updatePassword(authUser, profileData.password);
-            }
         }
 
         return updated;
@@ -302,15 +278,12 @@ export class PartnerRepository {
      * Actualizar email del partner (Firestore + Firebase Auth)
      */
     async updateEmail(partnerId, newEmail, authUser) {
-        // Actualizar en Firebase Auth
         await updateEmail(authUser, newEmail);
-
-        // Actualizar en Firestore
         return this.update(partnerId, { email: newEmail.toLowerCase().trim() });
     }
 
     /**
-     * Actualizar contraseña del partner
+     * Actualizar contraseña del partner (SOLO AUTH)
      */
     async updatePassword(authUser, newPassword) {
         await updatePassword(authUser, newPassword);
@@ -321,11 +294,8 @@ export class PartnerRepository {
      */
     async updatePhoto(partnerId, photo, authUser = null) {
         const processedPhoto = this.validateAndOptimizePhoto(photo);
-
-        // Actualizar en Firestore
         const updated = await this.update(partnerId, { photo: processedPhoto });
 
-        // Actualizar en Firebase Auth si es URL y tenemos el usuario
         if (authUser && processedPhoto && (processedPhoto.startsWith('http://') || processedPhoto.startsWith('https://'))) {
             await updateProfile(authUser, { photoURL: processedPhoto });
         }
@@ -363,8 +333,6 @@ export class PartnerRepository {
             throw new Error('Colaborador no encontrado');
         }
 
-        // Nota: Para reenviar verificación necesitamos una referencia al usuario
-        // Esto se debe hacer desde el cliente con el usuario actual
         throw new Error('El reenvío de verificación debe realizarse desde la aplicación del colaborador');
     }
 
@@ -412,5 +380,43 @@ export class PartnerRepository {
      */
     async countActive() {
         return this.count({ active: true });
+    }
+
+    // ========== MÉTODOS DE AUTENTICACIÓN ==========
+
+    /**
+     * Login de partner con email y contraseña
+     */
+    async loginWithEmail(email, password) {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const firebaseUser = userCredential.user;
+        const partnerData = await this.getById(firebaseUser.uid);
+        return { user: firebaseUser, userData: partnerData || null };
+    }
+
+    /**
+     * Login de partner con Google
+     */
+    async loginWithGoogle() {
+        const provider = new GoogleAuthProvider();
+        const userCredential = await signInWithPopup(auth, provider);
+        const firebaseUser = userCredential.user;
+        const partnerData = await this.getById(firebaseUser.uid);
+        return { user: firebaseUser, userData: partnerData || null };
+    }
+
+    /**
+     * Logout de partner
+     */
+    async logout() {
+        await signOut(auth);
+        return true;
+    }
+
+    /**
+     * Obtener usuario actual de Firebase Auth
+     */
+    getCurrentAuthUser() {
+        return auth.currentUser;
     }
 }

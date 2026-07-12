@@ -43,7 +43,7 @@ export const AdminService = {
             termsAccepted: adminData.termsAccepted || false,
             userPhoto: adminData.userPhoto || '',
             provider: 'email',
-            themeDark: false // ✅ NUEVO: Por defecto modo claro
+            themeDark: false
         });
 
         const result = await AdminRepository.registerWithEmail(admin.email, password, admin);
@@ -57,7 +57,23 @@ export const AdminService = {
         let result;
 
         if (isGoogle) {
+            // ✅ PRIMERO: Verificar si el admin existe en Firestore
+            const adminExists = await AdminRepository.getByEmail(email?.toLowerCase().trim());
+            
+            // ✅ Si NO existe, lanzar error (NO crear cuenta automáticamente)
+            if (!adminExists) {
+                throw new Error('No se encontró una cuenta de administrador con este correo. Por favor, regístrate primero.');
+            }
+
+            // ✅ Si existe, proceder con login con Google
             result = await AdminRepository.loginWithGoogle();
+            
+            // ✅ Verificar que el UID del usuario autenticado coincida con el admin existente
+            if (result.user && result.user.uid !== adminExists.id) {
+                // Esto podría pasar si el email en Auth no coincide con el de Firestore
+                throw new Error('El correo no coincide con la cuenta registrada. Contacta a soporte.');
+            }
+            
         } else {
             if (!email || !this._validateEmail(email)) {
                 throw new Error('Invalid email address');
@@ -93,7 +109,7 @@ export const AdminService = {
             trialEndDate: result.userData.trialEndDate || null,
             isTrialExpired: result.userData.isTrialExpired || false,
             daysLeftInTrial: result.userData.daysLeftInTrial || 0,
-            themeDark: result.userData.themeDark || false // ✅ NUEVO: Incluir en sesión
+            themeDark: result.userData.themeDark || false
         };
 
         this._saveSession(sessionData);
@@ -118,11 +134,9 @@ export const AdminService = {
         return this._getSession();
     },
 
-    // ✅ NUEVO: Actualizar preferencia de tema en base de datos
     async updateTheme(adminId, isDarkMode) {
         const result = await AdminRepository.update(adminId, { themeDark: isDarkMode });
 
-        // Actualizar sesión
         const session = this._getSession();
         if (session) {
             session.themeDark = isDarkMode;
@@ -131,6 +145,18 @@ export const AdminService = {
         }
 
         return result;
+    },
+
+    // ✅ MÉTODO PARA VERIFICAR SI EXISTE ADMIN (usado por auth.js)
+    async _emailExists(email) {
+        try {
+            if (!email) return false;
+            const admin = await AdminRepository.getByEmail(email.toLowerCase().trim());
+            return !!admin;
+        } catch (error) {
+            console.error('Error checking admin email existence:', error);
+            return false;
+        }
     },
 
     // ========== PRIVATE METHODS ==========

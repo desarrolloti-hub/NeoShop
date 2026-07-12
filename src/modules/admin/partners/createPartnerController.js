@@ -155,12 +155,12 @@ async function createPartner() {
         return;
     }
 
-    // Validar contraseña si se proporciona
-    if (password && password.trim().length < 6) {
+    // ✅ Validar contraseña OBLIGATORIA
+    if (!password || password.trim().length < 6) {
         Swal.fire({
             icon: 'warning',
-            title: 'Contraseña inválida',
-            text: 'La contraseña debe tener al menos 6 caracteres',
+            title: 'Contraseña requerida',
+            text: 'La contraseña es obligatoria y debe tener al menos 6 caracteres.',
             confirmButtonText: 'Aceptar',
             customClass: {
                 popup: 'swal2-popup',
@@ -173,7 +173,7 @@ async function createPartner() {
     const result = await Swal.fire({
         icon: 'question',
         title: '¿Crear colaborador?',
-        text: `Se creará el colaborador ${fullName.trim()} ${password ? 'con la contraseña proporcionada' : 'y se enviará un email con instrucciones de acceso.'}`,
+        text: `Se creará el colaborador ${fullName.trim()} con la contraseña proporcionada.`,
         showCancelButton: true,
         confirmButtonText: 'Sí, crear',
         cancelButtonText: 'Cancelar',
@@ -195,7 +195,7 @@ async function createPartner() {
             fullName: fullName.trim(),
             phone: phone?.trim() || '',
             rfc: rfc?.trim().toUpperCase() || '',
-            password: password?.trim() || '',  // Enviar contraseña
+            password: password.trim(),
             role: role || 'partner',
             permissionId: permissionId || '',
             photo: photo || ''
@@ -204,7 +204,7 @@ async function createPartner() {
         await Swal.fire({
             icon: 'success',
             title: '¡Colaborador creado!',
-            html: `Se ha creado el colaborador <strong>${newPartner.fullName}</strong>.<br><br>${password ? 'Se ha registrado con la contraseña proporcionada.' : 'Se ha enviado un email con la contraseña temporal de acceso.'}`,
+            html: `Se ha creado el colaborador <strong>${newPartner.fullName}</strong>.<br><br>Se ha registrado con la contraseña proporcionada.`,
             confirmButtonText: 'Aceptar',
             customClass: {
                 popup: 'swal2-popup',
