@@ -1,21 +1,18 @@
 /* ============================================
    SALES LIST CONTROLLER - Listado de Ventas
-   COLECCIONES DINÁMICAS: sales + NombreTienda
    ============================================ */
 
 import { SaleService } from '../../../services/saleService.js';
 import { AdminService } from '../../../services/adminService.js';
-import { ProductService } from '../../../services/productService.js';
 
-// ========== ESTADO GLOBAL ==========
+// ========== ESTADO ==========
 let allSales = [];
 let filteredSales = [];
 let currentPage = 1;
 const pageSize = 10;
 let totalPages = 1;
 let currentAdmin = null;
-let currentStore = null;
-let currentStoreName = null; // 🔥 NUEVO
+let currentStoreName = null;
 
 let currentFilters = {
     status: '',
@@ -23,10 +20,9 @@ let currentFilters = {
     endDate: ''
 };
 
-// ========== ELEMENTOS DOM ==========
 let elements = {};
 
-// ========== FUNCIONES AUXILIARES ==========
+// ========== AUXILIARES ==========
 function formatCurrency(value) {
     return new Intl.NumberFormat('es-MX', {
         style: 'currency',
@@ -80,45 +76,24 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// ========== CARGAR SESIÓN DEL ADMIN ==========
+// ========== SESIÓN ==========
 function loadAdminSession() {
     currentAdmin = AdminService.getSession();
-
     if (!currentAdmin) {
-        console.warn('⚠️ No hay administrador autenticado');
+        console.warn('⚠️ No hay admin autenticado');
         return false;
     }
-
-    // 🔥 Obtener storeName de la sesión
     currentStoreName = currentAdmin.storeName;
-
     if (!currentStoreName) {
-        console.warn('⚠️ No hay storeName en la sesión');
+        console.warn('⚠️ No hay storeName en sesión');
         return false;
     }
-
-    console.log('✅ Administrador autenticado:', currentAdmin.nombreCompleto);
+    console.log('✅ Admin:', currentAdmin.nombreCompleto);
     console.log('✅ Tienda:', currentStoreName);
     return true;
 }
 
-async function loadCurrentStore() {
-    if (!currentAdmin || !currentAdmin.id) {
-        console.warn('⚠️ No hay admin para obtener tienda');
-        return false;
-    }
-
-    try {
-        currentStore = await ProductService.getCurrentStore(currentAdmin.id);
-        console.log('✅ Tienda actual:', currentStore.name);
-        return true;
-    } catch (error) {
-        console.error('❌ Error obteniendo tienda:', error.message);
-        return false;
-    }
-}
-
-// ========== CACHE DE ELEMENTOS ==========
+// ========== DOM ==========
 function cacheElements() {
     elements = {
         salesTableBody: document.getElementById('salesTableBody'),
@@ -141,7 +116,7 @@ function cacheElements() {
     };
 }
 
-// ========== ACTUALIZAR KPIs ==========
+// ========== KPIs ==========
 function updateKPIs() {
     const completedSales = allSales.filter(s => s.status === 'completed');
     const totalVentas = completedSales.length;
@@ -151,23 +126,26 @@ function updateKPIs() {
     const today = new Date().toISOString().split('T')[0];
     const ventasHoy = completedSales.filter(s => s.date?.startsWith(today)).length;
 
+    console.log('📊 Actualizando KPIs:');
+    console.log('   - Ventas completadas:', totalVentas);
+    console.log('   - Ingresos:', totalIngresos);
+    console.log('   - Ticket promedio:', ticketPromedio);
+    console.log('   - Ventas hoy:', ventasHoy);
+
     if (elements.totalVentasCount) elements.totalVentasCount.textContent = totalVentas;
     if (elements.totalIngresos) elements.totalIngresos.textContent = formatCurrency(totalIngresos);
     if (elements.ventasHoy) elements.ventasHoy.textContent = ventasHoy;
     if (elements.ticketPromedio) elements.ticketPromedio.textContent = formatCurrency(ticketPromedio);
 }
 
-// ========== ACTUALIZAR GRÁFICO SEMANAL ==========
+// ========== GRÁFICO SEMANAL ==========
 function updateWeeklyChart() {
     if (!elements.chartBars || elements.chartBars.length === 0) return;
 
-    const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
     const today = new Date();
     const weeklySales = Array(7).fill(0);
-
     const startOfWeek = new Date(today);
-    const dayOfWeek = today.getDay();
-    const diffToMonday = (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+    const diffToMonday = (today.getDay() === 0 ? 6 : today.getDay() - 1);
     startOfWeek.setDate(today.getDate() - diffToMonday);
     startOfWeek.setHours(0, 0, 0, 0);
 
@@ -182,7 +160,6 @@ function updateWeeklyChart() {
     });
 
     const maxSale = Math.max(...weeklySales, 1);
-
     elements.chartBars.forEach((bar, index) => {
         const barDiv = bar.querySelector('.bar');
         const span = bar.querySelector('span');
@@ -192,7 +169,7 @@ function updateWeeklyChart() {
     });
 }
 
-// ========== RENDERIZAR TABLA DE VENTAS ==========
+// ========== TABLA ==========
 function renderSalesTable() {
     const start = (currentPage - 1) * pageSize;
     const end = start + pageSize;
@@ -204,16 +181,14 @@ function renderSalesTable() {
         elements.salesTableBody.innerHTML = `
             <tr>
                 <td colspan="9" class="empty-state">
-                    <i class="fas fa-receipt"></i>
-                    No hay ventas registradas
+                    <i class="fas fa-receipt"></i> No hay ventas
                 </td>
             </tr>
         `;
         if (elements.salesMobileCards) {
             elements.salesMobileCards.innerHTML = `
                 <div class="cards-empty-state">
-                    <i class="fas fa-receipt"></i>
-                    No hay ventas registradas
+                    <i class="fas fa-receipt"></i> No hay ventas
                 </div>
             `;
         }
@@ -222,21 +197,17 @@ function renderSalesTable() {
 
     elements.salesTableBody.innerHTML = pageSales.map(sale => `
         <tr data-sale-id="${sale.id}">
-            <td class="sale-folio">${escapeHtml(sale.folio || 'N/A')}</td>
-            <td class="sale-customer">${escapeHtml(sale.customerName || 'Cliente general')}</td>
-            <td class="sale-date">${formatDate(sale.date)}</td>
-            <td class="sale-subtotal">${formatCurrency(sale.subtotal || 0)}</td>
-            <td class="sale-discount">${formatCurrency(sale.discount || 0)}</td>
-            <td class="sale-total"><strong>${formatCurrency(sale.total || 0)}</strong></td>
-            <td class="sale-payment">${getPaymentMethodText(sale.paymentMethod)}</td>
-            <td class="sale-status">
-                <span class="status-badge ${getStatusClass(sale.status)}">${getStatusText(sale.status)}</span>
-            </td>
-            <td class="action-badge">
+            <td>${escapeHtml(sale.folio)}</td>
+            <td>${escapeHtml(sale.customerName)}</td>
+            <td>${formatDate(sale.date)}</td>
+            <td>${formatCurrency(sale.subtotal)}</td>
+            <td>${formatCurrency(sale.discount)}</td>
+            <td><strong>${formatCurrency(sale.total)}</strong></td>
+            <td>${getPaymentMethodText(sale.paymentMethod)}</td>
+            <td><span class="status-badge ${getStatusClass(sale.status)}">${getStatusText(sale.status)}</span></td>
+            <td>
                 <a href="/detallesVenta?ID=${sale.id}">
-                    <button class="btn-view" data-id="${sale.id}">
-                        <i class="fas fa-eye"></i> Ver
-                    </button>
+                    <button class="btn-view" data-id="${sale.id}"><i class="fas fa-eye"></i> Ver</button>
                 </a>
             </td>
         </tr>
@@ -246,35 +217,19 @@ function renderSalesTable() {
         elements.salesMobileCards.innerHTML = pageSales.map(sale => `
             <div class="customer-card-item" data-id="${sale.id}">
                 <div class="customer-card-header">
-                    <div class="customer-card-avatar">
-                        <i class="fas fa-receipt"></i>
-                    </div>
+                    <div class="customer-card-avatar"><i class="fas fa-receipt"></i></div>
                     <div class="customer-card-title">
-                        <h4>${escapeHtml(sale.folio || 'N/A')}</h4>
+                        <h4>${escapeHtml(sale.folio)}</h4>
                         <small>${formatDate(sale.date)}</small>
                     </div>
                 </div>
-                <div class="customer-card-field">
-                    <strong>Cliente:</strong> 
-                    <span>${escapeHtml(sale.customerName || 'Cliente general')}</span>
-                </div>
-                <div class="customer-card-field">
-                    <strong>Total:</strong> 
-                    <span class="card-points points-high">${formatCurrency(sale.total || 0)}</span>
-                </div>
-                <div class="customer-card-field">
-                    <strong>Método:</strong> 
-                    <span>${getPaymentMethodText(sale.paymentMethod)}</span>
-                </div>
-                <div class="customer-card-field">
-                    <strong>Estado:</strong> 
-                    <span class="status-badge ${getStatusClass(sale.status)}">${getStatusText(sale.status)}</span>
-                </div>
+                <div class="customer-card-field"><strong>Cliente:</strong> ${escapeHtml(sale.customerName)}</div>
+                <div class="customer-card-field"><strong>Total:</strong> <span class="card-points points-high">${formatCurrency(sale.total)}</span></div>
+                <div class="customer-card-field"><strong>Método:</strong> ${getPaymentMethodText(sale.paymentMethod)}</div>
+                <div class="customer-card-field"><strong>Estado:</strong> <span class="status-badge ${getStatusClass(sale.status)}">${getStatusText(sale.status)}</span></div>
                 <div class="customer-card-divider"></div>
                 <div class="customer-card-actions">
-                    <button class="card-action-icon btn-view" data-id="${sale.id}">
-                        <i class="fas fa-eye"></i> Ver detalle
-                    </button>
+                    <button class="card-action-icon btn-view" data-id="${sale.id}"><i class="fas fa-eye"></i> Ver detalle</button>
                 </div>
             </div>
         `).join('');
@@ -288,7 +243,6 @@ function attachSaleEvents() {
         btn.removeEventListener('click', handleViewClick);
         btn.addEventListener('click', handleViewClick);
     });
-
     document.querySelectorAll('.customer-card-item').forEach(card => {
         card.removeEventListener('click', handleCardClick);
         card.addEventListener('click', handleCardClick);
@@ -297,56 +251,35 @@ function attachSaleEvents() {
 
 function handleViewClick(e) {
     e.stopPropagation();
-    const id = e.currentTarget.dataset.id;
-    viewSaleDetail(id);
+    viewSaleDetail(e.currentTarget.dataset.id);
 }
 
 function handleCardClick(e) {
     if (!e.target.closest('.card-action-icon')) {
-        const id = e.currentTarget.dataset.id;
-        viewSaleDetail(id);
+        viewSaleDetail(e.currentTarget.dataset.id);
     }
 }
 
-// ========== ACTUALIZAR PAGINACIÓN ==========
 function updatePagination() {
-    if (elements.pageInfo) {
-        elements.pageInfo.textContent = `Página ${currentPage} de ${totalPages || 1}`;
-    }
-    if (elements.prevPageBtn) {
-        elements.prevPageBtn.disabled = currentPage === 1;
-    }
-    if (elements.nextPageBtn) {
-        elements.nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
-    }
+    if (elements.pageInfo) elements.pageInfo.textContent = `Página ${currentPage} de ${totalPages || 1}`;
+    if (elements.prevPageBtn) elements.prevPageBtn.disabled = currentPage === 1;
+    if (elements.nextPageBtn) elements.nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
 }
 
-// ========== APLICAR FILTROS ==========
+// ========== FILTROS ==========
 function applyFilters() {
     let filtered = [...allSales];
-
-    if (currentFilters.status) {
-        filtered = filtered.filter(sale => sale.status === currentFilters.status);
-    }
-
+    if (currentFilters.status) filtered = filtered.filter(s => s.status === currentFilters.status);
     if (currentFilters.startDate) {
-        const startDateTime = new Date(currentFilters.startDate);
-        startDateTime.setHours(0, 0, 0, 0);
-        filtered = filtered.filter(sale => {
-            const saleDate = new Date(sale.date);
-            return saleDate >= startDateTime;
-        });
+        const start = new Date(currentFilters.startDate);
+        start.setHours(0,0,0,0);
+        filtered = filtered.filter(s => new Date(s.date) >= start);
     }
-
     if (currentFilters.endDate) {
-        const endDateTime = new Date(currentFilters.endDate);
-        endDateTime.setHours(23, 59, 59, 999);
-        filtered = filtered.filter(sale => {
-            const saleDate = new Date(sale.date);
-            return saleDate <= endDateTime;
-        });
+        const end = new Date(currentFilters.endDate);
+        end.setHours(23,59,59,999);
+        filtered = filtered.filter(s => new Date(s.date) <= end);
     }
-
     filteredSales = filtered;
     totalPages = Math.ceil(filteredSales.length / pageSize);
     currentPage = 1;
@@ -354,18 +287,11 @@ function applyFilters() {
     renderSalesTable();
 }
 
-// ========== LIMPIAR FILTROS ==========
 function clearFilters() {
     if (elements.statusFilter) elements.statusFilter.value = '';
     if (elements.startDateFilter) elements.startDateFilter.value = '';
     if (elements.endDateFilter) elements.endDateFilter.value = '';
-
-    currentFilters = {
-        status: '',
-        startDate: '',
-        endDate: ''
-    };
-
+    currentFilters = { status: '', startDate: '', endDate: '' };
     filteredSales = [...allSales];
     totalPages = Math.ceil(filteredSales.length / pageSize);
     currentPage = 1;
@@ -373,34 +299,24 @@ function clearFilters() {
     renderSalesTable();
 }
 
-// ========== CARGAR VENTAS DESDE EL SERVICIO ==========
+// ========== CARGAR VENTAS ==========
 async function loadSales() {
     if (!elements.salesTableBody) return;
 
     elements.salesTableBody.innerHTML = `
-        <tr>
-            <td colspan="9" class="empty-state">
-                <i class="fas fa-spinner fa-spin"></i>
-                Cargando ventas...
-            </td>
-        </tr>
+        <tr><td colspan="9" class="empty-state"><i class="fas fa-spinner fa-spin"></i> Cargando ventas...</td></tr>
     `;
 
     try {
-        // 🔥 Verificar que tengamos storeName
-        if (!currentStoreName) {
-            throw new Error('No se encontró la tienda asociada');
-        }
+        if (!currentStoreName) throw new Error('No se encontró la tienda');
 
-        // 🔥 PASAMOS storeName AL SERVICE
+        console.log('🔍 [CONTROLLER] Cargando ventas para:', currentStoreName);
         const sales = await SaleService.getAllSales(currentStoreName, {
             orderBy: 'date',
             orderDirection: 'desc'
         });
 
         console.log(`✅ Ventas cargadas: ${sales.length}`);
-        console.log(`📁 Colección: sales${currentStoreName.replace(/\s/g, '')}`);
-
         allSales = sales;
         filteredSales = [...allSales];
         totalPages = Math.ceil(filteredSales.length / pageSize);
@@ -410,27 +326,24 @@ async function loadSales() {
         renderSalesTable();
         updatePagination();
 
+        if (sales.length === 0) {
+            console.warn('⚠️ No hay ventas en esta tienda.');
+        }
     } catch (error) {
-        console.error('Error cargando ventas:', error);
+        console.error('❌ Error cargando ventas:', error);
         elements.salesTableBody.innerHTML = `
-            <tr>
-                <td colspan="9" class="empty-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    Error: ${error.message}
-                </td>
-            </tr>
+            <tr><td colspan="9" class="empty-state"><i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</td></tr>
         `;
     }
 }
 
-// ========== VER DETALLE DE VENTA ==========
+// ========== DETALLE ==========
 function viewSaleDetail(saleId) {
     if (window.router && window.router.navigate) {
         window.router.navigate(`/admin/ventas/detalle/${saleId}`);
     }
 }
 
-// ========== REFRESCAR DATOS ==========
 function refreshData() {
     loadSales();
 }
@@ -442,7 +355,6 @@ function bindEvents() {
             if (window.router) window.router.navigate('/admin/ventas/nueva');
         });
     }
-
     if (elements.applyFiltersBtn) {
         elements.applyFiltersBtn.addEventListener('click', () => {
             currentFilters = {
@@ -453,81 +365,50 @@ function bindEvents() {
             applyFilters();
         });
     }
-
     if (elements.clearFiltersBtn) {
         elements.clearFiltersBtn.addEventListener('click', clearFilters);
     }
-
     if (elements.refreshChartBtn) {
         elements.refreshChartBtn.addEventListener('click', refreshData);
     }
-
     if (elements.prevPageBtn) {
         elements.prevPageBtn.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderSalesTable();
-                updatePagination();
-            }
+            if (currentPage > 1) { currentPage--; renderSalesTable(); updatePagination(); }
         });
     }
-
     if (elements.nextPageBtn) {
         elements.nextPageBtn.addEventListener('click', () => {
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderSalesTable();
-                updatePagination();
-            }
+            if (currentPage < totalPages) { currentPage++; renderSalesTable(); updatePagination(); }
         });
     }
-
     if (elements.statusFilter) {
         elements.statusFilter.addEventListener('change', () => {
             currentFilters.status = elements.statusFilter.value;
             applyFilters();
         });
     }
-
     if (elements.startDateFilter && elements.endDateFilter) {
         elements.startDateFilter.addEventListener('change', () => {
             currentFilters.startDate = elements.startDateFilter.value;
-            if (currentFilters.startDate && currentFilters.endDate) {
-                applyFilters();
-            }
+            if (currentFilters.startDate && currentFilters.endDate) applyFilters();
         });
-
         elements.endDateFilter.addEventListener('change', () => {
             currentFilters.endDate = elements.endDateFilter.value;
-            if (currentFilters.startDate && currentFilters.endDate) {
-                applyFilters();
-            }
+            if (currentFilters.startDate && currentFilters.endDate) applyFilters();
         });
     }
 }
 
-// ========== INICIALIZAR CONTROLADOR ==========
+// ========== INICIALIZAR ==========
 export async function saleListController() {
     console.log('📊 Sales List Controller - Inicializado');
 
-    const sessionLoaded = loadAdminSession();
-
-    if (!sessionLoaded) {
-        console.error('❌ No se pudo cargar la sesión');
-        Swal.fire('Error', 'No se pudo cargar la sesión. Por favor inicie sesión nuevamente.', 'error');
+    if (!loadAdminSession()) {
+        Swal.fire('Error', 'No se pudo cargar la sesión. Inicie sesión nuevamente.', 'error');
         if (window.router) window.router.navigate('/admin/login');
         return;
     }
 
-    // 🔥 Verificar que tengamos storeName
-    if (!currentStoreName) {
-        console.error('❌ No se encontró storeName en la sesión');
-        Swal.fire('Error', 'No se encontró la tienda asociada a tu cuenta. Contacta al administrador.', 'error');
-        if (window.router) window.router.navigate('/inicioAdmin');
-        return;
-    }
-
-    await loadCurrentStore();
     cacheElements();
     bindEvents();
     await loadSales();

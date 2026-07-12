@@ -151,6 +151,13 @@ export const routes = {
         controller: readCashSessionsController
     },
 
+    /* Home partner */
+    "/inicioColaborador": {
+        view: "/modules/partner/home/homePartner.html",
+        controller: null
+    },  
+
+
     /* Home */
     "/inicioAdmin": {
         view: "/modules/admin/home/adminHome.html",

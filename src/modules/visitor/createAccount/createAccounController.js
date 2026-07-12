@@ -209,6 +209,7 @@ function initRegisterFormSubmit() {
             name: name,
             email: email,
             phoneNumber: '',
+            role: 'admin',
             plan: "full-free",
             storesId: {},
             active: true,

@@ -1,16 +1,15 @@
 /* ============================================
    SALE DETAIL CONTROLLER - Detalle de Venta
-   Adaptado para SaleService y AdminService actualizados
    ============================================ */
 
 import { SaleService } from '../../../services/saleService.js';
 import { AdminService } from '../../../services/adminService.js';
-import { ProductService } from '../../../services/productService.js';
+import { showTicket } from '../../shared/ticketPrinter/ticketPrinter.js'; // 👈 Importamos el componente de ticket
 
 // ========== VARIABLES ==========
 let currentSale = null;
 let currentAdmin = null;
-let currentStore = null;
+let currentStoreName = null;
 
 // ========== ELEMENTOS DOM ==========
 let elements = {};
@@ -75,30 +74,21 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// ========== CARGAR SESIÓN DEL ADMIN ==========
+// ========== CARGAR SESIÓN ==========
 function loadAdminSession() {
     currentAdmin = AdminService.getSession();
-
     if (!currentAdmin) {
         console.warn('⚠️ No hay administrador autenticado');
         return false;
     }
-
-    console.log('✅ Administrador autenticado:', currentAdmin.nombreCompleto);
-    return true;
-}
-
-async function loadCurrentStore() {
-    if (!currentAdmin || !currentAdmin.id) return false;
-
-    try {
-        currentStore = await ProductService.getCurrentStore(currentAdmin.id);
-        console.log('✅ Tienda actual:', currentStore.name);
-        return true;
-    } catch (error) {
-        console.error('❌ Error obteniendo tienda:', error.message);
+    currentStoreName = currentAdmin.storeName;
+    if (!currentStoreName) {
+        console.warn('⚠️ No hay storeName en la sesión');
         return false;
     }
+    console.log('✅ Admin:', currentAdmin.nombreCompleto);
+    console.log('✅ Tienda:', currentStoreName);
+    return true;
 }
 
 // ========== CACHE DE ELEMENTOS ==========
@@ -112,6 +102,11 @@ function cacheElements() {
         detailPaymentMethod: document.getElementById('detailPaymentMethod'),
         detailCustomerId: document.getElementById('detailCustomerId'),
         detailCustomerName: document.getElementById('detailCustomerName'),
+        detailCustomerEmail: document.getElementById('detailCustomerEmail'),
+        detailCustomerPhone: document.getElementById('detailCustomerPhone'),
+        detailCustomerRfc: document.getElementById('detailCustomerRfc'),
+        detailFiscalAddress: document.getElementById('detailFiscalAddress'),
+        detailChange: document.getElementById('detailChange'),
         detailSubtotal: document.getElementById('detailSubtotal'),
         detailDiscount: document.getElementById('detailDiscount'),
         detailTax: document.getElementById('detailTax'),
@@ -125,7 +120,11 @@ function cacheElements() {
 
 // ========== RENDERIZAR DETALLE ==========
 function renderSaleDetail(sale) {
-    // Información general
+    if (!sale) return;
+
+    console.log('📊 Renderizando detalle de venta:', sale);
+
+    // Info general
     if (elements.saleFolio) elements.saleFolio.textContent = `Folio: ${sale.folio || '---'}`;
     if (elements.detailFolio) elements.detailFolio.textContent = sale.folio || '---';
     if (elements.detailDate) elements.detailDate.textContent = formatDateTime(sale.date);
@@ -136,7 +135,11 @@ function renderSaleDetail(sale) {
     }
 
     if (elements.detailPaymentMethod) {
-        elements.detailPaymentMethod.textContent = getPaymentMethodText(sale.paymentMethod);
+        let paymentText = getPaymentMethodText(sale.paymentMethod);
+        if (sale.change && sale.change > 0) {
+            paymentText += ` (Cambio: ${formatCurrency(sale.change)})`;
+        }
+        elements.detailPaymentMethod.textContent = paymentText;
     }
 
     // Cliente
@@ -146,8 +149,27 @@ function renderSaleDetail(sale) {
     if (elements.detailCustomerName) {
         elements.detailCustomerName.textContent = sale.customerName || 'Cliente general';
     }
+    if (elements.detailCustomerEmail) {
+        elements.detailCustomerEmail.textContent = sale.customerEmail || 'No registrado';
+    }
+    if (elements.detailCustomerPhone) {
+        elements.detailCustomerPhone.textContent = sale.customerPhone || 'No registrado';
+    }
+    if (elements.detailCustomerRfc) {
+        elements.detailCustomerRfc.textContent = sale.customerRfc || 'No registrado';
+    }
+    if (elements.detailFiscalAddress) {
+        const addr = sale.fiscalAddress || {};
+        const addressStr = [addr.street, addr.neighborhood, addr.postalCode, addr.city, addr.state]
+            .filter(Boolean).join(', ');
+        elements.detailFiscalAddress.textContent = addressStr || 'No registrada';
+    }
 
-    // Resumen
+    if (elements.detailChange) {
+        elements.detailChange.textContent = sale.change ? formatCurrency(sale.change) : '$0.00';
+    }
+
+    // Totales
     if (elements.detailSubtotal) elements.detailSubtotal.textContent = formatCurrency(sale.subtotal || 0);
     if (elements.detailDiscount) elements.detailDiscount.textContent = formatCurrency(sale.discount || 0);
     if (elements.detailTax) elements.detailTax.textContent = formatCurrency(sale.tax || 0);
@@ -155,21 +177,31 @@ function renderSaleDetail(sale) {
 
     // Productos
     if (elements.detailProductsBody) {
-        if (sale.productos && sale.productos.length > 0) {
-            elements.detailProductsBody.innerHTML = sale.productos.map(product => `
+        const productos = sale.productos || [];
+        console.log(`📦 Productos encontrados: ${productos.length}`, productos);
+
+        if (productos.length > 0) {
+            elements.detailProductsBody.innerHTML = productos.map(product => `
                 <tr>
-                    <td>${escapeHtml(product.productName || product.productId)}</td>
-                    <td>${product.quantity}</td>
-                    <td>${formatCurrency(product.price)}</td>
-                    <td>${formatCurrency(product.subtotal || product.quantity * product.price)}</td>
+                    <td>${escapeHtml(product.productName || 'Producto sin nombre')}</td>
+                    <td class="text-center">${product.quantity || 1}</td>
+                    <td class="text-right">${formatCurrency(product.price || 0)}</td>
+                    <td class="text-right">${formatCurrency(product.subtotal || (product.price * product.quantity) || 0)}</td>
                 </tr>
             `).join('');
         } else {
-            elements.detailProductsBody.innerHTML = '<tr><td colspan="4" class="empty-state">No hay productos registrados</td></tr>';
+            elements.detailProductsBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="empty-state text-center py-4">
+                        <i class="fas fa-box-open fa-2x d-block mb-2" style="color: #9ca3af;"></i>
+                        <span style="color: #6b7280;">No hay productos registrados para esta venta</span>
+                    </td>
+                </tr>
+            `;
         }
     }
 
-    // Mostrar/ocultar botón de cancelar según estado
+    // Botón cancelar
     if (elements.cancelSaleFromDetailBtn) {
         if (sale.status === 'pending') {
             elements.cancelSaleFromDetailBtn.style.display = 'inline-flex';
@@ -202,8 +234,9 @@ async function cancelSale() {
                 didOpen: () => Swal.showLoading()
             });
 
-            // Cancelar la venta usando SaleService
-            await SaleService.cancelSale(currentSale.id, currentAdmin?.id);
+            await SaleService.updateSale(currentSale.id, currentStoreName, {
+                status: 'cancelled'
+            });
 
             Swal.fire({
                 title: 'Venta cancelada',
@@ -220,105 +253,44 @@ async function cancelSale() {
     }
 }
 
-// ========== IMPRIMIR TICKET ==========
-function printTicket() {
+// ========== IMPRIMIR TICKET CON COMPONENTE ==========
+function printTicketWithComponent() {
     if (!currentSale) return;
 
-    const printContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Ticket ${currentSale.folio}</title>
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body {
-                    font-family: 'Courier New', monospace;
-                    padding: 20px;
-                    max-width: 300px;
-                    margin: 0 auto;
-                    font-size: 12px;
-                }
-                .header { text-align: center; margin-bottom: 20px; }
-                .header h2 { margin: 0; font-size: 18px; }
-                .header p { margin: 5px 0; }
-                .divider { border-top: 1px dashed #000; margin: 10px 0; }
-                .product-row { display: flex; justify-content: space-between; margin: 5px 0; }
-                .total-row { font-weight: bold; margin-top: 10px; font-size: 14px; }
-                .footer { text-align: center; margin-top: 20px; font-size: 10px; }
-                .text-center { text-align: center; }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h2>Tienda</h2>
-                <p>Ticket de Venta</p>
-                <p><strong>Folio:</strong> ${currentSale.folio}</p>
-                <p><strong>Fecha:</strong> ${formatDateTime(currentSale.date)}</p>
-            </div>
-            <div class="divider"></div>
-            <div>
-                <p><strong>Cliente:</strong> ${escapeHtml(currentSale.customerName || 'Cliente general')}</p>
-            </div>
-            <div class="divider"></div>
-            <div>
-                ${(currentSale.productos || []).map(p => `
-                    <div class="product-row">
-                        <span>${escapeHtml(p.productName || p.productId)} x${p.quantity}</span>
-                        <span>${formatCurrency(p.price * p.quantity)}</span>
-                    </div>
-                `).join('')}
-            </div>
-            <div class="divider"></div>
-            <div>
-                <div class="product-row"><span>Subtotal:</span><span>${formatCurrency(currentSale.subtotal)}</span></div>
-                <div class="product-row"><span>Descuento:</span><span>${formatCurrency(currentSale.discount)}</span></div>
-                <div class="product-row"><span>IVA (16%):</span><span>${formatCurrency(currentSale.tax)}</span></div>
-                <div class="product-row total-row"><span>TOTAL:</span><span>${formatCurrency(currentSale.total)}</span></div>
-            </div>
-            <div class="divider"></div>
-            <div class="footer">
-                <p>Método de pago: ${getPaymentMethodText(currentSale.paymentMethod)}</p>
-                <p>¡Gracias por tu compra!</p>
-            </div>
-        </body>
-        </html>
-    `;
+    // Preparar datos del ticket igual que en createSaleController
+    const ticketData = {
+        id: currentSale.id,
+        folio: currentSale.folio,
+        date: currentSale.date,
+        userName: currentAdmin?.nombreCompleto || currentAdmin?.name || 'Sistema',
+        customerName: currentSale.customerName || 'Cliente general',
+        productos: currentSale.productos || [],
+        subtotal: currentSale.subtotal || 0,
+        discount: currentSale.discount || 0,
+        tax: currentSale.tax || 0,
+        total: currentSale.total || 0,
+        change: currentSale.change || 0,
+        paymentMethod: currentSale.paymentMethod || 'cash'
+    };
 
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    printWindow.print();
-}
+    // Datos de la tienda desde la sesión del admin
+    const storeData = {
+        name: currentAdmin?.storeName || currentStoreName || 'Mi Tienda',
+        logo: currentAdmin?.storeLogo || '',
+        address: currentAdmin?.storeAddress || '',
+        phone: currentAdmin?.storePhone || '',
+        rfc: currentAdmin?.storeRfc || ''
+    };
 
-// ========== ACTUALIZAR ESTADO DE VENTA ==========
-async function updateSaleStatus(newStatus) {
-    if (!currentSale) return;
-
-    try {
-        Swal.fire({
-            title: 'Actualizando...',
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading()
-        });
-
-        const updated = await SaleService.updateSaleStatus(currentSale.id, newStatus, currentAdmin?.id);
-
-        currentSale = updated;
-        renderSaleDetail(currentSale);
-
-        Swal.fire({
-            title: 'Estado actualizado',
-            text: `La venta ahora está en estado "${getStatusText(newStatus)}"`,
-            icon: 'success',
-            timer: 2000,
-            showConfirmButton: false
-        });
-
-    } catch (error) {
-        console.error('Error actualizando estado:', error);
-        Swal.fire('Error', error.message, 'error');
-    }
+    // Mostrar el ticket con el componente reutilizable
+    showTicket(ticketData, storeData, () => {
+        console.log('🔄 Ticket cerrado');
+        // No redirigimos, solo cerramos el modal si existe
+        const ticketModal = document.getElementById('ticketModal');
+        if (ticketModal) {
+            ticketModal.remove();
+        }
+    });
 }
 
 // ========== EVENTOS ==========
@@ -329,8 +301,10 @@ function bindEvents() {
         });
     }
 
+    // Asignar la nueva función de impresión al botón
     if (elements.printSaleBtn) {
-        elements.printSaleBtn.addEventListener('click', printTicket);
+        elements.printSaleBtn.removeEventListener('click', printTicketWithComponent); // Evita duplicados
+        elements.printSaleBtn.addEventListener('click', printTicketWithComponent);
     }
 
     if (elements.cancelSaleFromDetailBtn) {
@@ -341,14 +315,16 @@ function bindEvents() {
 // ========== CARGAR DATOS ==========
 async function loadSaleData(saleId) {
     try {
-        if (!currentStore) {
-            await loadCurrentStore();
+        if (!currentStoreName) {
+            throw new Error('No se encontró la tienda asociada');
+        }
+        if (!saleId) {
+            throw new Error('ID de venta no proporcionado');
         }
 
-        const storeSlug = currentStore?.name || 'default-store';
+        console.log(`🔍 [DETAIL] Cargando venta ${saleId} en tienda ${currentStoreName}`);
 
-        // Obtener la venta por ID
-        currentSale = await SaleService.getSaleById(saleId, storeSlug);
+        currentSale = await SaleService.getSaleById(saleId, currentStoreName);
 
         if (!currentSale) {
             throw new Error('Venta no encontrada');
@@ -357,7 +333,7 @@ async function loadSaleData(saleId) {
         renderSaleDetail(currentSale);
 
     } catch (error) {
-        console.error('Error cargando detalle:', error);
+        console.error('❌ Error cargando detalle:', error);
         Swal.fire({
             title: 'Error',
             text: error.message || 'No se pudo cargar el detalle de la venta',
@@ -373,6 +349,35 @@ async function loadSaleData(saleId) {
 export async function saleDetailController(saleId) {
     console.log('🔍 Sale Detail Controller - Venta:', saleId);
 
+    if (!saleId) {
+        console.warn('⚠️ No se recibió saleId como argumento, intentando obtener de la URL...');
+        const pathSegments = window.location.pathname.split('/');
+        const detalleIndex = pathSegments.indexOf('detalle');
+        if (detalleIndex !== -1 && pathSegments.length > detalleIndex + 1) {
+            saleId = pathSegments[detalleIndex + 1];
+            console.log('🔍 Obtenido saleId de path:', saleId);
+        } else {
+            const params = new URLSearchParams(window.location.search);
+            saleId = params.get('id') || params.get('ID') || params.get('saleId');
+            if (saleId) console.log('🔍 Obtenido saleId de query string:', saleId);
+        }
+    }
+
+    console.log('📌 saleId final:', saleId);
+
+    if (!saleId) {
+        console.error('❌ No se pudo obtener el ID de la venta');
+        Swal.fire({
+            title: 'Error',
+            text: 'No se encontró el ID de la venta en la URL',
+            icon: 'error',
+            confirmButtonText: 'Volver'
+        }).then(() => {
+            if (window.router) window.router.navigate('/admin/ventas');
+        });
+        return;
+    }
+
     const sessionLoaded = loadAdminSession();
 
     if (!sessionLoaded) {
@@ -382,7 +387,6 @@ export async function saleDetailController(saleId) {
         return;
     }
 
-    await loadCurrentStore();
     cacheElements();
     bindEvents();
     await loadSaleData(saleId);

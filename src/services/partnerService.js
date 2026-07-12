@@ -1,12 +1,10 @@
 /* ========================================
    PARTNER SERVICE - Logica de negocio para colaboradores
-   Un mismo email no puede ser colaborador de la misma tienda dos veces
-   La coleccion se genera dinamicamente: partners + storeName (camelCase)
-   El ID del partner es el mismo que el UID de Firebase Auth
    ======================================== */
 
 import { Partner } from '../classes/partnerModel.js';
 import { PartnerRepository } from '../repositories/partnerRepository.js';
+import { StoreRepository } from '../repositories/storeRepository.js';
 import { StoreService } from './storeService.js';
 import { CacheService } from './cacheService.js';
 
@@ -15,6 +13,7 @@ import { CacheService } from './cacheService.js';
  * Ejemplo: "mi tienda orient" -> "MiTiendaOrient"
  */
 function toCapitalizedCamelCase(str) {
+    if (!str) return '';
     const camelCase = str
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, ' ')
@@ -73,6 +72,7 @@ export class PartnerService {
 
     /**
      * Crear nuevo colaborador (crea en Auth y Firestore)
+     * ⚠️ LA CONTRASEÑA ES OBLIGATORIA
      */
     async create(partnerData, createdById = null, createdByEmail = null) {
         const repository = await this.getRepository();
@@ -105,12 +105,16 @@ export class PartnerService {
             throw new Error('El RFC debe tener al menos 12 caracteres');
         }
 
+        // ✅ Validar contraseña OBLIGATORIA
+        if (!partnerData.password || partnerData.password.trim().length < 6) {
+            throw new Error('La contraseña es obligatoria y debe tener al menos 6 caracteres');
+        }
+
         // Validar foto si se proporciona
         if (partnerData.photo && partnerData.photo.trim() !== '') {
-            const isValidBase64 = Partner.isValidBase64(partnerData.photo);
-            const isValidUrl = Partner.isValidUrl(partnerData.photo);
-
-            if (!isValidBase64 && !isValidUrl) {
+            if (!partnerData.photo.startsWith('data:image/') && 
+                !partnerData.photo.startsWith('http://') && 
+                !partnerData.photo.startsWith('https://')) {
                 throw new Error('La foto debe ser una URL válida o una imagen en formato Base64');
             }
         }
@@ -154,6 +158,7 @@ export class PartnerService {
             fullName: partner.fullName,
             phone: partner.phone,
             rfc: partner.rfc,
+            password: partnerData.password.trim(),
             photo: partner.photo,
             storeId: partner.storeId,
             role: partner.role,
@@ -168,7 +173,6 @@ export class PartnerService {
         await this.clearPartnerCache();
 
         const newPartner = new Partner(result);
-        newPartner.temporaryPassword = result.temporaryPassword;
 
         return newPartner;
     }
@@ -300,12 +304,16 @@ export class PartnerService {
 
         // Validar foto si se proporciona
         if (updateData.photo && updateData.photo.trim() !== '') {
-            const isValidBase64 = Partner.isValidBase64(updateData.photo);
-            const isValidUrl = Partner.isValidUrl(updateData.photo);
-
-            if (!isValidBase64 && !isValidUrl) {
+            if (!updateData.photo.startsWith('data:image/') && 
+                !updateData.photo.startsWith('http://') && 
+                !updateData.photo.startsWith('https://')) {
                 throw new Error('La foto debe ser una URL válida o una imagen en formato Base64');
             }
+        }
+
+        // ⚠️ Eliminar password si viene en updateData
+        if (updateData.password !== undefined) {
+            delete updateData.password;
         }
 
         // Actualizar
@@ -336,10 +344,9 @@ export class PartnerService {
      */
     async updatePhoto(partnerId, photo) {
         if (photo && photo.trim() !== '') {
-            const isValidBase64 = Partner.isValidBase64(photo);
-            const isValidUrl = Partner.isValidUrl(photo);
-
-            if (!isValidBase64 && !isValidUrl) {
+            if (!photo.startsWith('data:image/') && 
+                !photo.startsWith('http://') && 
+                !photo.startsWith('https://')) {
                 throw new Error('La foto debe ser una URL válida o una imagen en formato Base64');
             }
         }
@@ -486,6 +493,256 @@ export class PartnerService {
             await this.clearPartnerCache();
         }
     }
+
+    // ========== MÉTODOS DE AUTENTICACIÓN ==========
+
+    /**
+     * Obtener TODAS las tiendas de TODAS las colecciones
+     * Usado para autenticación de partners (no requiere storeName)
+     */
+    async _getAllStores() {
+        try {
+            // ✅ Usar el nuevo método de StoreRepository que NO usa listCollections
+            const stores = await StoreRepository.getAllStores();
+            
+            if (!stores || stores.length === 0) {
+                console.warn('⚠️ No se encontraron tiendas registradas');
+                return [];
+            }
+            
+            console.log(`✅ Se encontraron ${stores.length} tiendas en total`);
+            return stores;
+        } catch (error) {
+            console.error('❌ Error obteniendo todas las tiendas:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Buscar partner en TODAS las colecciones por UID
+     * Usado para autenticación cuando no sabemos a qué tienda pertenece
+     */
+    async _findPartnerByUid(uid) {
+        try {
+            // ✅ Obtener TODAS las tiendas sin necesidad de storeName
+            const stores = await this._getAllStores();
+            
+            if (!stores || stores.length === 0) {
+                console.warn('⚠️ No hay tiendas registradas para buscar partners');
+                return null;
+            }
+            
+            console.log(`🔍 Buscando partner en ${stores.length} tiendas...`);
+            
+            for (const store of stores) {
+                try {
+                    if (!store.name) {
+                        console.warn('⚠️ Tienda sin nombre:', store.id);
+                        continue;
+                    }
+                    
+                    const collectionName = `partners${toCapitalizedCamelCase(store.name)}`;
+                    console.log(`  🔍 Buscando en colección: ${collectionName}`);
+                    
+                    const repo = new PartnerRepository(collectionName);
+                    const partner = await repo.getById(uid);
+                    
+                    if (partner) {
+                        // Guardar el storeId para usarlo después
+                        partner._storeId = store.id;
+                        partner._storeName = store.name;
+                        console.log(`✅ Partner encontrado en: ${collectionName}`);
+                        return partner;
+                    }
+                } catch (error) {
+                    // Si la colección no existe, continuar con la siguiente
+                    console.warn(`  ⚠️ Error en colección ${store.name}:`, error.message);
+                    continue;
+                }
+            }
+            
+            console.log('❌ Partner no encontrado en ninguna tienda');
+            return null;
+        } catch (error) {
+            console.error('❌ Error finding partner by UID:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Verificar si un email existe en TODAS las colecciones de partners
+     */
+    async _emailExists(email) {
+        try {
+            const normalizedEmail = email.toLowerCase().trim();
+            
+            // ✅ Obtener TODAS las tiendas sin necesidad de storeName
+            const stores = await this._getAllStores();
+            
+            if (!stores || stores.length === 0) {
+                return false;
+            }
+            
+            for (const store of stores) {
+                try {
+                    if (!store.name) continue;
+                    
+                    const collectionName = `partners${toCapitalizedCamelCase(store.name)}`;
+                    const repo = new PartnerRepository(collectionName);
+                    const partner = await repo.getByEmail(normalizedEmail);
+                    
+                    if (partner) {
+                        return true;
+                    }
+                } catch (error) {
+                    // Si la colección no existe, continuar
+                    continue;
+                }
+            }
+            
+            return false;
+        } catch (error) {
+            console.error('Error checking partner email existence:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Login de partner (versión para autenticación)
+     * Busca en TODAS las colecciones
+     */
+    async login(email, password, isGoogle = false) {
+        // Importar dependencias de Firebase Auth
+        const { auth } = await import('/config/firebaseConfig.js');
+        const { 
+            signInWithEmailAndPassword, 
+            signInWithPopup, 
+            GoogleAuthProvider
+        } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+
+        // ✅ Si es Google y hay email, verificar que exista en Firestore
+        if (isGoogle && email) {
+            const exists = await this._emailExists(email);
+            if (!exists) {
+                throw new Error('No se encontró una cuenta de colaborador con este correo. Contacta al administrador.');
+            }
+        }
+
+        // Primero, autenticar con Firebase Auth
+        let userCredential;
+        
+        try {
+            if (isGoogle) {
+                const provider = new GoogleAuthProvider();
+                userCredential = await signInWithPopup(auth, provider);
+            } else {
+                if (!email || !password) {
+                    throw new Error('Email y contraseña son requeridos');
+                }
+                userCredential = await signInWithEmailAndPassword(auth, email.toLowerCase().trim(), password);
+            }
+        } catch (error) {
+            console.error('Partner auth error:', error);
+            throw error;
+        }
+
+        const firebaseUser = userCredential.user;
+
+        // Buscar al partner en TODAS las colecciones por UID
+        const partnerData = await this._findPartnerByUid(firebaseUser.uid);
+
+        if (!partnerData) {
+            // ✅ Si no se encuentra en Firestore pero sí en Auth, cerrar sesión
+            await auth.signOut();
+            throw new Error('Colaborador no encontrado en la base de datos. Contacta al administrador.');
+        }
+
+        if (!partnerData.active) {
+            await auth.signOut();
+            throw new Error('Esta cuenta ha sido desactivada');
+        }
+
+        // Crear sesión
+        const sessionData = {
+            id: partnerData.id,
+            email: partnerData.email,
+            fullName: partnerData.fullName,
+            phone: partnerData.phone || '',
+            rfc: partnerData.rfc || '',
+            storeId: partnerData.storeId || partnerData._storeId,
+            role: 'partner',
+            permissionId: partnerData.permissionId || '',
+            isActive: partnerData.active,
+            emailVerified: partnerData.emailVerified || false,
+            userPhoto: partnerData.photo || '',
+            createdAt: partnerData.createdAt,
+            name: partnerData.fullName,
+            initials: this._getInitials(partnerData.fullName)
+        };
+
+        this._saveSession(sessionData);
+        this._dispatchAuthChange(sessionData);
+
+        return { user: firebaseUser, userData: sessionData };
+    }
+
+    /**
+     * Logout de partner
+     */
+    async logout() {
+        try {
+            const { auth } = await import('/config/firebaseConfig.js');
+            const { signOut } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            await signOut(auth);
+            this._clearSession();
+            this._dispatchAuthChange(null);
+            return true;
+        } catch (error) {
+            console.error('Partner logout error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Verificar si partner está autenticado
+     */
+    isAuthenticated() {
+        const session = this._getSession();
+        return !!session;
+    }
+
+    /**
+     * Obtener sesión de partner
+     */
+    getSession() {
+        return this._getSession();
+    }
+
+    // ========== PRIVATE METHODS PARA SESIÓN ==========
+
+    _getInitials(name) {
+        if (!name) return 'P';
+        const parts = name.trim().split(' ');
+        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+        return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    }
+
+    _saveSession(userData) {
+        localStorage.setItem('partner_user', JSON.stringify(userData));
+    }
+
+    _getSession() {
+        const session = localStorage.getItem('partner_user');
+        return session ? JSON.parse(session) : null;
+    }
+
+    _clearSession() {
+        localStorage.removeItem('partner_user');
+    }
+
+    _dispatchAuthChange(userData) {
+        window.dispatchEvent(new CustomEvent('partner:authChanged', { detail: userData }));
+    }
 }
 
 /**
@@ -496,3 +753,6 @@ export async function createPartnerService(storeId) {
     await service.init();
     return service;
 }
+
+// ✅ EXPORTAR UNA INSTANCIA PARA AUTENTICACIÓN (SIN storeId)
+export const PartnerAuthService = new PartnerService(null);

@@ -1,0 +1,131 @@
+<mxfile host="65bd71144e">
+    <diagram id="qhY6BwEsao4-C774iyHf" name="Page-1">
+        <mxGraphModel dx="2536" dy="728" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="Customer" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="40" width="360" height="460" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="  ATRIBUTOS&#xa;- id: String (cus_timestamp_random)&#xa;- email: String&#xa;- name: String&#xa;- rfc: String&#xa;- phone: String&#xa;- fiscalAddress: Object {street, neighborhood, postalCode, city, state, references}&#xa;- storeId: String | null&#xa;- createdAt: String (ISO)&#xa;- updatedAt: String (ISO)&#xa;- createdBy: String | null (Admin Name)&#xa;- createdByEmail: String | null&#xa;- active: boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="2">
+                    <mxGeometry y="30" width="360" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="  MÉTODOS ESTÁTICOS&#xa;+ fromDocument(doc): Customer | null&#xa;+ generateId(): String (cus_timestamp_random)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fillColor=none;strokeColor=#cccccc;" vertex="1" parent="2">
+                    <mxGeometry y="250" width="360" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="  MÉTODOS PÚBLICOS&#xa;+ toJSON(): Object&#xa;+ getFullName(): String&#xa;+ getInitials(): String&#xa;+ validate(): Array&lt;String&gt; (errors)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="2">
+                    <mxGeometry y="310" width="360" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="  MÉTODOS PRIVADOS&#xa;- _generateId(): String&#xa;- _validateEmail(email): boolean" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fillColor=none;strokeColor=#cccccc;" vertex="1" parent="2">
+                    <mxGeometry y="400" width="360" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="CustomerRepository" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="480" y="40" width="400" height="330" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="  FUNCIONES PRIVADAS&#xa;- getCustomersCollectionName(storeName): String" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fillColor=none;strokeColor=#cccccc;" vertex="1" parent="7">
+                    <mxGeometry y="30" width="400" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="  MÉTODOS ESTÁTICOS&#xa;+ save(customerData, storeName): Promise&lt;Object&gt;&#xa;+ getById(customerId, storeName): Promise&lt;Object|null&gt;&#xa;+ getByEmail(email, storeName): Promise&lt;Object|null&gt;&#xa;+ getByRfc(rfc, storeName): Promise&lt;Object|null&gt;&#xa;+ getByPhone(phone, storeName): Promise&lt;Object|null&gt;&#xa;+ getAll(storeName, filters, limitCount): Promise&lt;Array&gt;&#xa;+ update(customerId, storeName, updateData): Promise&lt;Object&gt;&#xa;+ delete(customerId, storeName, hardDelete): Promise&lt;boolean|Object&gt;&#xa;+ search(storeName, term, limitCount): Promise&lt;Array&gt;&#xa;+ getActive(storeName, limitCount): Promise&lt;Array&gt;&#xa;+ getByStoreId(storeId, storeName): Promise&lt;Array&gt;&#xa;+ getCount(storeName, filters): Promise&lt;number&gt;&#xa;+ emailExists(email, storeName, excludeId): Promise&lt;boolean&gt;&#xa;+ rfcExists(rfc, storeName, excludeId): Promise&lt;boolean&gt;&#xa;+ bulkCreate(customers, storeName): Promise&lt;Array&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="7">
+                    <mxGeometry y="80" width="400" height="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="CacheService" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="980" y="40" width="340" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="  CONSTANTES&#xa;+ STORES: { ADMINS, SUPPLIERS, CASH_SESSIONS, STORES, TIENDAS, PRODUCTOS, SALES, PRODUCTS, CATEGORIES, CUSTOMERS }" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="10">
+                    <mxGeometry y="30" width="340" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="  MÉTODOS ESTÁTICOS&#xa;+ setCache(storeName, id, data, ttl): Promise&lt;boolean&gt;&#xa;+ getCache(storeName, id): Promise&lt;Object|null&gt;&#xa;+ clearCache(storeName): Promise&lt;boolean&gt;&#xa;+ clearAllCache(): Promise&lt;boolean&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="10">
+                    <mxGeometry y="110" width="340" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="AdminService" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#e1d5e7;strokeColor=#9673a6;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="980" y="530" width="340" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="  MÉTODOS ESTÁTICOS (usados por CustomerService)&#xa;+ getSession(): Object | null" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="13">
+                    <mxGeometry y="30" width="340" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="CustomerService" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#e1d5e7;strokeColor=#9673a6;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="-10" y="690" width="460" height="330" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="  CONSTANTES PRIVADAS&#xa;- CACHE_STORE: String (&#39;customers&#39;)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fillColor=none;strokeColor=#cccccc;" vertex="1" parent="15">
+                    <mxGeometry y="30" width="460" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="  MÉTODOS ESTÁTICOS&#xa;+ create(customerData): Promise&lt;Customer&gt;&#xa;+ getById(customerId, storeName, forceRefresh): Promise&lt;Customer|null&gt;&#xa;+ getByEmail(email, storeName): Promise&lt;Customer|null&gt;&#xa;+ getAll(filters, forceRefresh): Promise&lt;Array&lt;Customer&gt;&gt;&#xa;+ update(customerId, updateData): Promise&lt;Customer&gt;&#xa;+ delete(customerId, hardDelete): Promise&lt;boolean&gt;&#xa;+ getByStoreId(storeId, storeName): Promise&lt;Array&lt;Customer&gt;&gt;&#xa;+ getCount(filters): Promise&lt;number&gt;&#xa;+ bulkCreate(customersData): Promise&lt;Array&lt;Customer&gt;&gt;&#xa;+ search(query, storeName): Promise&lt;Array&lt;Customer&gt;&gt;&#xa;+ hasOrders(customerId, storeName): Promise&lt;boolean&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="15">
+                    <mxGeometry y="70" width="460" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="  MÉTODOS PRIVADOS&#xa;- _validateEmail(email): boolean&#xa;- _validateRfc(rfc): boolean&#xa;- _validatePhone(phone): boolean" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fillColor=none;strokeColor=#cccccc;" vertex="1" parent="15">
+                    <mxGeometry y="260" width="460" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="«collection» customers{storeName}" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=2;fillColor=#ffe6cc;strokeColor=#d79b00;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="560" y="680" width="380" height="290" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="  ATRIBUTOS (ejemplo)&#xa;• id: String (cus_timestamp_random)&#xa;• email: String&#xa;• name: String&#xa;• rfc: String&#xa;• phone: String&#xa;• fiscalAddress: Object&#xa;• storeId: String&#xa;• active: boolean&#xa;• createdAt: Timestamp&#xa;• updatedAt: Timestamp&#xa;• createdBy: String (Admin Name)&#xa;• createdByEmail: String&#xa;&#xa;  COLECCIÓN DINÁMICA:&#xa;  &#39;toyota&#39; → &#39;customersToyota&#39;&#xa;  &#39;mi tienda&#39; → &#39;customersMiTienda&#39;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="19">
+                    <mxGeometry y="30" width="380" height="260" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="" style="endArrow=open;dashed=1;endFill=0;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="15" target="7">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="420" y="250"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="22" value="usa" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#9673a6;fontStyle=1;" vertex="1" connectable="0" parent="21">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-0.5" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="23" value="" style="endArrow=open;dashed=1;endFill=0;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="15" target="2">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="220" y="670"/>
+                            <mxPoint x="220" y="560"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="24" value="usa/crea" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#9673a6;fontStyle=1;" vertex="1" connectable="0" parent="23">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="0.5" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="25" value="" style="endArrow=open;dashed=1;endFill=0;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="15" target="10">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="500" y="410"/>
+                            <mxPoint x="1150" y="410"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="26" value="usa" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#9673a6;fontStyle=1;" vertex="1" connectable="0" parent="25">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="0.5" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="27" value="" style="endArrow=open;dashed=1;endFill=0;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="15" target="13">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="500" y="480"/>
+                            <mxPoint x="1150" y="480"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="28" value="usa (getSession)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#9673a6;fontStyle=1;" vertex="1" connectable="0" parent="27">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="0.5" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="29" value="" style="endArrow=open;dashed=1;endFill=0;strokeWidth=2;strokeColor=#d6b656;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="7" target="19">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="680" y="630"/>
+                            <mxPoint x="680" y="670"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="30" value="lee/escribe" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#d6b656;fontStyle=1;" vertex="1" connectable="0" parent="29">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="0.5" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

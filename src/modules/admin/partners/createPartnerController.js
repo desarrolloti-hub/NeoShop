@@ -63,7 +63,6 @@ function setupCreateEvents() {
     const photoPreview = document.getElementById('photoPreview');
     const photoInput = document.getElementById('photoInput');
     const uploadBtn = document.getElementById('uploadPhotoBtn');
-    const photoUrl = document.getElementById('photoUrl');
     const cancelBtn = document.getElementById('cancelCreateBtn');
     const form = document.getElementById('partnerCreateForm');
 
@@ -86,26 +85,8 @@ function setupCreateEvents() {
                     if (photoPreview) {
                         photoPreview.innerHTML = `<img src="${base64}" style="width: 100%; height: 100%; object-fit: cover;">`;
                     }
-                    if (photoUrl) photoUrl.value = '';
                 } catch (error) {
                     console.error('Error converting file to base64:', error);
-                }
-            }
-        });
-    }
-
-    // Subir foto desde URL
-    if (photoUrl) {
-        photoUrl.addEventListener('input', (e) => {
-            const url = e.target.value.trim();
-            if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
-                if (photoPreview) {
-                    photoPreview.innerHTML = `<img src="${url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-camera\\'></i>'">`;
-                }
-                if (photoInput) photoInput.value = '';
-            } else if (!url) {
-                if (photoPreview) {
-                    photoPreview.innerHTML = '<i class="fas fa-camera"></i>';
                 }
             }
         });
@@ -135,15 +116,13 @@ async function createPartner() {
     const fullName = document.getElementById('fullName')?.value;
     const phone = document.getElementById('phone')?.value;
     const rfc = document.getElementById('rfc')?.value;
+    const password = document.getElementById('password')?.value;
     const role = document.getElementById('role')?.value;
     const permissionId = document.getElementById('permissionId')?.value;
     const photoPreview = document.getElementById('photoPreview');
-    const photoUrl = document.getElementById('photoUrl')?.value;
 
     let photo = '';
-    if (photoUrl && photoUrl.trim()) {
-        photo = photoUrl.trim();
-    } else if (photoPreview && photoPreview.querySelector('img')) {
+    if (photoPreview && photoPreview.querySelector('img')) {
         photo = photoPreview.querySelector('img').src;
     }
 
@@ -176,10 +155,25 @@ async function createPartner() {
         return;
     }
 
+    // ✅ Validar contraseña OBLIGATORIA
+    if (!password || password.trim().length < 6) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Contraseña requerida',
+            text: 'La contraseña es obligatoria y debe tener al menos 6 caracteres.',
+            confirmButtonText: 'Aceptar',
+            customClass: {
+                popup: 'swal2-popup',
+                confirmButton: 'swal2-confirm'
+            }
+        });
+        return;
+    }
+
     const result = await Swal.fire({
         icon: 'question',
         title: '¿Crear colaborador?',
-        text: `Se creará el colaborador ${fullName.trim()} y se enviará un email con instrucciones de acceso.`,
+        text: `Se creará el colaborador ${fullName.trim()} con la contraseña proporcionada.`,
         showCancelButton: true,
         confirmButtonText: 'Sí, crear',
         cancelButtonText: 'Cancelar',
@@ -201,6 +195,7 @@ async function createPartner() {
             fullName: fullName.trim(),
             phone: phone?.trim() || '',
             rfc: rfc?.trim().toUpperCase() || '',
+            password: password.trim(),
             role: role || 'partner',
             permissionId: permissionId || '',
             photo: photo || ''
@@ -209,7 +204,7 @@ async function createPartner() {
         await Swal.fire({
             icon: 'success',
             title: '¡Colaborador creado!',
-            html: `Se ha creado el colaborador <strong>${newPartner.fullName}</strong>.<br><br>Se ha enviado un email con la contraseña temporal de acceso.`,
+            html: `Se ha creado el colaborador <strong>${newPartner.fullName}</strong>.<br><br>Se ha registrado con la contraseña proporcionada.`,
             confirmButtonText: 'Aceptar',
             customClass: {
                 popup: 'swal2-popup',

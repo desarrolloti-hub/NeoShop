@@ -16,6 +16,23 @@ export class Sale {
         this.customerId = data.customerId || null;
         this.userId = data.userId || null;
 
+        // ✨ Datos del cliente embebidos (para no perder la información)
+        this.customerName = data.customerName || '';
+        this.customerEmail = data.customerEmail || '';
+        this.customerPhone = data.customerPhone || '';
+        this.customerRfc = data.customerRfc || '';
+        this.fiscalAddress = data.fiscalAddress || {
+            street: '',
+            neighborhood: '',
+            postalCode: '',
+            city: '',
+            state: '',
+            references: ''
+        };
+
+        // ✨ Productos de la venta (array de objetos)
+        this.products = data.products || [];
+
         // Datos de la venta
         this.folio = data.folio || '';
         this.date = data.date || new Date().toISOString();
@@ -26,7 +43,7 @@ export class Sale {
         this.tax = data.tax || 0;
         this.total = data.total || 0;
 
-        // ✨ NUEVO: Cambio (para pagos en efectivo)
+        // Cambio (para pagos en efectivo)
         this.change = data.change || 0;
 
         // Estado y método de pago
@@ -42,7 +59,6 @@ export class Sale {
 
     // ========== GETTERS ==========
 
-    // Obtener el total con formato de moneda
     get totalFormatted() {
         return new Intl.NumberFormat('es-MX', {
             style: 'currency',
@@ -50,7 +66,6 @@ export class Sale {
         }).format(this.total);
     }
 
-    // Obtener el subtotal con formato de moneda
     get subtotalFormatted() {
         return new Intl.NumberFormat('es-MX', {
             style: 'currency',
@@ -58,7 +73,6 @@ export class Sale {
         }).format(this.subtotal);
     }
 
-    // Obtener el descuento con formato de moneda
     get discountFormatted() {
         return new Intl.NumberFormat('es-MX', {
             style: 'currency',
@@ -66,7 +80,6 @@ export class Sale {
         }).format(this.discount);
     }
 
-    // Obtener el impuesto con formato de moneda
     get taxFormatted() {
         return new Intl.NumberFormat('es-MX', {
             style: 'currency',
@@ -74,7 +87,6 @@ export class Sale {
         }).format(this.tax);
     }
 
-    // ✨ NUEVO: Cambio formateado
     get changeFormatted() {
         return new Intl.NumberFormat('es-MX', {
             style: 'currency',
@@ -82,7 +94,6 @@ export class Sale {
         }).format(this.change);
     }
 
-    // Fecha formateada para mostrar
     get dateFormatted() {
         const dateObj = new Date(this.date);
         return dateObj.toLocaleDateString('es-MX', {
@@ -94,39 +105,37 @@ export class Sale {
         });
     }
 
-    // Fecha corta
     get shortDate() {
         const dateObj = new Date(this.date);
         return dateObj.toLocaleDateString('es-MX');
     }
 
-    // Verificar si la venta está completada
     get isCompleted() {
         return this.status === 'completed';
     }
 
-    // Verificar si la venta está cancelada
     get isCancelled() {
         return this.status === 'cancelled';
     }
 
-    // Verificar si la venta está pendiente
     get isPending() {
         return this.status === 'pending';
     }
 
-    // Verificar si la venta está reembolsada
     get isRefunded() {
         return this.status === 'refunded';
     }
 
-    // Porcentaje de descuento sobre el subtotal
     get discountPercentage() {
         if (this.subtotal === 0) return 0;
         return (this.discount / this.subtotal) * 100;
     }
 
-    // Datos resumidos para listados (incluye cambio)
+    // ✨ Total de productos en la venta
+    get totalItems() {
+        return this.products.reduce((acc, p) => acc + (p.quantity || 0), 0);
+    }
+
     get datosResumidos() {
         return {
             id: this.id,
@@ -134,13 +143,15 @@ export class Sale {
             date: this.date,
             shortDate: this.shortDate,
             customerId: this.customerId,
+            customerName: this.customerName,
             userId: this.userId,
             total: this.total,
             totalFormatted: this.totalFormatted,
             change: this.change,
             changeFormatted: this.changeFormatted,
             status: this.status,
-            paymentMethod: this.paymentMethod
+            paymentMethod: this.paymentMethod,
+            totalItems: this.totalItems
         };
     }
 
@@ -176,7 +187,6 @@ export class Sale {
         return this._tax || 0;
     }
 
-    // ✨ NUEVO: Setter para change (validación)
     set change(value) {
         const numValue = parseFloat(value);
         this._change = isNaN(numValue) ? 0 : numValue;
@@ -197,21 +207,18 @@ export class Sale {
     }
 
     set total(value) {
-        // El total se calcula automáticamente, este setter es para casos específicos
         const numValue = parseFloat(value);
         this._total = isNaN(numValue) ? 0 : numValue;
     }
 
     // ========== MÉTODOS PÚBLICOS ==========
 
-    // Calcular total automáticamente
     calcularTotal() {
         this._recalculateTotal();
         this.updatedAt = new Date().toISOString();
         return this.total;
     }
 
-    // Validar datos completos para registro (incluye change)
     validarParaRegistro() {
         const errores = [];
 
@@ -248,6 +255,10 @@ export class Sale {
         if (!this.status || !['pending', 'completed', 'cancelled', 'refunded'].includes(this.status)) {
             errores.push('El estado de la venta no es válido');
         }
+        // ✨ Validación opcional: al menos un producto
+        if (!this.products || this.products.length === 0) {
+            errores.push('La venta debe incluir al menos un producto');
+        }
 
         return {
             valido: errores.length === 0,
@@ -255,7 +266,6 @@ export class Sale {
         };
     }
 
-    // Aplicar descuento porcentual
     aplicarDescuentoPorcentaje(porcentaje) {
         if (porcentaje < 0 || porcentaje > 100) {
             throw new Error('El porcentaje de descuento debe estar entre 0 y 100');
@@ -265,7 +275,6 @@ export class Sale {
         return this;
     }
 
-    // Cambiar estado de la venta
     cambiarEstado(nuevoEstado) {
         const estadosValidos = ['pending', 'completed', 'cancelled', 'refunded'];
         if (!estadosValidos.includes(nuevoEstado)) {
@@ -276,7 +285,6 @@ export class Sale {
         return this;
     }
 
-    // Completar venta
     completar() {
         if (this.status === 'cancelled') {
             throw new Error('No se puede completar una venta cancelada');
@@ -286,7 +294,6 @@ export class Sale {
         return this;
     }
 
-    // Cancelar venta
     cancelar() {
         if (this.status === 'completed') {
             throw new Error('No se puede cancelar una venta ya completada');

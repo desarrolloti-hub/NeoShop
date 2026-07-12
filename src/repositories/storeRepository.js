@@ -139,6 +139,56 @@ export const StoreRepository = {
         return stores;
     },
 
+    /**
+     * ✅ Obtener TODAS las tiendas de TODAS las colecciones "stores*"
+     * Esta función busca en todas las colecciones que comienzan con "stores"
+     * Ej: storesCtx, storesLee, storesToyota, storesXimbala
+     */
+    async getAllStores(filters = {}, limitCount = 100) {
+        try {
+            // ✅ LISTA DE TODAS LAS COLECCIONES QUE COMIENZAN CON "stores"
+            // Como no podemos usar listCollections, definimos manualmente
+            // las colecciones que existen en tu base de datos
+            const storeCollections = [
+                'storesCtx',
+                'storesLee',
+                'storesToyota',
+                'storesXimbala'
+            ];
+
+            console.log('📂 Buscando en colecciones:', storeCollections);
+
+            let allStores = [];
+
+            for (const collectionName of storeCollections) {
+                try {
+                    // Extraer el nombre de la tienda de la colección
+                    // Ej: "storesXimbala" -> "Ximbala"
+                    const storeNameMatch = collectionName.match(/^stores(.+)$/);
+                    if (!storeNameMatch || !storeNameMatch[1]) continue;
+
+                    const q = query(collection(db, collectionName), limit(limitCount));
+                    const querySnapshot = await getDocs(q);
+
+                    querySnapshot.forEach((doc) => {
+                        allStores.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    console.log(`✅ ${querySnapshot.size} tiendas encontradas en ${collectionName}`);
+                } catch (error) {
+                    console.warn(`⚠️ Error en colección ${collectionName}:`, error.message);
+                    continue;
+                }
+            }
+
+            console.log(`✅ Total de tiendas encontradas: ${allStores.length}`);
+            return allStores;
+        } catch (error) {
+            console.error('❌ Error getting all stores:', error);
+            return [];
+        }
+    },
+
     async update(storeId, storeName = null, updateData) {
         const collectionName = storeName ? getStoreCollectionName(storeName) : 'stores';
         const storeRef = doc(db, collectionName, storeId);

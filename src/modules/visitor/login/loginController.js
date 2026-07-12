@@ -4,7 +4,7 @@
    CAPTURA PARÁMETROS DE PLAN Y PERÍODO DESDE LA URL
    ======================================== */
 
-import { AdminService } from '../../../services/adminService.js';
+import { AuthService, ROLES } from '../../utils/auth.js';
 import { AdminRepository } from '../../../repositories/adminRepository.js';
 
 let isLoading = false;
@@ -22,9 +22,9 @@ export async function loginController() {
     // Mostrar información del plan en el formulario (si existe un elemento)
     displayPlanInfo(plan, period);
 
-    if (AdminService.isAuthenticated()) {
-        // ✅ Verificar si tiene storeId antes de redirigir
-        await checkStoreAndRedirect();
+    // Si ya está autenticado, redirigir
+    if (AuthService.isAuthenticated()) {
+        await checkAuthAndRedirect();
         return;
     }
 
@@ -34,82 +34,143 @@ export async function loginController() {
     initGoogleLogin(plan, period);
 }
 
-// ✅ FUNCIÓN PARA VERIFICAR STOREID Y REDIRIGIR
-async function checkStoreAndRedirect() {
-    const session = AdminService.getSession();
-    const adminId = session?.id;
+// ✅ FUNCIÓN PARA VERIFICAR AUTENTICACIÓN Y REDIRIGIR SEGÚN ROL
+async function checkAuthAndRedirect() {
+    const user = AuthService.getCurrentUser();
+    const role = AuthService.getCurrentRole();
 
-    if (!adminId) {
+    if (!user) {
         redirectByRole();
         return;
     }
 
-    try {
-        // Obtener datos actualizados del admin
-        const adminData = await AdminRepository.getById(adminId);
+    // Si es admin, verificar storeId
+    if (role === ROLES.ADMIN) {
+        const adminId = user.id;
+        
+        if (!adminId) {
+            redirectByRole();
+            return;
+        }
 
-        // ✅ Si no tiene storeId, mostrar alerta para configurar tienda
-        if (!adminData?.storeId) {
-            const result = await Swal.fire({
-                title: 'Configura tu tienda',
-                html: `
-                    <div style="text-align: left;">
-                        <p>Para comenzar a usar NeoShop, necesitas configurar los datos de tu negocio.</p>
-                        <p style="color: #64748b; font-size: 0.9rem;">Este paso es obligatorio para poder gestionar productos, ventas y más.</p>
-                        <hr style="margin: 12px 0; border-color: #e2e8f0;">
-                        <p style="color: #64748b; font-size: 0.8rem;">
-                            <i class="fas fa-info-circle"></i> 
-                            Solo te tomará un par de minutos.
-                        </p>
-                    </div>
-                `,
-                icon: 'info',
-                confirmButtonText: 'Ir a configurar',
-                confirmButtonColor: '#456da2',
-                showCancelButton: true,
-                cancelButtonText: 'Después',
-                cancelButtonColor: '#64748b',
-                allowOutsideClick: false
-            });
+        try {
+            const adminData = await AdminRepository.getById(adminId);
 
-            if (result.isConfirmed) {
-                // Redirigir a configuración de tienda
-                if (typeof window.navigateTo === 'function') {
-                    window.navigateTo('/crearTienda');
-                } else {
-                    window.location.href = '/crearTienda';
-                }
-            } else {
-                // Si cancela, igual redirigir a configuración (es obligatorio)
-                Swal.fire({
-                    title: 'Configuración necesaria',
-                    text: 'Para usar la plataforma, es necesario configurar tu tienda.',
-                    icon: 'warning',
-                    confirmButtonText: 'Configurar ahora',
+            // ✅ Si no tiene storeId, mostrar alerta para configurar tienda
+            if (!adminData?.storeId) {
+                const result = await Swal.fire({
+                    title: 'Configura tu tienda',
+                    html: `
+                        <div style="text-align: left;">
+                            <p>Para comenzar a usar NeoShop, necesitas configurar los datos de tu negocio.</p>
+                            <p style="color: #64748b; font-size: 0.9rem;">Este paso es obligatorio para poder gestionar productos, ventas y más.</p>
+                            <hr style="margin: 12px 0; border-color: #e2e8f0;">
+                            <p style="color: #64748b; font-size: 0.8rem;">
+                                <i class="fas fa-info-circle"></i> 
+                                Solo te tomará un par de minutos.
+                            </p>
+                        </div>
+                    `,
+                    icon: 'info',
+                    confirmButtonText: 'Ir a configurar',
                     confirmButtonColor: '#456da2',
+                    showCancelButton: true,
+                    cancelButtonText: 'Después',
+                    cancelButtonColor: '#64748b',
                     allowOutsideClick: false
-                }).then(() => {
+                });
+
+                if (result.isConfirmed) {
                     if (typeof window.navigateTo === 'function') {
                         window.navigateTo('/crearTienda');
                     } else {
                         window.location.href = '/crearTienda';
                     }
-                });
+                } else {
+                    Swal.fire({
+                        title: 'Configuración necesaria',
+                        text: 'Para usar la plataforma, es necesario configurar tu tienda.',
+                        icon: 'warning',
+                        confirmButtonText: 'Configurar ahora',
+                        confirmButtonColor: '#456da2',
+                        allowOutsideClick: false
+                    }).then(() => {
+                        if (typeof window.navigateTo === 'function') {
+                            window.navigateTo('/crearTienda');
+                        } else {
+                            window.location.href = '/crearTienda';
+                        }
+                    });
+                }
+                return;
+            }
+        } catch (error) {
+            console.error('Error verificando storeId:', error);
+        }
+    }
+
+    // Si es partner, verificar que tenga storeId
+    if (role === ROLES.PARTNER) {
+        if (!user.storeId) {
+            await Swal.fire({
+                title: 'Cuenta sin tienda',
+                text: 'Tu cuenta no está asociada a ninguna tienda. Contacta al administrador.',
+                icon: 'warning',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#456da2'
+            });
+            // Cerrar sesión y redirigir a login
+            await AuthService.logout();
+            if (typeof window.navigateTo === 'function') {
+                window.navigateTo('/iniciarSesion');
+            } else {
+                window.location.href = '/iniciarSesion';
             }
             return;
         }
+    }
 
-        // ✅ Si tiene storeId, redirigir normalmente
-        redirectByRole();
+    // Redirigir según rol
+    redirectByRole();
+}
 
-    } catch (error) {
-        console.error('Error verificando storeId:', error);
-        // En caso de error, redirigir normalmente
-        redirectByRole();
+// ✅ FUNCIÓN PARA REDIRIGIR SEGÚN ROL
+function redirectByRole() {
+    const role = AuthService.getCurrentRole();
+    
+    // Si hay una URL de redirección previa, la priorizamos
+    const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+    if (redirectUrl) {
+        sessionStorage.removeItem('redirectAfterLogin');
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo(redirectUrl);
+        } else {
+            window.location.href = redirectUrl;
+        }
+        return;
+    }
+
+    let targetUrl = '/inicioAdmin'; // por defecto
+
+    switch (role) {
+        case ROLES.ADMIN:
+            targetUrl = '/inicioAdmin';
+            break;
+        case ROLES.PARTNER:
+            targetUrl = '/inicioColaborador';
+            break;
+        default:
+            targetUrl = '/iniciarSesion';
+            break;
+    }
+
+    if (typeof window.navigateTo === 'function') {
+        window.navigateTo(targetUrl);
+    } else {
+        window.location.href = targetUrl;
     }
 }
 
-// ✅ FUNCIÓN PARA MOSTRAR EL PLAN SELECCIONADO (opcional)
 function displayPlanInfo(plan, period) {
     const planDisplay = document.getElementById('planDisplay');
     if (!planDisplay) return;
@@ -131,7 +192,6 @@ function displayPlanInfo(plan, period) {
     }
     planDisplay.innerHTML = message;
 
-    // Agregar campos ocultos al formulario para enviarlos en el login
     const form = document.getElementById('loginForm');
     if (form) {
         form.querySelectorAll('input[name="plan"], input[name="period"]').forEach(el => el.remove());
@@ -159,31 +219,6 @@ function animateLoginForm() {
     loginCard.offsetHeight;
     loginCard.style.opacity = '1';
     loginCard.style.transform = 'translateY(0)';
-}
-
-/**
- * Redirige según el plan seleccionado después del login exitoso.
- * - Si el plan es "trial" -> va al dashboard (prueba gratuita).
- * - Si es un plan de pago (basic, pro, enterprise) -> va al checkout.
- * - Si es "custom" -> va a contacto.
- * - Si hay una URL de redirección guardada, la respeta.
- */
-function redirectByRole() {
-    // Obtener el plan guardado en sessionStorage
-    const plan = sessionStorage.getItem('selectedPlan') || 'basic';
-    const period = sessionStorage.getItem('selectedPeriod') || 'monthly';
-
-    // Si hay una URL de redirección previa (ej. desde otra página), la priorizamos
-    const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
-    if (redirectUrl) {
-        sessionStorage.removeItem('redirectAfterLogin');
-        window.location.href = redirectUrl;
-        return;
-    }
-
-    let targetUrl = '/inicioAdmin'; // por defecto
-
-    window.location.href = targetUrl;
 }
 
 function initPasswordToggle() {
@@ -255,15 +290,17 @@ function initLoginForm(plan, period) {
         submitBtn.disabled = true;
 
         try {
-            // Llamada al servicio de login
-            await AdminService.login(email, password, false);
+            // ✅ Usar AuthService para login (detecta admin o partner automáticamente)
+            const result = await AuthService.login(email, password, false);
 
-            const session = AdminService.getSession();
-            const nombre = session?.fullName || session?.name || 'Administrador';
+            // ✅ Obtener usuario actualizado después del login
+            const user = AuthService.getCurrentUser();
+            const role = AuthService.getCurrentRole();
+            const nombre = user?.fullName || user?.name || 'Usuario';
 
             await Swal.fire({
                 title: `¡Bienvenido, ${nombre}!`,
-                text: 'Serás redirigido en 3 segundos',
+                text: `Accediendo como ${role === 'admin' ? 'Administrador' : 'Colaborador'}`,
                 icon: 'success',
                 timer: 3000,
                 timerProgressBar: true,
@@ -278,8 +315,8 @@ function initLoginForm(plan, period) {
                 }
             });
 
-            // ✅ Verificar storeId antes de redirigir
-            await checkStoreAndRedirect();
+            // ✅ Verificar autenticación y redirigir según rol
+            await checkAuthAndRedirect();
 
         } catch (error) {
             Swal.close();
@@ -318,15 +355,16 @@ function initGoogleLogin(plan, period) {
         newGoogleBtn.disabled = true;
 
         try {
-            // Login con Google
-            await AdminService.login(null, null, true);
+            // ✅ Usar AuthService para login con Google
+            await AuthService.login(null, null, true);
 
-            const session = AdminService.getSession();
-            const nombre = session?.fullName || session?.name || 'Administrador';
+            const user = AuthService.getCurrentUser();
+            const role = AuthService.getCurrentRole();
+            const nombre = user?.fullName || user?.name || 'Usuario';
 
             await Swal.fire({
                 title: `¡Bienvenido, ${nombre}!`,
-                text: 'Serás redirigido en 3 segundos',
+                text: `Accediendo como ${role === 'admin' ? 'Administrador' : 'Colaborador'}`,
                 icon: 'success',
                 timer: 3000,
                 timerProgressBar: true,
@@ -341,8 +379,7 @@ function initGoogleLogin(plan, period) {
                 }
             });
 
-            // ✅ Verificar storeId antes de redirigir
-            await checkStoreAndRedirect();
+            await checkAuthAndRedirect();
 
         } catch (error) {
             Swal.close();
