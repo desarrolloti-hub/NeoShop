@@ -122,7 +122,7 @@ export const routes = {
     },
 
     /* profile */
-    "/editarPerfil": {
+    "/editarPerfi": {
         view: "/modules/admin/profile/updateProfile.html",
         controller: updateProfileController
     },
@@ -155,7 +155,7 @@ export const routes = {
     "/inicioColaborador": {
         view: "/modules/partner/home/homePartner.html",
         controller: null
-    },  
+    },
 
 
     /* Home */

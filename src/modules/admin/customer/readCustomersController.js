@@ -649,7 +649,7 @@ function showEmptyState() {
         const addBtn = document.getElementById('addCustomerFromEmptyBtn');
         if (addBtn) {
             addBtn.addEventListener('click', () => {
-                navigateTo('/crearCliente');
+                navigateTo('/nuevoCliente');
             });
         }
     }
@@ -667,7 +667,7 @@ function showEmptyState() {
         const addBtn = document.getElementById('addCustomerFromEmptyCardBtn');
         if (addBtn) {
             addBtn.addEventListener('click', () => {
-                navigateTo('/crearCliente');
+                navigateTo('/nuevoCliente');
             });
         }
     }
@@ -746,7 +746,7 @@ function initAddCustomerButton() {
     if (!addButton) return;
     addButton.addEventListener('click', (event) => {
         event.preventDefault();
-        navigateTo('/crearCliente');
+        navigateTo('/nuevoCliente');
     });
 }
 
