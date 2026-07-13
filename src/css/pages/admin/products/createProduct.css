@@ -210,6 +210,7 @@
     font-family: inherit;
     transition: var(--transition-fast);
     background: var(--bg-white);
+    color: var(--text-muted);
 }
 
 .form-group input:focus,
