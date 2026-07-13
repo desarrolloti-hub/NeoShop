@@ -302,18 +302,36 @@ function initGoogleRegister() {
         newGoogleBtn.disabled = true;
 
         try {
-            const result = await AdminService.login(null, null, true);
+            // ✅ CORRECCIÓN: Usar AdminService.registerWithGoogle en lugar de login
+            const result = await AdminService.registerWithGoogle(true);
 
-            showSuccessToast('Cuenta creada con Google. Redirigiendo...');
+            if (result.isNew) {
+                showSuccessToast('Cuenta creada con éxito. ¡Bienvenido!');
+            } else {
+                showSuccessToast('Ya tenías una cuenta. ¡Bienvenido de nuevo!');
+            }
 
-            if (termsCheckbox) termsCheckbox.checked = false;
+            // Limpiar el formulario
+            const termsCheckboxEl = document.getElementById('termsCheckbox');
+            if (termsCheckboxEl) termsCheckboxEl.checked = false;
 
-            // ✅ Redirigir a login (la verificación de storeId se hará allí)
+            // ✅ Redirigir según el rol (usando la función existente)
             setTimeout(() => {
+                const role = result.userData?.role || 'admin';
+                let targetUrl = '/inicioAdmin';
+                if (role === 'partner') {
+                    targetUrl = '/inicioColaborador';
+                }
+                
+                // Si es nuevo y no tiene storeId, redirigir a crear tienda
+                if (result.isNew && !result.userData?.storeId) {
+                    targetUrl = '/crearTienda';
+                }
+
                 if (typeof window.navigateTo === 'function') {
-                    window.navigateTo('/iniciarSesion');
+                    window.navigateTo(targetUrl);
                 } else {
-                    window.location.href = '/iniciarSesion';
+                    window.location.href = targetUrl;
                 }
             }, 1500);
 

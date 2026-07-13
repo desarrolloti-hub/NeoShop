@@ -16,10 +16,48 @@ import {
 const ADMINS_COLLECTION = 'admins';
 
 export const AdminRepository = {
+    /**
+     * ✅ Guardar admin - Convierte a objeto plano si es instancia de Admin
+     */
     async save(adminData) {
-        const adminRef = doc(db, ADMINS_COLLECTION, adminData.id);
-        await setDoc(adminRef, adminData);
-        return { id: adminData.id, ...adminData };
+        // ✅ Si es una instancia de Admin, convertir a objeto plano
+        let dataToSave = adminData;
+        if (adminData && typeof adminData === 'object' && adminData.constructor && adminData.constructor.name === 'Admin') {
+            // Convertir Admin a objeto plano
+            dataToSave = {
+                id: adminData.id,
+                name: adminData.name,
+                email: adminData.email,
+                phoneNumber: adminData.phoneNumber,
+                role: adminData.role,
+                plan: adminData.plan,
+                storesId: adminData.storesId || {},
+                storeId: adminData.storeId || null,
+                storeName: adminData.storeName || null,
+                trialEndDate: adminData.trialEndDate || null,
+                themeDark: adminData.themeDark || false,
+                active: adminData.active !== undefined ? adminData.active : true,
+                termsAccepted: adminData.termsAccepted || false,
+                userPhoto: adminData.userPhoto || '',
+                provider: adminData.provider || 'email',
+                createdAt: adminData.createdAt || new Date().toISOString(),
+                updatedAt: adminData.updatedAt || null,
+                lastLogin: adminData.lastLogin || null
+            };
+        }
+
+        // Si tiene id, guardar con ese id, si no, Firebase generará uno
+        const adminRef = dataToSave.id 
+            ? doc(db, ADMINS_COLLECTION, dataToSave.id)
+            : doc(collection(db, ADMINS_COLLECTION));
+        
+        // Si no tiene id, asignar el nuevo id generado
+        if (!dataToSave.id) {
+            dataToSave.id = adminRef.id;
+        }
+
+        await setDoc(adminRef, dataToSave);
+        return { id: adminRef.id, ...dataToSave };
     },
 
     async getById(adminId) {
@@ -51,7 +89,7 @@ export const AdminRepository = {
         const trialEndDate = new Date();
         trialEndDate.setDate(trialEndDate.getDate() + 15);
 
-        // ✅ Guardar admin con plan 'full-free' por defecto y themeDark: false
+        // ✅ Crear objeto plano (NO instancia de Admin)
         const adminToSave = {
             id: firebaseUser.uid,
             name: adminData.name || '',
@@ -63,13 +101,14 @@ export const AdminRepository = {
             storeId: adminData.storeId || null,
             storeName: adminData.storeName || null,
             trialEndDate: trialEndDate.toISOString(),
-            themeDark: false, // ✅ NUEVO: Por defecto modo claro
+            themeDark: false,
             active: true,
             termsAccepted: adminData.termsAccepted || false,
             userPhoto: adminData.userPhoto || '',
             provider: 'email',
             createdAt: createdAt,
-            updatedAt: null
+            updatedAt: null,
+            lastLogin: null
         };
 
         await this.save(adminToSave);
@@ -85,6 +124,9 @@ export const AdminRepository = {
         return { user: firebaseUser, userData: adminData || null };
     },
 
+    /**
+     * ✅ Login con Google - NO crea cuenta automáticamente
+     */
     async loginWithGoogle() {
         const provider = new GoogleAuthProvider();
         const userCredential = await signInWithPopup(auth, provider);
@@ -93,35 +135,22 @@ export const AdminRepository = {
         let adminData = await this.getById(firebaseUser.uid);
 
         if (!adminData) {
-            const createdAt = new Date().toISOString();
-            const trialEndDate = new Date();
-            trialEndDate.setDate(trialEndDate.getDate() + 15);
-
-            // ✅ Guardar admin con plan 'full-free' por defecto y themeDark: false
-            adminData = {
-                id: firebaseUser.uid,
-                name: firebaseUser.displayName || '',
-                email: firebaseUser.email,
-                phoneNumber: '',
-                role: 'admin',
-                plan: 'full-free',
-                storesId: {},
-                storeId: null,
-                storeName: null,
-                trialEndDate: trialEndDate.toISOString(),
-                themeDark: false, // ✅ NUEVO: Por defecto modo claro
-                active: true,
-                termsAccepted: true,
-                userPhoto: firebaseUser.photoURL || '',
-                provider: 'google',
-                createdAt: createdAt,
-                updatedAt: null
+            // ✅ NO crear cuenta automáticamente
+            return {
+                user: firebaseUser,
+                userData: null,
+                firebaseUserData: {
+                    id: firebaseUser.uid,
+                    name: firebaseUser.displayName || '',
+                    email: firebaseUser.email,
+                    userPhoto: firebaseUser.photoURL || '',
+                    provider: 'google'
+                }
             };
-            await this.save(adminData);
-        } else {
-            await this.update(firebaseUser.uid, { lastLogin: new Date().toISOString() });
-            adminData = await this.getById(firebaseUser.uid);
         }
+
+        await this.update(firebaseUser.uid, { lastLogin: new Date().toISOString() });
+        adminData = await this.getById(firebaseUser.uid);
 
         return { user: firebaseUser, userData: adminData };
     },
