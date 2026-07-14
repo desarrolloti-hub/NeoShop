@@ -6,13 +6,15 @@
 
 import { ProductService } from '../../../services/productService.js';
 import { AdminService } from '../../../services/adminService.js';
-import { CategoryService } from '../../../services/categoryService.js'; // ✅ IMPORTAR
+import { CategoryService } from '../../../services/categoryService.js';
+import { SupplierService } from '../../../services/supplierService.js'; // ✅ IMPORT supplier
 
 let isLoading = false;
 let currentImageBase64 = '';
 let currentAdmin = null;
 let currentStoreName = null;
-let categories = []; // ✅ Almacenar categorías
+let categories = [];
+let suppliers = []; // ✅ NEW: store suppliers
 
 export async function createProductController() {
   console.log('📦 Create Product Controller - Initialized');
@@ -51,12 +53,13 @@ export async function createProductController() {
   console.log('✅ Store:', currentStoreName);
   console.log('📁 Products collection:', `${currentStoreName}Products`);
 
-  // ✅ Cargar categorías
+  // ✅ Load categories and suppliers
   await loadCategories();
+  await loadSuppliers();
 
   animateProductCard();
   initProductImageUpload();
-  initBarcodeBehavior(); // 🆕 Prevenir que Enter envíe el formulario
+  initBarcodeBehavior();
   initProductFormSubmit();
 }
 
@@ -89,7 +92,6 @@ function loadAdminSession() {
   }
 }
 
-// ✅ NUEVO: Cargar categorías
 async function loadCategories() {
   try {
     console.log('📂 Loading categories...');
@@ -98,16 +100,12 @@ async function loadCategories() {
 
     const categorySelect = document.getElementById('categoryId');
     if (categorySelect) {
-      // Limpiar opciones existentes
       categorySelect.innerHTML = '';
-
-      // Opción por defecto
       const defaultOption = document.createElement('option');
       defaultOption.value = '';
       defaultOption.textContent = 'Sin categoría';
       categorySelect.appendChild(defaultOption);
 
-      // Agregar categorías
       categories.forEach(category => {
         const option = document.createElement('option');
         option.value = category.id;
@@ -119,7 +117,35 @@ async function loadCategories() {
     }
   } catch (error) {
     console.error('❌ Error loading categories:', error);
-    // No mostrar error al usuario, solo continuar sin categorías
+  }
+}
+
+// ✅ NEW: Load suppliers
+async function loadSuppliers() {
+  try {
+    console.log('📂 Loading suppliers...');
+    suppliers = await SupplierService.getAll(currentStoreName, { active: true });
+    console.log(`✅ ${suppliers.length} suppliers loaded`);
+
+    const supplierSelect = document.getElementById('supplierId');
+    if (supplierSelect) {
+      supplierSelect.innerHTML = '';
+      const defaultOption = document.createElement('option');
+      defaultOption.value = '';
+      defaultOption.textContent = 'Sin proveedor';
+      supplierSelect.appendChild(defaultOption);
+
+      suppliers.forEach(supplier => {
+        const option = document.createElement('option');
+        option.value = supplier.id;
+        option.textContent = `${supplier.businessName} (${supplier.name})`;
+        supplierSelect.appendChild(option);
+      });
+
+      console.log('✅ Supplier select populated');
+    }
+  } catch (error) {
+    console.error('❌ Error loading suppliers:', error);
   }
 }
 
@@ -251,7 +277,7 @@ function initProductImageUpload() {
 }
 
 /* ========================================================
-   🆕 INIT BARCODE BEHAVIOR - Evita que Enter envíe el formulario
+   INIT BARCODE BEHAVIOR - Prevent Enter from submitting the form
    ======================================================== */
 function initBarcodeBehavior() {
   const barcodeInput = document.getElementById('barcode');
@@ -262,16 +288,12 @@ function initBarcodeBehavior() {
 
   barcodeInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-      e.preventDefault(); // 🛑 Evita que el formulario se envíe
-
-      // Opcional: enfocar el botón de guardar para que con otro Enter se envíe
+      e.preventDefault();
       const submitBtn = document.querySelector('button[type="submit"]');
       if (submitBtn) {
         submitBtn.focus();
       }
-
-      // También puedes agregar aquí lógica adicional (ej. validar código)
-      console.log('🔍 Enter presionado en código de barras, formulario no enviado.');
+      console.log('🔍 Enter pressed on barcode, form not submitted.');
     }
   });
 
@@ -302,10 +324,10 @@ function initProductFormSubmit() {
     const stock = parseInt(document.getElementById('stock')?.value) || 0;
     const minStock = parseInt(document.getElementById('minStock')?.value) || 0;
     const unitOfMeasure = document.getElementById('unitOfMeasure')?.value.trim();
-    // ✅ NUEVO: Obtener categoría seleccionada
     const categoryId = document.getElementById('categoryId')?.value || null;
+    const supplierId = document.getElementById('supplierId')?.value || null; // ✅ NEW
 
-    // Validaciones
+    // Validations
     if (!name) {
       Swal.fire({
         title: 'Campo requerido',
@@ -389,7 +411,8 @@ function initProductFormSubmit() {
       minStock: minStock,
       unitOfMeasure: unitOfMeasure || 'pieza',
       imageUrl: currentImageBase64,
-      categoryId: categoryId // ✅ Incluir categoría
+      categoryId: categoryId,
+      supplierId: supplierId // ✅ NEW
     };
 
     isLoading = true;
@@ -409,6 +432,7 @@ function initProductFormSubmit() {
       console.log('  - storeName:', currentStoreName);
       console.log('  - productData:', productData);
       console.log('  - categoryId:', categoryId);
+      console.log('  - supplierId:', supplierId);
 
       const result = await ProductService.create(productData, adminId, currentStoreName);
 
@@ -417,13 +441,17 @@ function initProductFormSubmit() {
 
       Swal.close();
 
-      // Obtener nombre de la categoría para mostrar
+      // Obtener nombres para mostrar
       let categoryName = 'Sin categoría';
       if (categoryId) {
         const selectedCategory = categories.find(c => c.id === categoryId);
-        if (selectedCategory) {
-          categoryName = selectedCategory.name;
-        }
+        if (selectedCategory) categoryName = selectedCategory.name;
+      }
+
+      let supplierName = 'Sin proveedor';
+      if (supplierId) {
+        const selectedSupplier = suppliers.find(s => s.id === supplierId);
+        if (selectedSupplier) supplierName = selectedSupplier.businessName || selectedSupplier.name;
       }
 
       await Swal.fire({
@@ -435,6 +463,7 @@ function initProductFormSubmit() {
                         <p><i class="fas fa-dollar-sign"></i> <strong>Precio:</strong> ${formatCurrency(price)}</p>
                         <p><i class="fas fa-boxes"></i> <strong>Stock:</strong> ${stock} unidades</p>
                         <p><i class="fas fa-tag"></i> <strong>Categoría:</strong> ${categoryName}</p>
+                        <p><i class="fas fa-truck"></i> <strong>Proveedor:</strong> ${supplierName}</p>
                     </div>
                 `,
         icon: 'success',
@@ -459,11 +488,11 @@ function initProductFormSubmit() {
 
       currentImageBase64 = '';
 
-      // ✅ Restablecer selector de categoría
       const categorySelect = document.getElementById('categoryId');
-      if (categorySelect) {
-        categorySelect.value = '';
-      }
+      if (categorySelect) categorySelect.value = '';
+
+      const supplierSelect = document.getElementById('supplierId'); // ✅ NEW
+      if (supplierSelect) supplierSelect.value = '';
 
       const resultConfirm = await Swal.fire({
         title: '¿Qué deseas hacer ahora?',

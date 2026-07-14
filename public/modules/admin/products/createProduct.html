@@ -47,7 +47,7 @@
                     <input type="file" id="productImageInput" accept="image/*" style="display: none;">
 
                     <form id="productForm">
-                        <!-- FILA: Nombre + Marca (sin código) -->
+                        <!-- FILA: Nombre + Marca -->
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="name">
@@ -63,7 +63,7 @@
                             </div>
                         </div>
 
-                        <!-- FILA: Categoría + (sin código) -->
+                        <!-- FILA: Categoría + Proveedor -->
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="categoryId">
@@ -74,7 +74,12 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <!-- Espacio vacío o podrías poner otro campo, pero lo dejamos vacío para mantener el orden -->
+                                <label for="supplierId">
+                                    <i class="fas fa-truck"></i> Proveedor
+                                </label>
+                                <select id="supplierId" name="supplierId">
+                                    <option value="">Sin proveedor</option>
+                                </select>
                             </div>
                         </div>
 
@@ -168,7 +173,7 @@
                             </select>
                         </div>
 
-                        <!-- 🆕 CÓDIGO DE BARRAS AL FINAL (antes del botón) -->
+                        <!-- CÓDIGO DE BARRAS AL FINAL (antes del botón) -->
                         <div class="form-group" style="margin-top: 1rem;">
                             <label for="barcode">
                                 <i class="fas fa-barcode"></i> Código de barras <span class="required">*</span>
