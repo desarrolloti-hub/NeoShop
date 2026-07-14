@@ -47,7 +47,7 @@
                     <input type="file" id="productImageInput" accept="image/*" style="display: none;">
 
                     <form id="productForm">
-                        <!-- FILA: Nombre + Código -->
+                        <!-- FILA: Nombre + Marca (sin código) -->
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="name">
@@ -56,21 +56,15 @@
                                 <input type="text" id="name" name="name" placeholder="Ej: Camisa Oxford" required>
                             </div>
                             <div class="form-group">
-                                <label for="barcode">
-                                    <i class="fas fa-barcode"></i> Código <span class="required">*</span>
-                                </label>
-                                <input type="text" id="barcode" name="barcode" placeholder="Código único" required>
-                            </div>
-                        </div>
-
-                        <!-- FILA: Marca + Categoría -->
-                        <div class="form-row">
-                            <div class="form-group">
                                 <label for="brand">
                                     <i class="fas fa-building"></i> Marca <span class="required">*</span>
                                 </label>
                                 <input type="text" id="brand" name="brand" placeholder="Ej: Nike" required>
                             </div>
+                        </div>
+
+                        <!-- FILA: Categoría + (sin código) -->
+                        <div class="form-row">
                             <div class="form-group">
                                 <label for="categoryId">
                                     <i class="fas fa-tags"></i> Categoría
@@ -78,6 +72,9 @@
                                 <select id="categoryId" name="categoryId">
                                     <option value="">Sin categoría</option>
                                 </select>
+                            </div>
+                            <div class="form-group">
+                                <!-- Espacio vacío o podrías poner otro campo, pero lo dejamos vacío para mantener el orden -->
                             </div>
                         </div>
 
@@ -101,7 +98,6 @@
                                     <i class="fas fa-tag"></i> Precio venta <span class="required">*</span>
                                 </label>
                                 <div class="input-with-icon">
-
                                     <input type="number" id="price" name="price" placeholder="0.00" step="0.01"
                                         required>
                                 </div>
@@ -111,7 +107,6 @@
                                     <i class="fas fa-chart-line"></i> Costo compra
                                 </label>
                                 <div class="input-with-icon">
-
                                     <input type="number" id="cost" name="cost" placeholder="0.00" step="0.01">
                                 </div>
                             </div>
@@ -139,7 +134,7 @@
                             </div>
                         </div>
 
-                        <!-- FILA: Unidad de medida -->
+                        <!-- Unidad de medida -->
                         <div class="form-group">
                             <label for="unitOfMeasure">
                                 <i class="fas fa-ruler"></i> Unidad de medida
@@ -173,6 +168,18 @@
                             </select>
                         </div>
 
+                        <!-- 🆕 CÓDIGO DE BARRAS AL FINAL (antes del botón) -->
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label for="barcode">
+                                <i class="fas fa-barcode"></i> Código de barras <span class="required">*</span>
+                                <small style="font-weight: normal; color: #6b7280; font-size: 0.75rem;">
+                                    (Escanea o escribe el código)
+                                </small>
+                            </label>
+                            <input type="text" id="barcode" name="barcode" placeholder="Código único" required>
+                        </div>
+
+                        <!-- Botón guardar -->
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> Registrar producto
                         </button>

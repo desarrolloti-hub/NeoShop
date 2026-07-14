@@ -56,6 +56,7 @@ export async function createProductController() {
 
   animateProductCard();
   initProductImageUpload();
+  initBarcodeBehavior(); // 🆕 Prevenir que Enter envíe el formulario
   initProductFormSubmit();
 }
 
@@ -247,6 +248,34 @@ function initProductImageUpload() {
       console.log('🗑️ Image removed');
     });
   }
+}
+
+/* ========================================================
+   🆕 INIT BARCODE BEHAVIOR - Evita que Enter envíe el formulario
+   ======================================================== */
+function initBarcodeBehavior() {
+  const barcodeInput = document.getElementById('barcode');
+  if (!barcodeInput) {
+    console.warn('⚠️ Barcode input not found');
+    return;
+  }
+
+  barcodeInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // 🛑 Evita que el formulario se envíe
+
+      // Opcional: enfocar el botón de guardar para que con otro Enter se envíe
+      const submitBtn = document.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.focus();
+      }
+
+      // También puedes agregar aquí lógica adicional (ej. validar código)
+      console.log('🔍 Enter presionado en código de barras, formulario no enviado.');
+    }
+  });
+
+  console.log('✅ Barcode behavior initialized');
 }
 
 /* ========================================================

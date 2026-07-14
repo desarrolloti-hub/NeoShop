@@ -1075,3 +1075,218 @@
 .change-value.insufficient {
     color: #dc3545 !important;
 }
+
+/* ============================================
+   BÚSQUEDA DE CLIENTES - Soporte claro/oscuro
+   ============================================ */
+
+/* Variables para modo claro (por defecto) */
+:root {
+    --customer-bg: #ffffff;
+    --customer-border: #e5e7eb;
+    --customer-text: #1f2937;
+    --customer-text-muted: #6b7280;
+    --customer-placeholder: #9ca3af;
+    --customer-hover: #f8fafc;
+    --customer-shadow: rgba(0, 0, 0, 0.1);
+    --customer-selected-bg: #e8f0fe;
+    --customer-selected-text: #1f2937;
+    --customer-icon-color: #456da2;
+    --customer-input-bg: #ffffff;
+}
+
+/* Modo oscuro automático (si el sistema está en oscuro) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --customer-bg: #1e293b;
+        --customer-border: #334155;
+        --customer-text: #e2e8f0;
+        --customer-text-muted: #94a3b8;
+        --customer-placeholder: #64748b;
+        --customer-hover: #2d3748;
+        --customer-shadow: rgba(0, 0, 0, 0.4);
+        --customer-selected-bg: #1e3a5f;
+        --customer-selected-text: #e2e8f0;
+        --customer-icon-color: #60a5fa;
+        --customer-input-bg: #0f172a;
+    }
+}
+
+/* Modo oscuro por clase .dark (para toggle manual) */
+.dark {
+    --customer-bg: #1e293b;
+    --customer-border: #334155;
+    --customer-text: #e2e8f0;
+    --customer-text-muted: #94a3b8;
+    --customer-placeholder: #64748b;
+    --customer-hover: #2d3748;
+    --customer-shadow: rgba(0, 0, 0, 0.4);
+    --customer-selected-bg: #1e3a5f;
+    --customer-selected-text: #e2e8f0;
+    --customer-icon-color: #60a5fa;
+    --customer-input-bg: #0f172a;
+}
+
+/* ========== CONTENEDORES ========== */
+.customer-search-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.customer-search-container {
+    position: relative;
+    width: 100%;
+}
+
+/* ========== INPUT ========== */
+.customer-search-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--customer-border);
+    border-radius: var(--border-radius-md, 8px);
+    font-family: var(--font-family, 'Inter', sans-serif);
+    font-size: var(--font-size-sm, 14px);
+    background: var(--customer-input-bg);
+    color: var(--customer-text);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.customer-search-input::placeholder {
+    color: var(--customer-placeholder);
+}
+
+.customer-search-input:focus {
+    outline: none;
+    border-color: var(--color-primary, #456da2);
+    box-shadow: 0 0 0 3px rgba(69, 109, 162, 0.15);
+}
+
+/* ========== RESULTADOS (dropdown) ========== */
+.customer-search-results {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--customer-bg);
+    border: 1px solid var(--customer-border);
+    border-radius: var(--border-radius-md, 8px);
+    box-shadow: 0 10px 25px var(--customer-shadow);
+    max-height: 260px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.customer-search-results.show {
+    display: block;
+}
+
+/* Scrollbar para modo oscuro */
+.customer-search-results::-webkit-scrollbar {
+    width: 6px;
+}
+
+.customer-search-results::-webkit-scrollbar-track {
+    background: var(--customer-border);
+    border-radius: 10px;
+}
+
+.customer-search-results::-webkit-scrollbar-thumb {
+    background: var(--customer-text-muted);
+    border-radius: 10px;
+}
+
+/* ========== ITEMS DE RESULTADO ========== */
+.customer-search-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--customer-border);
+    transition: background 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.customer-search-item:last-child {
+    border-bottom: none;
+}
+
+.customer-search-item:hover {
+    background: var(--customer-hover);
+}
+
+.customer-search-item .customer-name {
+    font-weight: 600;
+    color: var(--customer-text);
+    font-size: 0.95rem;
+}
+
+.customer-search-item .customer-id {
+    font-size: 0.8rem;
+    color: var(--customer-text-muted);
+}
+
+.customer-search-item .customer-phone {
+    font-size: 0.8rem;
+    color: var(--customer-text-muted);
+}
+
+.customer-search-item.error {
+    color: #dc2626;
+    text-align: center;
+    padding: 20px;
+    cursor: default;
+}
+
+/* ========== CLIENTE SELECCIONADO ========== */
+.selected-customer-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    padding: 6px 12px;
+    background: var(--customer-selected-bg);
+    border-radius: 20px;
+    font-size: 0.9rem;
+    color: var(--customer-selected-text);
+    border: 1px solid var(--customer-border);
+}
+
+.selected-customer-info i {
+    color: var(--customer-icon-color);
+}
+
+.selected-customer-info .customer-name {
+    font-weight: 600;
+}
+
+.selected-customer-info .remove-customer {
+    cursor: pointer;
+    color: #dc2626;
+    margin-left: auto;
+    font-weight: bold;
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    padding: 0 4px;
+    transition: color 0.2s;
+}
+
+.selected-customer-info .remove-customer:hover {
+    color: #b91c1c;
+}
+
+/* ========== BOTÓN LIMPIAR ========== */
+#clearCustomerBtn {
+    background: transparent;
+    border: none;
+    color: var(--customer-text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+}
+
+#clearCustomerBtn:hover {
+    color: #dc2626;
+}
