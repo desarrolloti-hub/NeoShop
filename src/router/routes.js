@@ -57,6 +57,9 @@ import { updateCategoryController } from '../modules/admin/category/updateCatego
 import { createCategoryController } from '../modules/admin/category/createCategoryController.js';
 import { readCategoriesController } from '../modules/admin/category/readCategoriesController.js';
 
+/* drivers */
+import { initDriversController } from '../modules/admin/drivers/driversController.js';
+
 
 
 export const routes = {
@@ -216,6 +219,12 @@ export const routes = {
     "/editarCategoria": {
         view: "/modules/admin/category/updateCategory.html",
         controller: updateCategoryController
+    },
+
+    /* scanner */
+    "/scanner": {
+        view: "/modules/admin/drivers/drivers.html",
+        controller: initDriversController
     },
 
     /* ====== Shared ====== */

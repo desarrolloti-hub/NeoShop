@@ -103,3 +103,6 @@
 @import url(./pages/admin/category/createCategory.css);
 @import url(./pages/admin/category/readCategories.css);
 @import url(./pages/admin/category/updateCategory.css);
+
+/*  scanner */
+@import url(./pages/admin/drivers/drivers.css);
