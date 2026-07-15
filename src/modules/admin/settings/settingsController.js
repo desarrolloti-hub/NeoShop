@@ -58,7 +58,7 @@ export async function settingsController() {
 
                 Toast.fire({
                     icon: 'success',
-                    title: newTheme === 'dark' ? '🌙 Modo oscuro activado' : '☀️ Modo claro activado'
+                    title: newTheme === 'dark' ? 'Modo oscuro activado' : 'Modo claro activado'
                 });
 
                 console.log(`🎨 Theme toggled to: ${newTheme}`);
