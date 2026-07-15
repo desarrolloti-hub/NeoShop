@@ -61,7 +61,7 @@ function setupListEvents() {
 
     if (createBtn) {
         createBtn.addEventListener('click', () => {
-            window.location.href = '/crearColaborador';
+            navigateTo = '/crearColaborador';
         });
     }
 
@@ -173,7 +173,7 @@ function renderPartnersTable(partners) {
         const emptyBtn = document.getElementById('emptyCreateBtn');
         if (emptyBtn) {
             emptyBtn.addEventListener('click', () => {
-                window.location.href = '/crearColaborador';
+                navigateTo = '/crearColaborador';
             });
         }
         return;
@@ -259,7 +259,7 @@ function renderPartnersCards(partners) {
         const emptyBtn = document.getElementById('emptyCardCreateBtn');
         if (emptyBtn) {
             emptyBtn.addEventListener('click', () => {
-                window.location.href = '/crearColaborador';
+                navigateTo = '/crearColaborador';
             });
         }
         return;

@@ -661,7 +661,7 @@ function initAddSupplierButton() {
     if (!addButton) return;
     addButton.addEventListener('click', (event) => {
         event.preventDefault();
-        window.location.href = '/crearProveedor';
+        navigateTo = '/crearProveedor';
     });
 }
 
