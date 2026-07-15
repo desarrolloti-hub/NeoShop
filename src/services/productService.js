@@ -9,6 +9,7 @@ import { ProductRepository } from '../repositories/productRepository.js';
 import { StoreRepository } from '../repositories/storeRepository.js';
 import { CacheService, STORES } from './cacheService.js';
 import { AdminService } from './adminService.js';
+import { SupplierService } from './supplierService.js'; // ✅ Import supplier service
 
 export const ProductService = {
     /**
@@ -72,6 +73,22 @@ export const ProductService = {
             throw new Error('Stock cannot be negative');
         }
 
+        // ✅ NEW: Validate supplier ID if provided (check existence)
+        if (productData.supplierId) {
+            try {
+                const supplier = await SupplierService.getById(productData.supplierId, storeName);
+                if (!supplier) {
+                    throw new Error(`Supplier with ID "${productData.supplierId}" not found`);
+                }
+                if (!supplier.active) {
+                    throw new Error(`Supplier "${supplier.name}" is inactive`);
+                }
+                console.log('✅ Supplier validated:', supplier.name);
+            } catch (error) {
+                throw new Error(`Invalid supplier: ${error.message}`);
+            }
+        }
+
         // Get storeName from session if not provided
         let finalStoreName = storeName;
         if (!finalStoreName) {
@@ -84,7 +101,6 @@ export const ProductService = {
             }
         }
 
-        // Try to get storeName from the store
         if (!finalStoreName) {
             try {
                 const store = await StoreRepository.getByAdminId(adminId);
@@ -123,8 +139,8 @@ export const ProductService = {
             description: productData.description?.trim() || '',
             brand: productData.brand.trim(),
             unitOfMeasure: productData.unitOfMeasure?.trim() || 'piece',
-            // ✅ NUEVO: Asignar categoría
             categoryId: productData.categoryId || null,
+            supplierId: productData.supplierId || null, // ✅ NEW
             price: parseFloat(productData.price),
             cost: parseFloat(productData.cost) || 0,
             stock: parseInt(productData.stock) || 0,
@@ -194,7 +210,6 @@ export const ProductService = {
         return productData ? new Product(productData) : null;
     },
 
-    // ✅ NUEVO: Obtener productos por categoría
     async getByCategory(categoryId, adminId, storeName = null) {
         if (!storeName) {
             const session = AdminService.getSession();
@@ -290,6 +305,23 @@ export const ProductService = {
 
         if (updateData.stock && updateData.stock < 0) {
             throw new Error('Stock cannot be negative');
+        }
+
+        // ✅ NEW: Validate supplier ID if it's being updated
+        if (updateData.supplierId !== undefined) {
+            if (updateData.supplierId) {
+                try {
+                    const supplier = await SupplierService.getById(updateData.supplierId, storeName);
+                    if (!supplier) {
+                        throw new Error(`Supplier with ID "${updateData.supplierId}" not found`);
+                    }
+                    if (!supplier.active) {
+                        throw new Error(`Supplier "${supplier.name}" is inactive`);
+                    }
+                } catch (error) {
+                    throw new Error(`Invalid supplier: ${error.message}`);
+                }
+            }
         }
 
         // If barcode is being updated, check it doesn't exist
@@ -426,15 +458,37 @@ export const ProductService = {
         return products.filter(p => p.isOutOfStock);
     },
 
-    // ✅ NUEVO: Obtener productos sin categoría
     async getUncategorizedProducts(adminId, storeName = null) {
         const products = await this.getAll(adminId, { active: true }, false, storeName);
         return products.filter(p => !p.hasCategory);
     },
 
-    // ✅ NUEVO: Contar productos por categoría
     async countByCategory(categoryId, adminId, storeName = null) {
         const products = await this.getByCategory(categoryId, adminId, storeName);
+        return products.length;
+    },
+
+    // ✅ NEW: Get products by supplier
+    async getBySupplier(supplierId, adminId, storeName = null) {
+        if (!storeName) {
+            const session = AdminService.getSession();
+            storeName = session?.storeName;
+
+            if (!storeName) {
+                throw new Error('Store name is required to get products by supplier');
+            }
+        }
+
+        const store = await this.getCurrentStore(adminId, storeName);
+        const storeNameClean = store.name;
+
+        const productsData = await ProductRepository.getAll(storeNameClean, { supplierId });
+        return productsData.map(p => new Product(p));
+    },
+
+    // ✅ NEW: Count products by supplier
+    async countBySupplier(supplierId, adminId, storeName = null) {
+        const products = await this.getBySupplier(supplierId, adminId, storeName);
         return products.length;
     }
 };

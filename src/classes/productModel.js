@@ -15,8 +15,11 @@ export class Product {
         this.brand = data.brand || '';
         this.unitOfMeasure = data.unitOfMeasure || '';
 
-        // ✅ NUEVO: Categoría
+        // Category
         this.categoryId = data.categoryId || null;
+
+        // ✅ NEW: Supplier
+        this.supplierId = data.supplierId || null;
 
         // Prices
         this.price = data.price || 0;
@@ -67,9 +70,13 @@ export class Product {
         return ((this.price - this.cost) / this.cost) * 100;
     }
 
-    // ✅ NUEVO: Verifica si tiene categoría asignada
     get hasCategory() {
         return !!this.categoryId;
+    }
+
+    // ✅ NEW: Check if product has a supplier
+    get hasSupplier() {
+        return !!this.supplierId;
     }
 
     get summary() {
@@ -82,7 +89,8 @@ export class Product {
             stock: this.stock,
             active: this.active,
             imageUrl: this.imageUrl,
-            categoryId: this.categoryId  // ✅ Incluimos categoría
+            categoryId: this.categoryId,
+            supplierId: this.supplierId  // ✅ NEW
         };
     }
 

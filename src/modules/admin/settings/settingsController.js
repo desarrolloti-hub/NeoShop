@@ -82,6 +82,19 @@ export async function settingsController() {
         });
     }
 
+    // ✅ Botón 3: Scanner (NUEVO)
+    const scannerBtn = document.getElementById('scannerBtn');
+    if (scannerBtn) {
+        scannerBtn.addEventListener('click', () => {
+            // Navegar a la ruta /scanner
+            if (typeof window.navigateTo === 'function') {
+                window.navigateTo('/scanner');
+            } else {
+                window.location.href = '/scanner';
+            }
+        });
+    }
+
     // ✅ Sincronizar tema cuando cambie desde otro lugar
     window.addEventListener('theme:changed', (event) => {
         const themeBtn = document.getElementById('themeBtn');
