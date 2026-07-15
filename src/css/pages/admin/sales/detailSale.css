@@ -146,23 +146,23 @@
 }
 
 .status-completed {
-    background: #e0f2e9;
-    color: #2e7d32;
+    background: var(--color-primary);
+    color: var(--text-light);
 }
 
 .status-pending {
-    background: #fff3e0;
-    color: #ed6c02;
+    background: var(--color-primary);
+    color: var(--text-light);
 }
 
 .status-cancelled {
-    background: #ffe6e5;
-    color: #c62828;
+    background: var(--color-primary);
+    color: var(--text-light);
 }
 
 .status-refunded {
-    background: #e8eaf6;
-    color: #3949ab;
+    background: var(--color-primary);
+    color: var(--text-light);
 }
 
 /* Responsive */
