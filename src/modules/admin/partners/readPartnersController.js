@@ -1,6 +1,6 @@
 /* FILE: readPartnersController.js
    ========================================================
-   PARTNERS LIST CONTROLLER - Con toggle switch
+   PARTNERS LIST CONTROLLER - Con toggle switch y fotos
    ======================================================== */
 
 import { createPartnerService } from '../../../services/partnerService.js';
@@ -11,6 +11,15 @@ let partnerService = null;
 let currentStore = null;
 let allPartners = [];
 let currentFilter = 'all';
+
+/**
+ * Navegación SPA - Mismo patrón que en readProductsController
+ */
+function navigateTo(path) {
+    console.log('🔀 Navigate to:', path);
+    window.navigateTo(path);
+
+}
 
 /**
  * Inicializar vista de listado
@@ -61,7 +70,7 @@ function setupListEvents() {
 
     if (createBtn) {
         createBtn.addEventListener('click', () => {
-            navigateTo = '/crearColaborador';
+            navigateTo('/crearColaborador');
         });
     }
 
@@ -127,6 +136,13 @@ async function loadPartnersList() {
 
         let partners = await partnerService.getAll(filters, true);
 
+        // Log para verificar que las fotos vienen
+        partners.forEach(p => {
+            if (p.photo) {
+                console.log(`📸 Partner ${p.fullName} has photo: ${p.photo.substring(0, 50)}...`);
+            }
+        });
+
         if (searchTerm) {
             partners = partners.filter(p =>
                 p.email?.toLowerCase().includes(searchTerm) ||
@@ -152,6 +168,25 @@ async function loadPartnersList() {
 }
 
 /**
+ * Obtener URL de la foto del partner
+ */
+function getPartnerPhotoUrl(partner) {
+    if (!partner.photo) return null;
+
+    // Si es una URL HTTP/HTTPS
+    if (partner.photo.startsWith('http://') || partner.photo.startsWith('https://')) {
+        return partner.photo;
+    }
+
+    // Si es Base64
+    if (partner.photo.startsWith('data:image/')) {
+        return partner.photo;
+    }
+
+    return null;
+}
+
+/**
  * Renderizar tabla
  */
 function renderPartnersTable(partners) {
@@ -173,17 +208,24 @@ function renderPartnersTable(partners) {
         const emptyBtn = document.getElementById('emptyCreateBtn');
         if (emptyBtn) {
             emptyBtn.addEventListener('click', () => {
-                navigateTo = '/crearColaborador';
+                navigateTo('/crearColaborador');
             });
         }
         return;
     }
 
     tbody.innerHTML = partners.map(partner => {
-        const hasImage = partner.hasPhoto && partner.photoUrl;
-        const avatarHtml = hasImage
-            ? `<img src="${partner.photoUrl}" alt="${escapeHtml(partner.fullName)}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user-circle partner-avatar-icon\\'></i>'">`
-            : `<i class="fas fa-user-circle partner-avatar-icon"></i>`;
+        const photoUrl = getPartnerPhotoUrl(partner);
+
+        // Generar avatar HTML
+        let avatarHtml;
+        if (photoUrl) {
+            avatarHtml = `<img src="${photoUrl}" alt="${escapeHtml(partner.fullName)}" 
+                              style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0;"
+                              onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user-circle partner-avatar-icon\\'></i>'">`;
+        } else {
+            avatarHtml = `<i class="fas fa-user-circle partner-avatar-icon" style="font-size: 40px; color: #94a3b8;"></i>`;
+        }
 
         const statusClass = partner.isActive ? 'active' : 'inactive';
         const statusText = partner.isActive ? 'Activo' : 'Inactivo';
@@ -195,7 +237,7 @@ function renderPartnersTable(partners) {
             <tr data-id="${partner.id}">
                 <td>
                     <div class="partner-info">
-                        <div class="partner-avatar-list">
+                        <div class="partner-avatar-list" style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0;">
                             ${avatarHtml}
                         </div>
                         <div>
@@ -259,17 +301,24 @@ function renderPartnersCards(partners) {
         const emptyBtn = document.getElementById('emptyCardCreateBtn');
         if (emptyBtn) {
             emptyBtn.addEventListener('click', () => {
-                navigateTo = '/crearColaborador';
+                navigateTo('/crearColaborador');
             });
         }
         return;
     }
 
     container.innerHTML = partners.map(partner => {
-        const hasImage = partner.hasPhoto && partner.photoUrl;
-        const avatarHtml = hasImage
-            ? `<img src="${partner.photoUrl}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user-circle\\'></i>'">`
-            : `<i class="fas fa-user-circle"></i>`;
+        const photoUrl = getPartnerPhotoUrl(partner);
+
+        // Generar avatar HTML para cards
+        let avatarHtml;
+        if (photoUrl) {
+            avatarHtml = `<img src="${photoUrl}" alt="${escapeHtml(partner.fullName)}" 
+                              style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0;"
+                              onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user-circle\\' style=\\'font-size: 50px; color: #94a3b8;\\'></i>'">`;
+        } else {
+            avatarHtml = `<i class="fas fa-user-circle" style="font-size: 50px; color: #94a3b8;"></i>`;
+        }
 
         const statusClass = partner.isActive ? 'active' : 'inactive';
         const statusText = partner.isActive ? 'Activo' : 'Inactivo';
@@ -359,9 +408,14 @@ function attachCardEvents() {
  * Manejar clic en botones de acción
  */
 function handleActionClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
     const button = e.currentTarget;
     const action = button.dataset.action;
     const partnerId = button.dataset.id;
+
+    console.log(`🔄 Action clicked: ${action} for partner ${partnerId}`);
 
     if (action === 'view') {
         viewPartnerDetails(partnerId);
@@ -477,9 +531,15 @@ async function viewPartnerDetails(partnerId) {
             return;
         }
 
-        const photoHtml = partner.hasPhoto && partner.photoUrl
-            ? `<img src="${partner.photoUrl}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 3px solid var(--color-primary);">`
-            : `<i class="fas fa-user-circle" style="font-size: 4rem; color: var(--color-primary); margin-bottom: 10px;"></i>`;
+        const photoUrl = getPartnerPhotoUrl(partner);
+
+        // Generar HTML de la foto para el modal
+        let photoHtml;
+        if (photoUrl) {
+            photoHtml = `<img src="${photoUrl}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 3px solid var(--color-primary);">`;
+        } else {
+            photoHtml = `<i class="fas fa-user-circle" style="font-size: 4rem; color: var(--color-primary); margin-bottom: 10px;"></i>`;
+        }
 
         const statusClass = partner.isActive ? 'active' : 'inactive';
         const statusText = partner.isActive ? 'Activo' : 'Inactivo';
@@ -535,11 +595,15 @@ async function viewPartnerDetails(partnerId) {
             confirmButtonText: 'Cerrar',
             showCancelButton: true,
             cancelButtonText: 'Editar',
+            confirmButtonColor: '#64748b',
+            cancelButtonColor: '#456da2',
             width: '600px'
         });
 
+        // Si el usuario hace clic en "Editar"
         if (result.dismiss === Swal.DismissReason.cancel) {
-            window.location.href = `/editarColaborador?id=${partnerId}`;
+            console.log(`✏️ Editando desde modal: ${partnerId}`);
+            editPartner(partnerId);
         }
 
     } catch (error) {
@@ -554,10 +618,11 @@ async function viewPartnerDetails(partnerId) {
 }
 
 /**
- * Redirigir a editar
+ * Redirigir a editar usando el mismo patrón que readProductsController
  */
 function editPartner(id) {
-    window.location.href = `/editarColaborador?id=${id}`;
+    console.log(`✏️ Navigando a editar colaborador: ${id}`);
+    navigateTo(`/editarColaborador?id=${id}`);
 }
 
 /**

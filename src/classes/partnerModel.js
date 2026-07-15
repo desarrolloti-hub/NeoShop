@@ -14,7 +14,7 @@ export class Partner {
         this.fullName = data.fullName || '';              // Nombre completo
         this.phone = data.phone || '';                    // Teléfono
         this.rfc = data.rfc || '';                        // RFC
-        // ⚠️ ELIMINAR: this.password = data.password || '';
+        this.photo = data.photo || '';                    // ✅ AGREGAR: Foto del colaborador
         this.storeId = data.storeId || null;              // ID de la tienda a la que pertenece
         this.role = data.role || 'partner';               // Rol: partner (default)
         this.permissionId = data.permissionId || '';      // ID del permiso (string)
@@ -86,7 +86,7 @@ export class Partner {
             fullName: this.fullName,
             phone: this.phone,
             rfc: this.rfc,
-            // ⚠️ ELIMINAR: password: this.password,
+            photo: this.photo, // ✅ AGREGAR: foto en el resumen
             storeId: this.storeId,
             role: this.role,
             permissionId: this.permissionId,
@@ -141,7 +141,7 @@ export class Partner {
         if (data.fullName) this.fullName = data.fullName;
         if (data.phone) this.phone = data.phone;
         if (data.rfc) this.rfc = data.rfc;
-        // ⚠️ ELIMINAR: if (data.password) this.password = data.password;
+        if (data.photo) this.photo = data.photo; // ✅ AGREGAR: actualizar foto
         this.updatedAt = new Date().toISOString();
         return this;
     }
@@ -172,10 +172,14 @@ export class Partner {
             errors.push('El ID de la tienda es requerido');
         }
 
-        // ⚠️ ELIMINAR VALIDACIÓN DE CONTRASEÑA (se valida en el service)
-        // if (this.password && this.password.trim().length < 6) {
-        //     errors.push('La contraseña debe tener al menos 6 caracteres');
-        // }
+        // ✅ AGREGAR: Validación de foto (opcional)
+        if (this.photo && this.photo.trim() !== '') {
+            if (!this.photo.startsWith('data:image/') &&
+                !this.photo.startsWith('http://') &&
+                !this.photo.startsWith('https://')) {
+                errors.push('La foto debe ser una URL válida o una imagen en formato Base64');
+            }
+        }
 
         return {
             valid: errors.length === 0,
@@ -187,5 +191,15 @@ export class Partner {
     isValidEmail(email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
+    }
+
+    // ✅ AGREGAR: Método estático para convertir archivo a Base64
+    static fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = (error) => reject(error);
+        });
     }
 }

@@ -42,14 +42,27 @@ export class PartnerRepository {
     validateAndOptimizePhoto(photo) {
         if (!photo || photo.trim() === '') return '';
 
+        // Si es una URL HTTP/HTTPS, mantenerla
         if (photo.startsWith('http://') || photo.startsWith('https://')) {
+            console.log('📸 Photo is URL');
             return photo;
         }
 
+        // Si es Base64, verificar que sea válido
         if (photo.startsWith('data:image/')) {
+            console.log('📸 Photo is Base64, size:', (photo.length / 1024).toFixed(2), 'KB');
+
+            // Verificar que el Base64 no sea demasiado grande (máximo 500KB para Firestore)
+            // Firestore tiene límite de 1MB por documento, mejor mantenerlo pequeño
+            if (photo.length > 500 * 1024) {
+                console.warn('⚠️ Photo too large for Firestore:', (photo.length / 1024).toFixed(2), 'KB');
+                // Podríamos comprimir aquí, pero por ahora solo advertimos
+            }
+
             return photo;
         }
 
+        console.warn('⚠️ Invalid photo format, clearing');
         return '';
     }
 
@@ -59,6 +72,11 @@ export class PartnerRepository {
      * ⚠️ LA CONTRASEÑA ES OBLIGATORIA Y DEBE SER PROPORCIONADA POR EL ADMIN
      */
     async save(partnerData) {
+        console.log('📝 PartnerRepository.save - Starting...');
+        console.log('  - Collection:', this.collectionName);
+        console.log('  - Email:', partnerData.email);
+        console.log('  - Has photo:', !!partnerData.photo);
+
         // ========== 1. VALIDAR QUE LA CONTRASEÑA SEA PROPORCIONADA ==========
         if (!partnerData.password || partnerData.password.trim().length < 6) {
             throw new Error('La contraseña es obligatoria y debe tener al menos 6 caracteres.');
@@ -82,6 +100,7 @@ export class PartnerRepository {
                 displayName: partnerData.fullName
             };
 
+            // Solo agregar photoURL si es una URL HTTP/HTTPS (no Base64)
             if (partnerData.photo && (partnerData.photo.startsWith('http://') || partnerData.photo.startsWith('https://'))) {
                 profileData.photoURL = partnerData.photo;
             }
@@ -101,7 +120,10 @@ export class PartnerRepository {
 
         // El UID de Firebase Auth se convierte en el ID del documento
         const authUid = userCredential.user.uid;
+
+        // ✅ Procesar la foto (validar y optimizar)
         const processedPhoto = this.validateAndOptimizePhoto(partnerData.photo);
+        console.log('📸 Processed photo:', processedPhoto ? `✅ Sí (${(processedPhoto.length / 1024).toFixed(2)} KB)` : '❌ No');
 
         // ========== 3. GUARDAR EN FIRESTORE (SIN CONTRASEÑA) ==========
         const plainData = {
@@ -110,7 +132,7 @@ export class PartnerRepository {
             fullName: partnerData.fullName || '',
             phone: partnerData.phone || '',
             rfc: partnerData.rfc || '',
-            photo: processedPhoto,
+            photo: processedPhoto, // ✅ Guardar la foto procesada
             storeId: partnerData.storeId || null,
             role: partnerData.role || 'partner',
             permissionId: partnerData.permissionId || '',
@@ -122,10 +144,18 @@ export class PartnerRepository {
             createdByEmail: partnerData.createdByEmail || null
         };
 
+        // Log de los datos a guardar (sin mostrar el Base64 completo)
+        const logData = { ...plainData };
+        if (logData.photo && logData.photo.length > 100) {
+            logData.photo = logData.photo.substring(0, 100) + '... [truncated]';
+        }
+        console.log('📦 Datos a guardar en Firestore:', logData);
+
         const partnerRef = doc(db, this.collectionName, authUid);
         await setDoc(partnerRef, plainData);
 
         console.log(`✅ Partner guardado en Firestore: ${this.collectionName}`);
+        console.log(`📸 Photo saved: ${processedPhoto ? '✅' : '❌'}`);
 
         return {
             ...plainData
@@ -230,10 +260,16 @@ export class PartnerRepository {
      * ⚠️ NO PERMITIR ACTUALIZAR CONTRASEÑA DESDE FIRESTORE
      */
     async update(partnerId, updateData) {
+        console.log('📝 PartnerRepository.update:', partnerId);
+        console.log('  - Update data:', Object.keys(updateData));
+
+        // Procesar foto si viene en updateData
         if (updateData.photo !== undefined) {
             updateData.photo = this.validateAndOptimizePhoto(updateData.photo);
+            console.log('  - Photo processed:', updateData.photo ? '✅' : '❌');
         }
 
+        // Eliminar password si viene (nunca se actualiza por Firestore)
         if (updateData.password !== undefined) {
             delete updateData.password;
         }
@@ -243,7 +279,10 @@ export class PartnerRepository {
             ...updateData,
             updatedAt: new Date().toISOString()
         });
-        return await this.getById(partnerId);
+
+        const updated = await this.getById(partnerId);
+        console.log('✅ Partner updated in Firestore');
+        return updated;
     }
 
     /**
