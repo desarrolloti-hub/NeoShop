@@ -4,7 +4,7 @@
    SIN MODIFICAR CACHE SERVICE
    ============================================ */
 
-import { AuthService } from '../../../services/authService.js';
+import { AuthService } from '../../utils/auth.js';
 import { StoreService } from '../../../services/storeService.js';
 import { ProductService } from '../../../services/productService.js';
 import { SaleService } from '../../../services/saleService.js';

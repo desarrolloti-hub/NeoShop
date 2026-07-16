@@ -5,7 +5,7 @@
 
 import { createPartnerService } from '../../../services/partnerService.js';
 import { StoreService } from '../../../services/storeService.js';
-import { AuthService } from '../../../services/authService.js';
+import { AuthService } from '../../utils/auth.js';
 
 let partnerService = null;
 let currentStore = null;
