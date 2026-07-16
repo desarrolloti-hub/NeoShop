@@ -37,7 +37,7 @@ import { updateSupplierController } from '../modules/admin/supplier/updateSuppli
 import { cashSessionStatusController } from '../modules/admin/cashSessionStatus/cashSessionStatusController.js';
 import { readCashSessionsController } from '../modules/admin/cashSessionStatus/readCashSessionsController.js';
 
-/*  productoss */
+/*  productos */
 import { readProductsController } from '../modules/admin/products/readProductsController.js';
 import { createProductController } from '../modules/admin/products/createProductController.js';
 import { updateProductController } from '../modules/admin/products/updateProductController.js';
@@ -63,6 +63,10 @@ import { initDriversController } from '../modules/admin/drivers/driversControlle
 /* ====== SysAdmin ====== */
 // Si existe un controlador específico para el home de sysadmin, impórtalo aquí.
 // Ejemplo: import { sysAdminHomeController } from '../modules/sysAdmin/home/sysAdminHomeController.js';
+
+/* ====== Reportes ====== */
+// Importa el controlador de reportes si existe
+// import { reportesController } from '../modules/admin/reports/reportsController.js';
 
 export const routes = {
     // Rutas HTML
@@ -182,7 +186,7 @@ export const routes = {
         controller: saleDetailController
     },
 
-    /*configuración */
+    /* configuración */
     "/configuracion": {
         view: "/modules/admin/settings/settings.html",
         controller: settingsController
@@ -226,6 +230,12 @@ export const routes = {
     "/scanner": {
         view: "/modules/admin/drivers/drivers.html",
         controller: initDriversController
+    },
+
+    /* ====== Reportes (nuevo) ====== */
+    "/reportes": {
+        view: "/modules/admin/reports/reports.html",
+        controller: null  // Reemplaza con el controlador cuando exista
     },
 
     /* ====== SysAdmin ====== */
