@@ -1,3 +1,4 @@
+<!-- FILE: createSale.html -->
 <div class="credContainer">
 
     <div class="page-header">
@@ -10,7 +11,6 @@
             </a>
         </div>
     </div>
-
 
     <!-- Info Admin y Tienda -->
     <div class="admin-info-bar">
@@ -30,9 +30,9 @@
         <div class="form-card-section">
             <h3><i class="fas fa-user"></i> Información del Cliente</h3>
 
-            <!-- 🔹 BÚSQUEDA DE CLIENTES -->
-            <div class="customer-search-container" style="margin-bottom: 15px;">
-                <div class="input-group-search" style="display: flex; align-items: center; gap: 8px;">
+            <!-- BÚSQUEDA DE CLIENTES -->
+            <div class="customer-search-container" style="margin-bottom: 15px; position: relative;">
+                <div class="input-group-search" style="display: flex; align-items: center; gap: 8px; position: relative;">
                     <i class="fas fa-search" style="position: absolute; left: 12px; color: var(--text-muted);"></i>
                     <input type="text" id="customerSearchInput" placeholder="Buscar cliente por nombre o ID..."
                         autocomplete="off"
@@ -146,19 +146,9 @@
                 <span id="cartCount" class="cart-count">0</span>
             </h3>
             <div class="cart-products-container">
-                <div class="cart-header">
-                    <div class="col-product">Producto</div>
-                    <div class="col-quantity">Cant.</div>
-                    <div class="col-price">Precio</div>
-                    <div class="col-subtotal">Subtotal</div>
-                    <div class="col-actions"></div>
-                </div>
+                <!-- ✅ EL HEADER LO GENERA JAVASCRIPT, NO ESTÁ FIJO EN EL HTML -->
                 <div id="cartItemsList" class="cart-items-list">
-                    <div class="empty-cart">
-                        <i class="fas fa-shopping-cart"></i>
-                        <p>No hay productos agregados</p>
-                        <p class="empty-hint">Escanee un producto o búsquelo para comenzar</p>
-                    </div>
+                    <!-- El contenido se genera desde JavaScript -->
                 </div>
             </div>
         </div>
@@ -178,7 +168,7 @@
                         <input type="number" id="discount" value="0" step="0.01" min="0">
                     </div>
                 </div>
-                <!-- ✅ IVA con checkbox integrado -->
+                <!-- IVA con checkbox integrado -->
                 <div class="summary-item"
                     style="display: flex; align-items: center; gap: 10px; padding: var(--spacing-xs) 0; border-bottom: 1px solid var(--border-light);">
                     <label
@@ -214,7 +204,7 @@
                 </label>
             </div>
 
-            <!-- ✅ Contenedor para Efectivo (se muestra solo cuando se selecciona Efectivo) -->
+            <!-- Contenedor para Efectivo -->
             <div id="cashPaymentContainer"
                 style="display: none; margin-top: 15px; background: var(--bg-light); border-radius: var(--border-radius-md); padding: var(--spacing-md); border: 1px solid var(--border-light);">
                 <div class="form-group" style="margin-bottom: 0;">
@@ -236,9 +226,7 @@
                         </div>
                     </div>
                     <div style="margin-top: 6px; font-size: 13px; color: var(--text-muted);">
-                        <i class="fas fa-info-circle" style="margin-right: 4px;"></i> Ingrese el monto para calcular
-                        el
-                        cambio automáticamente
+                        <i class="fas fa-info-circle" style="margin-right: 4px;"></i> Ingrese el monto para calcular el cambio automáticamente
                     </div>
                 </div>
             </div>

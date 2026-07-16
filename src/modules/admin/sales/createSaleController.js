@@ -1,7 +1,7 @@
 /* ============================================
    SALE CREATE CONTROLLER - Nueva Venta con Escáner SKU
    VERSIÓN SIMPLIFICADA Y ROBUSTA
-   ===========================================../../../../= */
+   ============================================ */
 
 import { SaleService } from '../../../services/saleService.js';
 import { AdminService } from '../../../services/adminService.js';
@@ -32,7 +32,6 @@ function formatCurrency(value) {
 function loadAdminSession() {
     currentAdmin = AdminService.getSession();
     if (currentAdmin) {
-        console.log('✅ Admin session loaded:', currentAdmin.name);
         return true;
     }
     return false;
@@ -58,7 +57,7 @@ async function loadStoreData() {
             return true;
         }
     } catch (e) {
-        console.warn('⚠️ Error cargando tienda, usando datos por defecto:', e.message);
+        // Error silencioso
     }
 
     currentStore = {
@@ -103,7 +102,6 @@ function cacheElements() {
         summaryTotal: document.getElementById('summaryTotal'),
         customerName: document.getElementById('customerName'),
         customerId: document.getElementById('customerId'),
-        // 🔹 Elementos para búsqueda de clientes
         customerSearchInput: document.getElementById('customerSearchInput'),
         customerSearchResults: document.getElementById('customerSearchResults'),
         clearCustomerBtn: document.getElementById('clearCustomerBtn'),
@@ -188,34 +186,47 @@ function renderCart() {
         return;
     }
 
-    let html = '';
+    // ✅ HEADER con 6 columnas
+    let html = `
+        <div class="cart-header">
+            <span>Imagen</span>
+            <span>Producto</span>
+            <span>Cantidad</span>
+            <span>Precio</span>
+            <span>Subtotal</span>
+            <span>Acciones</span>
+        </div>
+        <div class="cart-items-list">
+    `;
+
     cartItems.forEach((item, index) => {
         let imageHtml = item.imageUrl && item.imageUrl.startsWith('data:image')
             ? `<img src="${item.imageUrl}" alt="${escapeHtml(item.name)}" class="cart-item-image">`
             : `<div class="cart-item-image-placeholder"><i class="fas fa-box"></i></div>`;
 
         html += `
-        <div class="cart-item" data-index="${index}">
-            <div class="cart-item-image-container">${imageHtml}</div>
-            <div class="cart-item-info">
-                <span class="cart-item-name">${escapeHtml(item.name)}</span>
-                <span class="cart-item-brand">${escapeHtml(item.brand || '')}</span>
-                <span class="cart-item-barcode">SKU: ${escapeHtml(item.barcode)}</span>
+            <div class="cart-item" data-index="${index}">
+                <div class="cart-item-image-container">${imageHtml}</div>
+                <div class="cart-item-info">
+                    <span class="cart-item-name">${escapeHtml(item.name)}</span>
+                    <span class="cart-item-brand">${escapeHtml(item.brand || '')}</span>
+                    <span class="cart-item-barcode">SKU: ${escapeHtml(item.barcode)}</span>
+                </div>
+                <div class="cart-item-quantity">
+                    <button type="button" class="quantity-btn" data-index="${index}" data-change="-1">-</button>
+                    <span class="quantity-value">${item.quantity}</span>
+                    <button type="button" class="quantity-btn" data-index="${index}" data-change="1">+</button>
+                </div>
+                <div class="cart-item-price">${formatCurrency(item.price)}</div>
+                <div class="cart-item-subtotal">${formatCurrency(item.price * item.quantity)}</div>
+                <button type="button" class="remove-item-btn" data-index="${index}">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
-            <div class="cart-item-quantity">
-                <button type="button" class="quantity-btn" data-index="${index}" data-change="-1">-</button>
-                <span class="quantity-value">${item.quantity}</span>
-                <button type="button" class="quantity-btn" data-index="${index}" data-change="1">+</button>
-            </div>
-            <div class="cart-item-price">${formatCurrency(item.price)}</div>
-            <div class="cart-item-subtotal">${formatCurrency(item.price * item.quantity)}</div>
-            <button type="button" class="remove-item-btn" data-index="${index}">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
         `;
     });
 
+    html += `</div>`;
     elements.cartItemsList.innerHTML = html;
     attachCartEvents();
     calculateTotals();
@@ -480,11 +491,11 @@ async function searchProductsByName() {
             });
         });
     } catch (error) {
-        console.warn('Error buscando productos:', error);
+        // Error silencioso
     }
 }
 
-// ========== 🔹 BUSCAR CLIENTES (SIN ÍNDICE) ==========
+// ========== BUSCAR CLIENTES ==========
 async function searchCustomers() {
     const queryText = elements.customerSearchInput?.value.trim();
     if (!queryText || queryText.length < 2) {
@@ -497,7 +508,6 @@ async function searchCustomers() {
     if (!currentAdmin) return;
 
     try {
-        // 🔹 Usamos CustomerService para buscar (sin orderBy)
         const storeId = currentAdmin.storeId || currentStore.id;
         const customers = await CustomerService.search(queryText, storeId, 10);
 
@@ -522,7 +532,6 @@ async function searchCustomers() {
 
         elements.customerSearchResults.style.display = 'block';
 
-        // Evento click para seleccionar cliente
         document.querySelectorAll('.customer-search-item').forEach(item => {
             item.addEventListener('click', () => {
                 const customerId = item.dataset.id;
@@ -534,8 +543,6 @@ async function searchCustomers() {
         });
 
     } catch (error) {
-        console.warn('Error buscando clientes:', error);
-        // Si falla, mostrar mensaje de error
         if (elements.customerSearchResults) {
             elements.customerSearchResults.innerHTML =
                 `<div class="customer-search-item error">Error al buscar clientes</div>`;
@@ -544,7 +551,7 @@ async function searchCustomers() {
     }
 }
 
-// ========== 🔹 SELECCIONAR CLIENTE ==========
+// ========== SELECCIONAR CLIENTE ==========
 function selectCustomer(customer) {
     if (elements.customerName) {
         elements.customerName.value = customer.name || customer.fullName || '';
@@ -552,7 +559,6 @@ function selectCustomer(customer) {
     if (elements.customerId) {
         elements.customerId.value = customer.id || '';
     }
-    // Limpiar campo de búsqueda y ocultar resultados
     if (elements.customerSearchInput) {
         elements.customerSearchInput.value = '';
     }
@@ -560,13 +566,12 @@ function selectCustomer(customer) {
         elements.customerSearchResults.style.display = 'none';
         elements.customerSearchResults.innerHTML = '';
     }
-    // Enfocar el siguiente campo
     if (elements.skuInput) {
         elements.skuInput.focus();
     }
 }
 
-// ========== 🔹 LIMPIAR CLIENTE ==========
+// ========== LIMPIAR CLIENTE ==========
 function clearCustomerSelection() {
     if (elements.customerName) {
         elements.customerName.value = '';
@@ -647,8 +652,6 @@ async function createSale() {
             branchId: currentStore?.id || 0
         };
 
-        console.log('📤 Enviando venta:', saleData);
-
         Swal.fire({
             title: 'Procesando...',
             text: 'Registrando venta',
@@ -665,13 +668,11 @@ async function createSale() {
             timeoutPromise
         ]);
 
-        console.log('✅ Venta creada:', result);
-
         for (const item of cartItems) {
             try {
                 await ProductService.updateStock(item.id, -item.quantity, currentAdmin.id);
             } catch (e) {
-                console.warn('Error actualizando stock:', e);
+                // Error silencioso
             }
         }
 
@@ -724,7 +725,6 @@ async function createSale() {
         };
 
         showTicket(ticketData, storeData, () => {
-            console.log('🔄 Cerrando ticket y redirigiendo...');
             const ticketModal = document.getElementById('ticketModal');
             if (ticketModal) {
                 ticketModal.remove();
@@ -736,7 +736,6 @@ async function createSale() {
 
     } catch (error) {
         Swal.close();
-        console.error('❌ Error en createSale:', error);
         Swal.fire('Error', error.message || 'Ocurrió un error al procesar la venta', 'error');
     }
 }
@@ -851,7 +850,6 @@ function bindEvents() {
         });
     }
 
-    // ========== EVENTOS PARA BÚSQUEDA DE CLIENTES ==========
     if (elements.customerSearchInput) {
         elements.customerSearchInput.addEventListener('input', () => {
             clearTimeout(customerSearchTimeout);
@@ -906,6 +904,4 @@ export async function saleCreateController() {
     if (elements.skuInput) {
         elements.skuInput.focus();
     }
-
-    console.log('✅ Sale Create Controller inicializado correctamente');
 }
