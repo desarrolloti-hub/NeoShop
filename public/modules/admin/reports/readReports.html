@@ -1,0 +1,113 @@
+<!-- FILE: readReports.html -->
+<div class="reports-container">
+    <div class="page-header">
+        <h2 class="header-title"><i class="fas fa-chart-bar"></i> Reporte de Ventas</h2>
+        <div class="header-actions">
+            <button id="exportBtn" class="btn-header btn-header-primary"><i class="fas fa-download"></i> Exportar CSV</button>
+        </div>
+    </div>
+
+    <div class="filters-card">
+        <div class="filters-grid">
+            <div class="filter-group">
+                <label><i class="fas fa-calendar-alt"></i> Desde</label>
+                <input type="date" id="startDate" class="filter-input">
+            </div>
+            <div class="filter-group">
+                <label><i class="fas fa-calendar-alt"></i> Hasta</label>
+                <input type="date" id="endDate" class="filter-input">
+            </div>
+            <div class="filter-group">
+                <label><i class="fas fa-circle"></i> Estado</label>
+                <select id="statusFilter" class="filter-input">
+                    <option value="">Todos</option>
+                    <option value="completed">Completado</option>
+                    <option value="pending">Pendiente</option>
+                    <option value="cancelled">Cancelado</option>
+                    <option value="refunded">Reembolsado</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label><i class="fas fa-credit-card"></i> Método de pago</label>
+                <select id="paymentFilter" class="filter-input">
+                    <option value="">Todos</option>
+                    <option value="cash">Efectivo</option>
+                    <option value="card">Tarjeta</option>
+                    <option value="transfer">Transferencia</option>
+                    <option value="credit">Crédito</option>
+                    <option value="debit">Débito</option>
+                    <option value="mixed">Mixto</option>
+                </select>
+            </div>
+        </div>
+        <div class="filters-actions">
+            <button id="applyFiltersBtn" class="btn-primary"><i class="fas fa-filter"></i> Aplicar filtros</button>
+            <button id="clearFiltersBtn" class="btn-secondary"><i class="fas fa-undo"></i> Limpiar</button>
+        </div>
+    </div>
+
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-icon"><i class="fas fa-shopping-cart"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Ventas totales</span>
+                <span id="totalSales" class="kpi-value">0</span>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon"><i class="fas fa-money-bill-wave"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Ingresos totales</span>
+                <span id="totalRevenue" class="kpi-value">$0</span>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon"><i class="fas fa-receipt"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Ticket promedio</span>
+                <span id="averageTicket" class="kpi-value">$0</span>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon"><i class="fas fa-boxes"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Productos vendidos</span>
+                <span id="totalProducts" class="kpi-value">0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <h3><i class="fas fa-chart-line"></i> Ventas diarias</h3>
+        <div class="chart-container">
+            <canvas id="reportsChart"></canvas>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <h3><i class="fas fa-list"></i> Detalle de ventas</h3>
+        <div class="table-wrapper">
+            <table class="reports-table">
+                <thead>
+                    <tr>
+                        <th>Folio</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Subtotal</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="reportsTableBody">
+                    <tr><td colspan="7" class="empty-state"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination-wrapper">
+            <button id="prevPageBtn" class="btn-pagination" disabled><i class="fas fa-chevron-left"></i> Anterior</button>
+            <span id="pageInfo">Página 1 de 1</span>
+            <button id="nextPageBtn" class="btn-pagination" disabled>Siguiente <i class="fas fa-chevron-right"></i></button>
+        </div>
+    </div>
+</div>

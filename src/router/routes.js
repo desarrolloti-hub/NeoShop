@@ -234,7 +234,7 @@ export const routes = {
 
     /* ====== Reportes (nuevo) ====== */
     "/reportes": {
-        view: "/modules/admin/reports/reports.html",
+        view: "/modules/admin/reports/readReports.html",
         controller: null  // Reemplaza con el controlador cuando exista
     },
 
