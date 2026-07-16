@@ -9,9 +9,10 @@ import { AdminRepository } from '../../../repositories/adminRepository.js';
 
 let isLoading = false;
 
-// ✅ Aseguramos que el objeto ROLES tenga el nuevo rol (si no está en auth.js)
-// Si ya está definido allí, puedes omitir esta línea.
-ROLES.SYSADMIN = 'sysadmin';
+// Asegurar que el rol SYSADMIN esté definido (por si no está en auth.js)
+if (!ROLES.SYSADMIN) {
+    ROLES.SYSADMIN = 'sysadmin';
+}
 
 export async function loginController() {
     // ✅ CAPTURAR PARÁMETROS DE LA URL
@@ -164,8 +165,7 @@ function redirectByRole() {
 
     switch (role) {
         case ROLES.SYSADMIN:
-            targetUrl = '/panelSuperAdmin';
-            break;
+            targetUrl = '/inicioSysAdmin';
         case ROLES.ADMIN:
             targetUrl = '/inicioAdmin';
             break;

@@ -60,7 +60,9 @@ import { readCategoriesController } from '../modules/admin/category/readCategori
 /* drivers */
 import { initDriversController } from '../modules/admin/drivers/driversController.js';
 
-
+/* ====== SysAdmin ====== */
+// Si existe un controlador específico para el home de sysadmin, impórtalo aquí.
+// Ejemplo: import { sysAdminHomeController } from '../modules/sysAdmin/home/sysAdminHomeController.js';
 
 export const routes = {
     // Rutas HTML
@@ -160,7 +162,6 @@ export const routes = {
         controller: null
     },
 
-
     /* Home */
     "/inicioAdmin": {
         view: "/modules/admin/home/adminHome.html",
@@ -225,6 +226,12 @@ export const routes = {
     "/scanner": {
         view: "/modules/admin/drivers/drivers.html",
         controller: initDriversController
+    },
+
+    /* ====== SysAdmin ====== */
+    "/inicioSysAdmin": {
+        view: "/modules/sysAdmin/home/sysAdminHome.html",
+        controller: null // Reemplaza con el controlador si existe
     },
 
     /* ====== Shared ====== */
