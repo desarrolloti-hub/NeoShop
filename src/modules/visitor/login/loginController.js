@@ -9,6 +9,10 @@ import { AdminRepository } from '../../../repositories/adminRepository.js';
 
 let isLoading = false;
 
+// ✅ Aseguramos que el objeto ROLES tenga el nuevo rol (si no está en auth.js)
+// Si ya está definido allí, puedes omitir esta línea.
+ROLES.SYSADMIN = 'sysadmin';
+
 export async function loginController() {
     // ✅ CAPTURAR PARÁMETROS DE LA URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -40,6 +44,12 @@ async function checkAuthAndRedirect() {
     const role = AuthService.getCurrentRole();
 
     if (!user) {
+        redirectByRole();
+        return;
+    }
+
+    // ✅ SYSADMIN: redirige directamente sin verificar storeId
+    if (role === ROLES.SYSADMIN) {
         redirectByRole();
         return;
     }
@@ -153,6 +163,9 @@ function redirectByRole() {
     let targetUrl = '/inicioAdmin'; // por defecto
 
     switch (role) {
+        case ROLES.SYSADMIN:
+            targetUrl = '/panelSuperAdmin';
+            break;
         case ROLES.ADMIN:
             targetUrl = '/inicioAdmin';
             break;
@@ -298,9 +311,16 @@ function initLoginForm(plan, period) {
             const role = AuthService.getCurrentRole();
             const nombre = user?.fullName || user?.name || 'Usuario';
 
+            // Mensaje personalizado según el rol
+            let roleDisplay = '';
+            if (role === ROLES.SYSADMIN) roleDisplay = 'Superadministrador';
+            else if (role === ROLES.ADMIN) roleDisplay = 'Administrador';
+            else if (role === ROLES.PARTNER) roleDisplay = 'Colaborador';
+            else roleDisplay = 'Usuario';
+
             await Swal.fire({
                 title: `¡Bienvenido, ${nombre}!`,
-                text: `Accediendo como ${role === 'admin' ? 'Administrador' : 'Colaborador'}`,
+                text: `Accediendo como ${roleDisplay}`,
                 icon: 'success',
                 timer: 3000,
                 timerProgressBar: true,
@@ -362,9 +382,15 @@ function initGoogleLogin(plan, period) {
             const role = AuthService.getCurrentRole();
             const nombre = user?.fullName || user?.name || 'Usuario';
 
+            let roleDisplay = '';
+            if (role === ROLES.SYSADMIN) roleDisplay = 'Superadministrador';
+            else if (role === ROLES.ADMIN) roleDisplay = 'Administrador';
+            else if (role === ROLES.PARTNER) roleDisplay = 'Colaborador';
+            else roleDisplay = 'Usuario';
+
             await Swal.fire({
                 title: `¡Bienvenido, ${nombre}!`,
-                text: `Accediendo como ${role === 'admin' ? 'Administrador' : 'Colaborador'}`,
+                text: `Accediendo como ${roleDisplay}`,
                 icon: 'success',
                 timer: 3000,
                 timerProgressBar: true,
