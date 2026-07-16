@@ -24,7 +24,6 @@ function getAdminId() {
         const currentUser = AuthService.getCurrentUser();
         return currentUser?.id || null;
     } catch (error) {
-        console.error('Error obteniendo admin ID:', error);
         return null;
     }
 }
@@ -40,7 +39,6 @@ function getAdminName() {
         if (currentUser?.email) return currentUser.email.split('@')[0];
         return 'Administrador';
     } catch (error) {
-        console.error('Error obteniendo nombre del admin:', error);
         return 'Administrador';
     }
 }
@@ -124,10 +122,8 @@ function animateNumber(element, start, end, isCurrency = false) {
  */
 async function getProductsSafe() {
     try {
-        // Forzar refresh para evitar caché
         return await ProductService.getAll(adminId, {}, true);
     } catch (error) {
-        console.warn('Error obteniendo productos:', error);
         return [];
     }
 }
@@ -140,29 +136,30 @@ async function getPartnersSafe() {
         if (!partnerService) {
             partnerService = await createPartnerService(currentStore.id);
         }
-        // Forzar refresh para evitar caché
         return await partnerService.getAll({}, true);
     } catch (error) {
-        console.warn('Error obteniendo partners:', error);
         return [];
     }
 }
 
 /**
- * Obtener ventas de forma segura
+ * Obtener ventas de forma segura (usando getAll si existe)
  */
 async function getSalesSafe(storeId, limit = 5) {
     try {
-        // Intentar obtener ventas con un try-catch específico
-        const sales = await SaleService.getSalesByStoreId(storeId, { limit });
-        return sales || [];
-    } catch (error) {
-        // Si es error de índice, mostrar mensaje amigable
-        if (error.message && error.message.includes('index')) {
-            console.warn('Índice de Firestore no creado aún:', error.message);
+        let sales = [];
+        if (typeof SaleService.getAll === 'function') {
+            sales = await SaleService.getAll(storeId);
+        } else if (typeof SaleService.getByStoreId === 'function') {
+            sales = await SaleService.getByStoreId(storeId);
+        } else {
             return [];
         }
-        console.warn('Error obteniendo ventas:', error);
+        if (!Array.isArray(sales)) sales = [];
+        return sales
+            .sort((a, b) => new Date(b.createdAt || b.fecha || 0) - new Date(a.createdAt || a.fecha || 0))
+            .slice(0, limit);
+    } catch (error) {
         return [];
     }
 }
@@ -175,7 +172,6 @@ async function getSalesSummarySafe(storeId) {
         const summary = await SaleService.getDashboardSummary(storeId);
         return summary || { mes: { ingresos: 0, ventas: 0 } };
     } catch (error) {
-        console.warn('Error obteniendo resumen de ventas:', error);
         return { mes: { ingresos: 0, ventas: 0 } };
     }
 }
@@ -185,10 +181,28 @@ async function getSalesSummarySafe(storeId) {
  */
 async function getDailySalesSafe(storeId, dateStr) {
     try {
-        const daily = await SaleService.getDailySummary(storeId, dateStr);
-        return daily?.totalSales || 0;
+        let sales = [];
+        if (typeof SaleService.getAll === 'function') {
+            sales = await SaleService.getAll(storeId);
+        } else if (typeof SaleService.getByStoreId === 'function') {
+            sales = await SaleService.getByStoreId(storeId);
+        } else {
+            return 0;
+        }
+        if (!Array.isArray(sales)) return 0;
+        
+        const startDate = new Date(dateStr);
+        startDate.setHours(0,0,0,0);
+        const endDate = new Date(dateStr);
+        endDate.setHours(23,59,59,999);
+        
+        const dailySales = sales.filter(sale => {
+            const saleDate = new Date(sale.createdAt || sale.fecha);
+            return saleDate >= startDate && saleDate <= endDate;
+        });
+        
+        return dailySales.reduce((sum, sale) => sum + (sale.total || 0), 0);
     } catch (error) {
-        console.warn(`Error obteniendo ventas del día ${dateStr}:`, error);
         return 0;
     }
 }
@@ -200,7 +214,6 @@ async function updateStats() {
     try {
         if (!adminId || !currentStore) return;
 
-        // Obtener datos en paralelo con manejo de errores individual
         const [products, partners, salesSummary] = await Promise.all([
             getProductsSafe(),
             getPartnersSafe(),
@@ -219,15 +232,12 @@ async function updateStats() {
 
         const totalProductsCount = products.length;
 
-        // Animar números
         animateNumber(elements.totalSales, 0, totalSales, true);
         animateNumber(elements.totalOrders, 0, totalOrders, false);
         animateNumber(elements.newCustomers, 0, newCustomers, false);
         animateNumber(elements.totalProducts, 0, totalProductsCount, false);
 
     } catch (error) {
-        console.error('Error actualizando estadísticas:', error);
-        // Mostrar valores por defecto en caso de error
         if (elements.totalSales) elements.totalSales.textContent = '$0';
         if (elements.totalOrders) elements.totalOrders.textContent = '0';
         if (elements.newCustomers) elements.newCustomers.textContent = '0';
@@ -246,7 +256,6 @@ async function initSalesChart() {
         const weekDays = [];
         const weekSales = [];
 
-        // Obtener ventas de los últimos 7 días
         for (let i = 6; i >= 0; i--) {
             const date = new Date(today);
             date.setDate(date.getDate() - i);
@@ -269,7 +278,6 @@ async function initSalesChart() {
         createChart(weekDays, weekSales);
 
     } catch (error) {
-        console.error('Error inicializando gráfico:', error);
         const defaultDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
         const defaultSales = [0, 0, 0, 0, 0, 0, 0];
         createChart(defaultDays, defaultSales);
@@ -373,12 +381,10 @@ async function renderRecentOrders() {
         `).join('');
 
     } catch (error) {
-        console.error('Error renderizando pedidos recientes:', error);
         elements.recentOrdersList.innerHTML = `
             <div style="text-align: center; padding: var(--spacing-xl); color: var(--text-muted);">
                 <i class="fas fa-exclamation-circle" style="font-size: 1.5rem; display: block; margin-bottom: var(--spacing-sm);"></i>
                 <p>No se pudieron cargar los pedidos</p>
-                <p style="font-size: var(--font-size-xs);">${error.message || ''}</p>
             </div>
         `;
     } finally {
@@ -397,7 +403,6 @@ async function renderTopProducts() {
 
         const products = await getProductsSafe();
 
-        // Ordenar por stock como proxy de popularidad
         const sortedProducts = products
             .filter(p => p.active !== false)
             .sort((a, b) => (b.stock || 0) - (a.stock || 0))
@@ -426,7 +431,6 @@ async function renderTopProducts() {
         `).join('');
 
     } catch (error) {
-        console.error('Error renderizando top productos:', error);
         elements.topProductsList.innerHTML = `
             <div style="text-align: center; padding: var(--spacing-xl); color: var(--text-muted);">
                 <i class="fas fa-exclamation-circle" style="font-size: 1.5rem; display: block; margin-bottom: var(--spacing-sm);"></i>
@@ -472,7 +476,6 @@ async function renderLowStockProducts() {
         `).join('');
 
     } catch (error) {
-        console.error('Error renderizando stock bajo:', error);
         elements.lowStockList.innerHTML = `
             <div style="text-align: center; padding: var(--spacing-xl); color: var(--text-muted);">
                 <i class="fas fa-exclamation-circle" style="font-size: 1.5rem; display: block; margin-bottom: var(--spacing-sm);"></i>
@@ -498,54 +501,30 @@ function updateWelcomeMessage() {
  * Inicializar el dashboard
  */
 export async function adminHomeController() {
-    console.log('🏠 Admin Home Controller - Dashboard con datos reales');
-
     try {
-        // Obtener admin ID
         adminId = getAdminId();
         if (!adminId) {
             throw new Error('No se pudo obtener el ID del administrador');
         }
 
-        // Obtener la tienda del admin
         currentStore = await StoreService.getByAdminId(adminId);
         if (!currentStore) {
             throw new Error('No se encontró una tienda asociada a este administrador');
         }
 
-        console.log('📦 Tienda encontrada:', currentStore.name);
-
-        // Cachear elementos
         cacheElements();
-
-        // Actualizar mensaje de bienvenida
         updateWelcomeMessage();
 
-        // Cargar todos los datos en paralelo con manejo de errores individual
-        const results = await Promise.allSettled([
+        await Promise.allSettled([
             updateStats(),
             renderRecentOrders(),
             renderTopProducts(),
             renderLowStockProducts()
         ]);
 
-        // Registrar resultados
-        const names = ['stats', 'orders', 'topProducts', 'lowStock'];
-        results.forEach((result, index) => {
-            if (result.status === 'rejected') {
-                console.warn(`⚠️ ${names[index]} falló:`, result.reason?.message || result.reason);
-            }
-        });
-
-        // Inicializar gráfico
         await initSalesChart();
 
-        console.log('✅ Admin Dashboard cargado con datos reales');
-
     } catch (error) {
-        console.error('❌ Error inicializando dashboard:', error);
-
-        // Mostrar mensaje de error en el dashboard
         const container = document.querySelector('.credContainer');
         if (container) {
             container.innerHTML = `
