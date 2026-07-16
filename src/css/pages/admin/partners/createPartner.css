@@ -180,3 +180,52 @@
         justify-content: center;
     }
 }
+/* ============================================
+   PASSWORD TOGGLE - CENTRADO PERFECTO
+   ============================================ */
+
+/* 1. Contenedor relativo para el campo de contraseña */
+.password-wrapper {
+    position: relative;
+}
+
+/* 2. El input debe tener padding derecho para no tapar el ícono */
+#password {
+    padding-right: 45px; /* Espacio suficiente para el ícono */
+}
+
+/* 3. Ícono toggle: centrado absoluto */
+#togglePassword {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #94a3b8;
+    font-size: 1.2rem;
+    z-index: 10;
+    background: transparent;
+    border: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    height: auto; /* No altera el flujo */
+}
+
+/* 4. Hover efecto */
+#togglePassword:hover {
+    color: #456da2;
+}
+
+/* 5. Ajuste para móviles */
+@media (max-width: 576px) {
+    #password {
+        padding-right: 40px;
+    }
+    #togglePassword {
+        right: 10px;
+        font-size: 1rem;
+    }
+}
